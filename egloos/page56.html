@@ -1,0 +1,612 @@
+<html>
+<head>	<meta http-equiv='pragma' content='no-cache' />
+	<meta http-equiv='cache-control' content='no-cache' />
+	<meta http-equiv='Content-type' content='text/html; charset=utf-8' />
+	<meta name="author" content="namhyung" />
+	<meta name="keywords" content="F/OSS study" />
+	<meta http-equiv="X-XRDS-Location" content="http://namhyung.myid.net/xrds" />
+	<link rel="openid.server" href="http://www.myid.net/server" />
+	<link rel="openid.delegate" href="http://namhyung.myid.net" />
+	<link rel="shortcut icon" href="http://md.egloos.com/img/favicon.ico" />
+	<link rel="pingback" href="https://rpc.egloos.com/rpc1" />
+	<link rel="alternate" type="application/rss+xml" title="F/OSS study" href="http://rss.egloos.com/blog/studyfoss" />
+	<title>F/OSS study</title>
+	<script type="text/javascript" src="http://md.egloos.com/js/ap.js?ver=1.043"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/gd.js?ver=1.002"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/eg.js?ver=1.012"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/cr.js?ver=1.002"></script>
+    <script type="text/javascript" src="http://md.egloos.com/js/page/ins.js?ver=1.4"></script>
+		
+	<script type="text/javascript" src="http://md.egloos.com/js/lib/prototype_v1511.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.ImgModal.js?ver=1.004"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/page/blog/compatible.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/player.js"></script>
+	
+	<script type="text/javascript" src="http://md.egloos.com/js/lazyload.js"></script>
+	
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloos_template.css?ver=1.002" media="screen" />
+<style type="text/css">
+/* jiinny text-only skin
+ */
+
+
+BODY
+{
+	BACKGROUND : #FCFEFF;
+	MARGIN : 0PX;
+	PADDING : 0PX;
+}
+
+BODY,TD,DIV,LI
+{
+	FONT : 9PT/160% Tahoma, SANS-SERIF, Verdana, monaco,굴림,돋움,SANS-SERIF;
+	COLOR : #33455E;
+}
+
+A:LINK		{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:VISITED	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:ACTIVE	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:HOVER		{ COLOR: #C00000; TEXT-DECORATION: UNDERLINE; }
+
+/* filter의 shadow보다 품질을 좋게 하기 위해서*/
+DIV.HEADER
+{
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+	filter:progid:DXImageTransform.Microsoft.Blur;
+}
+
+#HEADER_SHADOW
+{
+	POSITION : relative;
+	top :-50px; right:0px;
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+}
+
+#HEADER_SHADOW A:LINK		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:VISITED		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:HOVER		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+
+DIV.HEADER A:LINK		{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:VISITED	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:HOVER	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+
+DIV.URL			{ FONT : 8PT/100% VERDANA,TAHOMA; }
+DIV.USERMENU
+{
+	POSITION:absolute:
+	left:0px;
+	top:0px;
+	COLOR : #FFFFFF;
+	FONT : bold 7pt;
+	TEXT-ALIGN : RIGHT;
+	MARGIN-BOTTOM : 50px;
+	BACKGROUND : #000060;
+	PADDING : 4px;
+	BORDER-BOTTOM : 2px #336699 SOLID;
+}
+DIV.USERMENU A:LINK {COLOR:#FFF}
+DIV.USERMENU A:VISITED {COLOR:#FFF}
+DIV.USERMENU A:HOVER {COLOR:#FFF}
+
+DIV.PROFILE
+{
+	WIDTH : 200PX;
+	PADDING : 0PX 0PX 10PX;
+	LINE-HEIGHT : 150%;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.MNTTL
+{
+	FONT:BOLD 10pt;
+	WIDTH : 200PX;
+	BORDER-BOTTOM :	1PX #888 DASHED;
+	PADDING : 2PX 0PX 0PX;
+	MARGIN : 25PX 0PX 10PX;
+	TEXT-ALIGN:CENTER;
+}
+
+DIV.MNBODY
+{
+	font:9pt/135%;
+	WIDTH :200PX;
+}
+
+DIV.POST { MARGIN-BOTTOM : 50PX;}
+
+DIV.POST_HEAD
+{
+	MARGIN-BOTTOM : 15PX;
+	PADDING-BOTTOM : 3PX;
+}
+
+DIV.POST_TTL
+{
+	TEXT-DECORATION: UNDERLINE;
+	FONT: BOLD 10pt Georgia ;
+	COLOR: #000;
+}
+
+DIV.POST_BODY
+{
+	FONT:10pt/150%;
+	WIDTH : 100%;
+	MARGIN-BOTTOM : 30PX;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.POST_BODY A:LINK
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION:none;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:VISITED
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:HOVER
+{
+	COLOR: #CF4040;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #CF4040
+}
+
+
+DIV.POST_TAIL {
+	FONT : 11PX/150% VERDANA, TAHOMA, 돋움;
+	MARGIN-TOP : 10PX;
+	TEXT-ALIGN : RIGHT;
+}
+
+DIV.POST_TAIL A:LINK {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:VISITED {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:HOVER {COLOR: #006699; TEXT-DECORATION: NONE; border-bottom:1px dotted #cc0000}
+
+DIV.COMMENT
+{
+	BORDER : 1PX #D3D3D3 SOLID;
+	BACKGROUND : #F7F7F7;
+	PADDING : 15PX;
+	MARGIN : 20PX 0PX;
+}
+
+DIV.COMMENT_BODY
+{
+	MARGIN-BOTTOM : 20PX;
+}
+
+DIV.COMMENT_TAIL
+{
+	MARGIN : 8PX 0PX 5PX;
+	FONT : 8PT/150% VERDANA, TAHOMA, 돋움;
+	COLOR : #777;
+}
+
+DIV.COMMENT_INPUT
+{
+	MARGIN-TOP : 20PX;
+	BORDER-TOP : 1PX #AAA DOTTED;
+	PADDING-TOP : 20PX;
+}
+
+DIV.COMMENT_LINE
+{
+	BORDER-TOP : 1PX #AAA DOTTED;
+	MARGIN : 10PX 0PX 15PX;
+}
+DIV.POST_BODY IMG
+{
+	filter:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	border:1px #000 solid;
+}
+
+DIV.VERSION
+{
+  font-weight: bold;
+  color: white;
+  background: #525d76;
+  border: 1px solid silver;
+#  margin: 0.5em 10% 0.5em 1em;
+  padding: 0.5em;
+}
+
+DIV.SOURCE
+{
+  font-family: monospace, Courier New, Seoul;
+#  margin: 0.5em 10% 0.5em 1em;
+  margin: 1em;
+  color: navy;
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+BLOCKQUOTE
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD dotted;
+	padding:5px;
+	color:#000;
+	margin:20px;
+}
+
+/* begin style of emphasis */
+.BOX1
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#00FF00;
+	background:#000;
+	margin:20px;
+}
+
+.BOX2
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#FFC000;
+	background:#000;
+	margin:20px;
+}
+
+.EM1
+{
+	background : #FFFF80;
+}
+
+.EM2
+{
+	background : #F0C0FF;
+}
+/* end style of emphasis */
+
+#RIGHTMAIN{ POSITION: ABSOLUTE; RIGHT:300px; LEFT:40px;}
+
+#LEFTSIDE
+{
+	POSITION: ABSOLUTE;
+	TOP:60PX;
+	RIGHT: 20PX;
+	FONT: 9PT;
+	WIDTH:200PX;
+	BORDER-LEFT: 2PX #BCBDC4 DASHED;
+	PADDING: 20PX;
+}
+
+#LEFTSHOW
+{
+	TOP:60PX;
+	RIGHT: 0PX;
+	FONT: 7PT/150%;
+	WIDTH:7px;
+	HEIGHT:200px;
+	BACKGROUND:#DDDDDD;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	BORDER-TOP: 3PX #7598A3 SOLID;
+	BORDER-LEFT: 2PX #7598A3 DASHED;
+	BORDER-BOTTOM: 3PX #7598A3 SOLID;
+}
+
+#LEFTHIDE
+{
+	TOP:63PX;
+	RIGHT: 23PX;
+	FONT: 7PT/150%;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	WIDTH:18px;
+	HEIGHT:18px;
+	TEXT-ALIGN:CENTER;
+}
+#BOTTOMBANNER
+{
+	TEXT-ALIGN=CENTER;
+	WIDTH=100%;
+}
+
+IMG.IMG_DECO
+{
+	TEXT-ALIGN:CENTER;BORDER:1px #000 SOLID;
+	filter:progid:DXImageTransform.Microsoft.DropShadow(color=#AAAAAA,offX=3, offY=3)
+}
+
+#LOGO
+{
+	WIDTH=200;
+	TEXT-ALIGN=CENTER;
+	FILTER:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	progid:DXImageTransform.Microsoft.Glow(Color=#AAAAAA, strength=5)
+}
+
+/* 여기서 부터는 시스템에관한 클래스 이므로 변경하지 않으시는 것이 좋습니다. */
+
+DIV.TRACK_TOP { LINE-HEIGHT : 170%; }
+DIV.ARCHIVE_HEAD { FONT-WEIGHT : BOLD; MARGIN-BOTTOM : 10PX; }
+DIV.ARCHIVE_BODY { MARGIN : 20PX 0PX; LINE-HEIGHT : 160%; PADDING-BOTTOM : 100PX; }
+
+IMG.IMAGE_TOP	{ MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_LEFT	{ MARGIN-RIGHT : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_MID	{ MARGIN-TOP : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.BOOKMK		{ MARGIN : 10PX; BORDER : 0PX; }
+IMG.USERMENU	{ MARGIN-LEFT : 8PX; }
+IMG.LOGO
+{
+BORDER: 1PX #000 SOLID;
+}
+
+DIV.BANNER	{ MARGIN-TOP : 30PX; }
+
+.SMALL		{ FONT-SIZE : 11PX; }
+.DATE		{ FONT : BOLD 8PT/150% VERDANA, TAHOMA, 돋움; }
+.TIME		{ FONT : 8PT/150% VERDANA, TAHOMA, 돋움; TEXT-ALIGN : LEFT; }
+.AUTHOR		{ FONT : BOLD 9PT; }
+.TXTFLD		{ FONT-SIZE:9PT;COLOR:#000; BORDER:1PX SOLID #666678; BACKGROUND:#FFF; }
+
+
+
+/* 여기서 부터는 달력 및 XML에 관련된 클래스입니다. */
+
+
+DIV.CAL_TOP { }
+DIV.CAL { MARGIN : 20PX 0PX 20PX; WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_HEAD { WIDTH : 150PX; FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; PADDING : 4PX 0PX; MARGIN-BOTTOM : 10PX;}
+DIV.CAL_BODY { WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_BOTTOM { }
+
+.CAL
+{
+	FONT : 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+}
+
+.CAL_DAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SUN
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #D36654;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SAT
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #3572A1;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_TODAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	BACKGROUND : #E3E3E3;
+	COLOR : #3D5586;
+	TEXT-ALIGN : CENTER;
+	BORDER : 1px #AAA SOLID;
+}
+
+.CAL_TR
+{
+	BACKGROUND:#EFEFEF;
+}
+
+DIV.XML { FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; }
+   div.memobody {
+       width : 200px;
+       overflow : hidden;
+       }
+   </style>
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloo_navibar.css?ver=1.2" media="screen" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/popup.css?ver=2.00" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/button.css" />
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.Center.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/page/blog/Modal.BookmarkDlg.js?ver=1.002"></script>
+<script type="text/javascript">
+//<![CDATA[
+Event.observe(window, 'load', function() {
+    new Modal.BookmarkDlg('egloo_bookmark', {overlay: true,
+                'groupURL'     : "/exec/egloo_bookmark_group.php",
+                'remoteURL'    : "/exec/egloo_insbookmark_exec.php"});
+    if(''==''){
+	    	copy_contents('studyfoss.egloos.com','namhyung','0');
+    }
+});
+//]]>
+</script></head>
+<body>
+<iframe name="cmtviewfrm" id="cmtviewfrm" src="about:blank" width="0" height="0" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" style="display:block;border:0px;"></iframe>
+<DIV CLASS=USERMENU>  
+<a href="http://www.egloos.com">Egloos</a> | <a href="http://sec.egloos.com/login.php?returnurl=http%3A%2F%2Fstudyfoss.egloos.com%2Fpage%2F56">Log-in</a> </DIV>
+
+<DIV ID=RIGHTMAIN>
+<DIV CLASS=HEADER><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<DIV ID=HEADER_SHADOW><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<!--		<DIV CLASS=URL><a href="http://studyfoss.egloos.com" name="egloo_url">studyfoss.egloos.com</a></DIV>-->
+		<!-- egloos content start -->
+<div class='hentry'><span class='copyright_entry' style='display:none;' title='[Linux] kprobes 동작 방식 (2)@@**@@http://studyfoss.egloos.com/5370468'></span><DIV CLASS=POST>
+	<DIV CLASS=POST_HEAD>
+	<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=100%>
+	<TR><TD WIDTH=80%><DIV CLASS=POST_TTL><img src=http://md.egloos.com/img/vl/ico_star_o.gif> <a name="5370468" title="[Linux] kprobes 동작 방식 (2)">[Linux] kprobes 동작 방식 (2)</a></DIV></TD>
+		<TD WIDTH=20% ALIGN=RIGHT></TD></TR>
+	</TABLE>
+	</DIV>
+	<DIV CLASS=POST_BODY>
+	<div class="version">Linux: 2.6.34<br/>arch: x86_64</div><br/>이전 글 보기:<br/><ul><li><a href="http://studyfoss.egloos.com/5369031" title="">[Linux] kprobes 동작 방식 (1)</a></li></ul><br/><br/>이번에는 jprobe와 kretprobe에 대해서 살펴보기로 한다.<br/>이들은 kprobe를 좀 더 간편한 형태로 사용할 수 있도록 특정 목적에 맞게 확장한 것이다.<br/><br/>kprobe는 매우 강력하지만 kprobe의 handler들은 지정한 함수와는 동떨어진<br/>exception context에서 수행되므로 해당 함수에 대한 직접적인 영향을 미치기가 힘들다.<br/>즉 kprobe의 pre/post handler에서는 커널의 (EXPORT된) 전역 변수 등에는 자유롭게 접근이 가능하지만<br/>지역 변수에 접근하기 위해서는 코드를 디스어셈블한 뒤 바이너리 수준에서 분석을 거쳐야만 정확한 위치를<br/>파악할 수 있으며 설사 그렇다 하더라도 해당 instruction에서 사용된 register나 스택 위치를 통해<br/>접근할 수 밖에 없기 때문에 사용하기에 간편하다고 볼 수는 없다.<br/><br/>jprobe나 kretprobe도 근본적으로는 이러한 문제를 가지고는 있지만<br/>exception context가 아닌 해당 함수가 실행되는 context에서 수행되므로<br/>제한적이나마 해당 함수의 지역적인 데이터 중 일부에 쉽게 접근할 수 있는 방법을 제공한다.<br/>구체적으로 jprobe는 함수의 시작 위치에서 대신 수행되어 함수의 인자에 직접 접근할 수 있도록 해 주며<br/>kretprobe는 함수가 리턴되는 시점에서 수행되어 리턴값에 접근할 수 있게 있게 해 준다.<br/><br/>먼저 jprobe에 대해서 살펴보도록 하자.<br/>다음은 jprobe를 구성하는 자료 구조를 보여준다.<br/><br/>include/linux/kprobes.h:<div class="source">struct jprobe {<br/>&nbsp;&nbsp;&nbsp; struct kprobe kp;<br/>&nbsp;&nbsp;&nbsp; void *entry;&nbsp;&nbsp;&nbsp; /* probe handling code to jump to */<br/>};</div><br/>간단히 jprobe는 kprobe에 entry 필드가 추가된 것이다.<br/>entry 필드는 해당 함수의 시작 위치에서 호출될 handler를 가리키는 포인터이며,<br/>이 handler는 jprobe를 등록한 함수에 따라 prototype이 다르므로 (해당 함수와 동일하다)<br/>정해진 타입이 없이 void * 형태로 선언된다.<br/><br/>앞서 언급한대로 jprobe는 함수의 시작 위치에만 등록할 수 있다.<br/>현재 이에 대한 엄격한 검사는 하고 있지 않지만, 만약 함수의 시작 위치가 아닌 곳에 등록된다면<br/>어떠한 동작을 하게 될 지 보장할 수 없을 것이다.<br/><br/>jprobe를 등록하는 register_jprobe() 함수는 내부적으로 다음과 같이 수행된다.<br/>(사실은 여러 jprobe를 등록할 수 있는 register_jprobes() 함수를 거쳐 수행되지만<br/>편의상 하나로 합쳐서 나타내었다.)<br/><br/>kernel/kprobes.c:<div class="source">int __kprobes register_jprobes(struct jprobe *jp)<br/>{<br/>&nbsp;&nbsp;&nbsp; ...<br/>&nbsp;&nbsp;&nbsp; /* Todo: Verify probepoint is a function entry point */<br/>&nbsp;&nbsp;&nbsp; jp-&gt;kp.pre_handler = setjmp_pre_handler;<br/>&nbsp;&nbsp;&nbsp; jp-&gt;kp.break_handler = longjmp_break_handler;<br/>&nbsp;&nbsp;&nbsp; ret = register_kprobe(&amp;jp-&gt;kp);<br/><br/>&nbsp;&nbsp;&nbsp; ...<br/>&nbsp;&nbsp;&nbsp; return ret;<br/>}</div><br/>위에서 보는 것처럼 setjmp_pre_handler와 longjmp_break_handler를 각각<br/>pre_handler와 break_handler로 설정한 뒤 register_kprobe()를 호출한다.<br/>이제 이들 함수 각각을 살펴보기로 하자.<br/><br/>setjmp_pre_handler() 함수는 아키텍처 별로 별도로 정의되며<br/>x86의 경우 호출되는 당시의 스택 정보 중 일부와 레지스터 정보를 저장해 둔 뒤<br/>pt_regs 구조체의 ip 필드를 jprobe.entry의 값으로 설정하여 1을 리턴한다.<br/>앞서 kprobe를 설명할 때 pre_handler가 1을 반환하는 경우에는<br/>정상적으로 single step으로 진행하지 않고 바로 exception context에서 빠져나와서<br/>(ip 필드에 지정된 위치에서부터) 실행을 다시 시작한다고 했음을 기억하자.<br/><br/>이제 jprobe 등록 시 지정한 entry 위치에서부터 실행이 재개되는데<br/>이 시점에서는 원래의 함수를 호출한 상황과 완전히 동일한 상황이기 때문에<br/>(마치 커널에서 jprobe로 등록한 함수를 직접 호출한 것과 같다.)<br/>함수의 인자에 (타입 정보를 가진) 그대로 접근할 수 있다.<br/><br/>jprobe의 entry 함수는 한 가지 제약 사항을 가지는데<br/>함수를 실행한 뒤 원래의 위치로 돌아가기 위해 jprobe_return() 함수를 호출해야 한다는 것이다.<br/><br/>jprobe_return은 인라인 어셈블리로 구현된 함수이며<br/>setjmp_pre_handler에서 저장한 값으로 스택 포인터를 복원한 뒤<br/>breakpoint exception을 발생시키는 int3 instruction을 수행한다.<br/><br/>앞서 kprobe를 살펴볼 때 잠깐 언급하기 했지만<br/>kprobe가 수행되는 도중 kprobe가 등록되지 않은 위치에서 breakpoint (#BP) exception 이 발생하면<br/>break_handler가 수행된다. 이 경우 longjmp_break_handler() 함수가 수행되는데<br/>이 함수는 먼저 #BP exception이 jprobe_return() 함수 내에서 발생한 것인지 검사한 후<br/>setjmp_pre_handler() 함수에서 저장해 둔 값으로 스택과 레지스터 값을 복원하고 1을 리턴한다.<br/>그러면 kprobe 처리 과정에서 setup_singlestep() 함수를 호출하여 이 후 정상적인 과정을 수행한다.<br/><br/>여기까지의 과정을 그림으로 나타내면 다음과 같다.<br/><br/><div style="text-align:center"><img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds19.egloos.com/pds/201008/02/35/c0098335_4c55a764e1689.png" width="500" height="297.570850202" onclick="Control.Modal.openDialog(this, event, 'http://pds19.egloos.com/pds/201008/02/35/c0098335_4c55a764e1689.png');" /></div><br/>이제 kretprobe에 대해서 살펴볼 것이다.<br/>먼저 kretprobe를 이용하려면 커널 설정 시 CONFIG_KRETPROBES 옵션을 별도로 선택해야 한다.<br/>kretprobe는 함수가 리턴되는 시점에서 호출되어야 하는데<br/>이는 원래의 함수가 리턴되는 주소를 변경하는 방식으로 구현한다.<br/><br/>함수가 리턴될 주소는 함수가 호출된 시점에서 스택의 최상위에 저장되는데<br/>이는 frame pointer를 통해 접근할 수도 있겠지만 구현 상의 편의를 위해서인지<br/>(frame pointer는 커널 설정 시 사용하지 않도록 할 수도 있기 때문인 듯하다)<br/>x86 아키텍처에서는 kretprobe도 함수의 시작 위치에만 등록해야 한다.<br/><br/>kretprobe는 kprobe 및 jprobe와는 달리 exception을 통해 실행 환경을 제어할 수 있는 시점이 아닌<br/>원래 함수가 리턴되는 시점에서 호출되어야 하기 때문에 추가적으로 몇 가지 고려해야 할 사항이 있다.<br/><br/>기본적으로 kprobe 및 jprobe의 handler들은 인터럽트와 선점이 금지된 채로 실행된다.<br/>하지만 kretprobe의 경우 이러한 설정을 제어할 수 없기 때문에 kretprobe의 handler를 수행 중인 태스크가<br/>다른 태스크에게 선점될 수 있고, 그 태스크가 동일한 kretprobe의 handler를 수행하게 될 수도 있다.<br/>(다른 프로세서에서 실행 중인 태스크에서 동일한 handler를 수행할 수 있는 경우도 물론 가능하며<br/>이러한 경우는 kprobe 및 jprobe에서도 고려해야 할 것이다.)<br/><br/>따라서 kretprobe는 handler를 수행할 때마다 고유한 kretprobe_instance 구조체를 할당하여<br/>각 태스크에 따른 정보들을 별도로 저장하도록 한다. 다음은 이를 위한 자료 구조이다.<br/><br/>include/linux/kprobes.h:<div class="source">struct kretprobe {<br/>&nbsp;&nbsp;&nbsp; struct kprobe kp;<br/>&nbsp;&nbsp;&nbsp; kretprobe_handler_t handler;<br/>&nbsp;&nbsp;&nbsp; kretprobe_handler_t entry_handler;<br/>&nbsp;&nbsp;&nbsp; int maxactive;<br/>&nbsp;&nbsp;&nbsp; int nmissed;<br/>&nbsp;&nbsp;&nbsp; size_t data_size;<br/>&nbsp;&nbsp;&nbsp; struct hlist_head free_instances;<br/>&nbsp;&nbsp;&nbsp; spinlock_t lock;<br/>};<br/><br/>struct kretprobe_instance {<br/>&nbsp;&nbsp;&nbsp; struct hlist_node hlist;<br/>&nbsp;&nbsp;&nbsp; struct kretprobe *rp;<br/>&nbsp;&nbsp;&nbsp; kprobe_opcode_t *ret_addr;<br/>&nbsp;&nbsp;&nbsp; struct task_struct *task;<br/>&nbsp;&nbsp;&nbsp; char data[0];<br/>};</div><br/>kretprobe 구조체도 내부적으로 kprobe 구조체를 포함하고 있으며<br/>kprobe의 pre_handler 만을 pre_handler_kretprobe() 함수로 등록하고<br/>나머지 handler들은 모두 NULL로 설정한다.<br/>handler 필드는 실제로 해당 함수가 리턴될 때 호출될 함수를 설정하며<br/>entry_handler는 pre_handler_kretprobe() 함수가 실행될 때 수행할 작업이 있다면 설정한다.<br/><br/>maxactive 필드는 이 kretprobe에 대해 할당해 둘 kretprobe_instance 구조체의 개수이다.<br/>따라서 동시에 maxactive 만큼의 kretprobe가 수행될 수 있으며 (선점된 것을 포함한 수이다)<br/>이를 넘어가는 수의 kretprobe가 수행되어야 한다면 nmissed 필드의 값이 하나씩 증가된다.<br/>data_size는 kretprobe를 등록할 때 handler에서 추가적으로 필요한 데이터가 있는 경우<br/>(일반적으로는 entry_handler에서 어떤 정보를 handler에 넘겨주고 싶은 경우에 해당한다)<br/>데이터의 크기를 명시해주면 kmalloc 시 그 값 만큼 더한 값으로 할당한다.<br/>할당된 kretprobe_instance들은 free_instances 리스트로 관리하며 이는 lock을 통해 보호한다.<br/>(이 경우 hlist는 해시 테이블과는 관련이 없고 단순히 단방향 리스트로만 사용된다.)<br/><br/>kretprobe_instance 구조체의 hlist 필드는 kretprobe의 free_instances에 연결되기 위한 것이며<br/>rp는 원래의 kretprobe를 가리키는 포인터이고<br/>ret_addr은 handler를 수행한 후에 원래의 위치로 돌아가기 위한 주소를 저장해 두며<br/>task는 현재 실행 중인 태스크를 가리키고<br/>마지막으로 data는 kretprobe 등록 시 추가적으로 할당한 데이터를 가리키기 위한 것으로<br/>크기가 0인 배열이므로 kretprobe.data_size가 0이라면 아무런 공간도 차지하지 않을 것이다.<br/><br/>이제 kretprobe로 등록된 함수가 실행되는 경우 먼저 breakpoint (#BP) exception이 발생하고<br/>pre_handler_kretprobe() 함수가 실행되는데 이 함수는 free_instances에서 이용 가능한<br/>kretprobe_instance 객체를 얻은 후에 entry_handler가 정의되어 있다면 이를 호출하고<br/>arch_prepare_kretprobe() 함수를 호출하여 kretprobe를 위한 준비 작업을 수행한다.<br/>그리고 현재 current 값을 해시 키로 하여 kretprobe_inst_table에 현재 객체를 등록해 둔다.<br/>만약 kretprobe_instance 객체를 얻을 수 없다면 nmissed 값을 하나 증가시키고 바로 종료한다.<br/><br/>아키텍처 별로 정의되는 arch_prepare_kretprobe() 함수는 x86의 경우<br/>단순히 현재 스택 포인터가 가리키는 위치에 저장된 값을 원래의 리턴 주소로 저장해 두고<br/>리턴 주소를 kretprobe_trampoline으로 설정하는 것이 전부이다.<br/><br/>이제 exception에서 반환되면 원래의 함수가 실행되고<br/>원래의 함수가 리턴될 때 kretprobe_trampoline 코드가 수행된다.<br/>이 코드는 kretprobe_trampoline_holder() 함수 내에 숨어있는(?) 인라인 어셈블리 루틴으로<br/>(exception handler가 수행하는 것과 같이) 현재 레지스터 상태를 모두 저장하여<br/>pt_regs 구조체의 형태로 구성하고 trampoline_handler() 함수를 호출한 뒤에<br/>리턴값을 원래의 리턴 주소로 설정하고 레지스터를 복원한 뒤 리턴한다.<br/>따라서 이 후에는 원래 함수가 리턴되어야 할 위치로 돌아가서 정상적인 실행이 진행된다.<br/><br/>trampoline_handler() 함수는 kretprobe_inst_table에서<br/>현재 태스크에 대한 kretprobe_instance 객체를 얻은 후 handler를 수행한다.<br/>(동일한 위치에 여러 kretprobe가 등록된 경우가 있을 수 있으므로 이를 처리해야 한다)<br/>그리고 kretprobe_instance 객체는 더 이상 사용되지 않으므로 free_instances 리스트에 다시 추가하고<br/>미리 저장해 둔 원래의 리턴 주소를 리턴한다.<br/><br/>참고로 kretprobe의 handler에서 리턴값에 접근하는 직접적인 방법은 없지만<br/>아키텍처에 따라 리턴값이 전달되는 방식을 통해 간접적으로 접근할 수는 있다.<br/>x86의 경우 (대부분) rax 레지스터를 통해 전달되므로 kretprobe_trampoline에서 저장한<br/>pt_regs 구조체의 ax 필드의 값을 읽거나 쓰면 원하는 작업을 수행할 수 있다.<br/><br/>이를 위해 많은 아키텍처에서는 regs_return_value라는 매크로/함수를 제공하고 있으며<br/>x86의 경우 다음과 같이 정의되어 있다.<br/><br/>arch/x86/include/asm/ptrace.h:<div class="source">static inline unsigned long regs_return_value(struct pt_regs *regs)<br/>{<br/>&nbsp;&nbsp;&nbsp; return regs-&gt;ax;<br/>}</div><br/>이상의 kretprobe 실행 과정을 간략히 그림으로 그려보면 다음과 같다.<br/><br/><div style="text-align:center"><img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds19.egloos.com/pds/201008/02/35/c0098335_4c55a77556688.png" width="500" height="263.83265857" onclick="Control.Modal.openDialog(this, event, 'http://pds19.egloos.com/pds/201008/02/35/c0098335_4c55a77556688.png');" /></div><br/>지금까지 x86(_64) 아키텍처에서의 kprobes 동작 방식을 대략적으로 살펴보았다.<br/>(다른 아키텍처에서의 동작 방식도 이와는 크게 다르지 않을 것이라 기대한다.. ^^;)<br/>커널 소스 내에 samples/kprobes 디렉터리에는 kprobes를 사용하는 예제 프로그램들이<br/>종류 별로 존재하고 있으니 함께 살펴보면 전체적인 구조를 이해하는 데 도움이 될 것이다.<br/><br/><div style="clear:both; _display: none;"></div><div class="posttaglist"><a href="/tag/linux" rel="tag">linux</a>,&nbsp;<a href="/tag/kernel" rel="tag">kernel</a>,&nbsp;<a href="/tag/debug" rel="tag">debug</a>,&nbsp;<a href="/tag/x86" rel="tag">x86</a></div>
+       <!--
+       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+		    xmlns:dc="http://purl.org/dc/elements/1.1/"
+		    xmlns:trackback="http://madskills.com/public/xml/rss/module/trackback/">
+       <rdf:Description
+	        rdf:about="http://studyfoss.egloos.com/5370468"
+	        dc:identifier="http://studyfoss.egloos.com/5370468"
+	        dc:title="[Linux] kprobes 동작 방식 (2)"
+	        trackback:ping="http://studyfoss.egloos.com/tb/5370468"/>
+       </rdf:RDF>
+       -->
+
+	</DIV>
+	<DIV CLASS=POST_TAIL ALIGN=RIGHT><span class="TIME"> <a href="/5370468" class="permalink" title="[Linux] kprobes 동작 방식 (2)" rel="bookmark">#</a> by <span class="AUTHOR">namhyung</span> | <a href="/5370468" class="time"  title="[Linux] kprobes 동작 방식 (2)" rel="bookmark">2010/08/02 02:04</a></span> | <a href="/category/Kernel" class="category">Kernel</a> | <span class="linkback"><a href="#trb" onclick="trbview('5370468','c0098335','0'); return false;" class="tail_trb">트랙백(<span id="trbcnt5370468">1</span>)</a></span> | <span class="linkback"><a href="#cmt" onclick="cmtview('5370468','c0098335','0'); return false;" class="tail_cmt">덧글(<span id="cmtcnt5370468">0</span>)</a></span></DIV>
+		<span id="cmt5370468"></span>
+</DIV>
+</div><!-- egloos content end -->
+<span style="float: left"><a href="/page/55">◀ 이전 페이지</a></a></span>
+<span style="float: right"><a href="/page/57">다음 페이지 ▶</a></span>
+<BR><BR>
+<DIV ID='BOTTOMBANNER' style="display:none;">	<div class="BANNER"><a href="http://www.egloos.com"><img src="http://md.egloos.com/img/edt/banner_ffffff_1.gif" width="150" height="50" border="0" alt="Powered by egloos" /></a></div>
+<BR><BR></DIV>
+</DIV>
+<DIV ID=LEFTSIDE style="display:block;">
+	<DIV ID=LOGO></DIV>
+	     <script language="javascript" type="text/javascript">
+     <!--
+     var s_calendar = new Array();
+     s_calendar = [];
+	  calendar("","");
+     -->
+     </script>
+
+	
+<DIV CLASS=MNTTL>카테고리</DIV>
+<DIV CLASS=MNBODY>
+<a href="/category/General">General</a><br/><a href="/category/Application">Application</a><br/><a href="/category/System">System</a><br/><a href="/category/Kernel">Kernel</a><br/><a href="/category/Book">Book</a><br/><a href="/category/Tips">Tips</a><br/>
+</DIV>
+
+<DIV CLASS=MNTTL>태그</DIV>
+<DIV CLASS=MNBODY><a href="/tag/git" class="tlevel2"> git</a>
+<a href="/tag/x86" class="tlevel3"> x86</a>
+<a href="/tag/bash" class="tlevel2"> bash</a>
+<a href="/tag/perf" class="tlevel1"> perf</a>
+<a href="/tag/algorithm" class="tlevel3"> algorithm</a>
+<a href="/tag/memory" class="tlevel3"> memory</a>
+<a href="/tag/CARM" class="tlevel1"> CARM</a>
+<a href="/tag/computer-architecture" class="tlevel3"> computer-architecture</a>
+<a href="/tag/sed" class="tlevel1"> sed</a>
+<a href="/tag/binutils" class="tlevel2"> binutils</a>
+<a href="/tag/CAaQA3" class="tlevel3"> CAaQA3</a>
+<a href="/tag/blktrace" class="tlevel1"> blktrace</a>
+<a href="/tag/compiler" class="tlevel3"> compiler</a>
+<a href="/tag/SMP" class="tlevel2"> SMP</a>
+<a href="/tag/linux" class="tlevel3"> linux</a>
+<a href="/tag/awk" class="tlevel1"> awk</a>
+<a href="/tag/emacs" class="tlevel3"> emacs</a>
+<a href="/tag/C" class="tlevel3"> C</a>
+<a href="/tag/patch" class="tlevel3"> patch</a>
+<a href="/tag/vcs" class="tlevel1"> vcs</a>
+<a href="/tag/block-layer" class="tlevel2"> block-layer</a>
+<a href="/tag/elf" class="tlevel3"> elf</a>
+<a href="/tag/gcc" class="tlevel3"> gcc</a>
+<a href="/tag/scm" class="tlevel1"> scm</a>
+<a href="/tag/glibc" class="tlevel3"> glibc</a>
+<a href="/tag/build" class="tlevel3"> build</a>
+<a href="/tag/script" class="tlevel1"> script</a>
+<a href="/tag/kernel" class="tlevel3"> kernel</a>
+<a href="/tag/documentation" class="tlevel1"> documentation</a>
+<a href="/tag/synchronization" class="tlevel3"> synchronization</a>
+<div style="text-align:right;margin-top:5px;"><a href="/tag">전체보기</a></div>
+</DIV>
+
+<DIV CLASS=MNTTL>이글루 파인더</DIV>
+<DIV CLASS=MNBODY><form id="finder" style="margin:0;" name="finder" method="post" action="http://studyfoss.egloos.com/" onsubmit="return go_search(document.finder);"><input type="text" id="srch_kwd" name="srch_kwd" size="10" style="vertical-align: middle;width: 100px;font-size:12px;" maxlength="30"/><input type="image" style="vertical-align: middle;margin-left:3px;" src="http://md.egloos.com/img/fnd/searchb.gif" /><p style="margin:3px 0 0 13px;text-align:left"><a href="http://www.zum.com" target="_blank"><img src="http://md.egloos.com/img/search/txt_power.png"></a></p></form>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 덧글</DIV>
+<DIV CLASS=MNBODY>
+<style type="text/css"> 
+.reply_write {margin:10px 0;}
+.reply_write fieldset {border:none;margin:0;padding:0;}
+.reply_write legend {display:none;}
+.reply_write .comment_info {width:95%;}
+.reply_write .comment_info span.comment_name,
+.reply_write .comment_info span.comment_passwd,
+.reply_write .comment_info span.comment_blog {display:block;padding:0 0 2px 0;clear:both;}
+.reply_write .comment_info span.comment_blog {float:left;}
+.reply_write .comment_info span.comment_name label,
+.reply_write .comment_info span.comment_passwd label,
+.reply_write .comment_info span.comment_blog label {display:block;float:left;width:55px;}
+.reply_write .comment_info input {padding:1px 0 0 1px;vertical-align:middle;}
+.reply_write .comment_info input.name {width:100px;}
+.reply_write .comment_info input.passwd {width:60px;}
+.reply_write .comment_info input.blog {width:200px;font-family:tahoma,sans-serif;font-size:11px;}
+.reply_write .comment_info span.comment_now {display:none;}
+.reply_write .comment_info span.comment_login {float:right;}
+.reply_write textarea {margin:2px 0;padding:0;width:95%;height:100px;margin-left:0 !important;font:normal 12px '돋움',sans-serif;}
+.reply_write .comment_btn {width:95%;height:23px;position:relative;*position:static;*text-align:right;}
+.reply_write .comment_btn .comment_submit {position:absolute;top:0;right:0;*position:static;*text-align:right;}
+</style>     
+
+<a href="http://studyfoss.egloos.com/5129119#12438993">이렇게 좋은 글이 한글로 있다는 것..</a><br/><span class="SMALL">by 프로그라머 at 02/17</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5512112#12419757">흐름을 이해할 수 있는글이라 좋..</a><br/><span class="SMALL">by morenice at 11/26</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#12401092">좋은 글 감사합니다~퍼갑니다~</a><br/><span class="SMALL">by 김석범 at 09/10</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 트랙백</DIV>
+<DIV CLASS=MNBODY>
+<a href="http://studyfoss.egloos.com/5350643#515727">이맥스의 파일 변수 사용하기</a><br/><span class="SMALL">by 개똥이야기</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#512679">asmlinkage modifier in Linux..</a><br/><span class="SMALL">by novum의 공유창고</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5409933#511713">구조체의 패킹에 대한 이야기</a><br/><span class="SMALL">by 김재호의 디지털보단 아날로그</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+
+
+
+
+
+
+
+<DIV style="TEXT-ALIGN:center; width:200px;">
+<div class="XML"><a href="http://rss.egloos.com/blog/studyfoss" target="_new"><img src="http://md.egloos.com/img/skn/rss.gif" alt="rss" border="0" /></a><br /><br /> skin by <a href="http://jiinny.egloos.com">jiinny</a></div>
+<BR /><BR />
+<DIV ID=OHLOH><a href='https://www.ohloh.net/accounts/115130?ref=Detailed'>
+  <img alt='Ohloh profile for Namhyung Kim' height='35' src='https://www.ohloh.net/accounts/115130/widgets/account_detailed.gif' width='191' border='0' />
+</a></DIV>
+</DIV>
+</DIV>
+<DIV ID='LEFTSHOW'  onclick=document.all['RIGHTMAIN'].style.right='300px';document.all['BOTTOMBANNER'].style.display='none';document.all['LEFTSIDE'].style.display='block';document.all['LEFTSHOW'].style.display='none';document.all['LEFTHIDE'].style.display='block';  style='color:red;display:none;'>
+</DIV>
+
+<DIV id='LEFTHIDE' onclick=document.all['RIGHTMAIN'].style.right='20px';document.all['BOTTOMBANNER'].style.display='block';document.all['LEFTSIDE'].style.display='none';document.all['LEFTHIDE'].style.display='none';document.all['LEFTSHOW'].style.display='block';  style='color:red'>X</DIV><iframe src="http://www.egloos.com/estat/stat_logger.php?bid=c0098335&ref=&openflag=" style="width: 0px; height: 0px; border: 0px solid #fff;"></iframe>
+<img width="0" height="0" border="0" src="http://studyfoss.egloos.com/egloo_pds.php?eid=c0098335" alt="" />
+<form id="trackfrom" name="trackfrom" method="post" action="">
+<input type="hidden" name="url" value="" />
+<input type="hidden" name="title" value="" />
+<input type="hidden" name="trburl" value="" />
+</form>
+<div style="z-index:9901;top:764px;left:169px;display:none;" id="egloo_bookmark" class="popupWrap">
+    <div class="popupTitle">이글루링크 추가하기</div>
+    <dl class="popupBody">
+        <dt class="no-arrow" style="background:none;font-size:12px;text-align:center;">
+            <span id="egloo-bookmark-url" style="color:#0F71A1;"></span>
+            (<span id="egloo-bookmark-name"></span>)을(를)</dt>
+        <dd class="notice" style="margin:0;padding:0 0 0 8px;line-height:1.8em;color:#000;font-size:12px;text-align:center;">이글루링크로 추가하시겠습니까? 추가하시려면 그룹선택을 하세요.</dd>
+        <dd class="notice weak" style="margin:0;padding:0 0 0 8px;line-height:1.8em;font-size:11px;color:#666666;text-align:center;">(그룹선택 하지 않는 경우, 최상단 목록에 추가됩니다.)</dd>
+        <dd class="egloo-bookmark-group" style="margin:0;padding:10px 0 8px;line-height:1.8em;text-align:center;color:#333;font-size:12px;text-align:center;">그룹선택 :
+            <select name="groupID" id="egloo-bookmark-groupID" style="font-family:'돋움','dotum','Trebuchet MS',Sans-serif;margin-left:10px;"><option value="000">그룹선택없음</option></select></dd>
+        <dd class="buttons">
+            <input type="button" value="지금 확인" onfocus="blur();" onclick="Modal.insertBookmark(true);" class="button btn24 btn_bold"/>
+            <input type="button" value="나중에 확인" onfocus="blur();" onclick="Modal.insertBookmark(false);" class="button btn24 btn_weak"/>
+        </dd>
+        <dd class="close" onclick="Modal.close();"><img src="http://md.egloos.com/img/www/btn/button_popup_close.gif" alt="이글루링크 취소" title="이글루링크 취소" /></dd>
+    </dl>
+</div>
+</body>
+</html>

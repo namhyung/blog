@@ -1,0 +1,133 @@
+	
+<div class="version">
+emacs: 24.0.95-fc17
+git: 1.7.10.1
+</div>
+
+
+작업하다보면 종종 특정 영역의 코드에 어떤 의미가 담겨있는지 잘 와닿지 않거나
+해당 코드가 무슨 이유로 지금처럼 작성되었는지 궁금한 경우가 있을 것이다.
+이 때 해당 프로젝트가 (git과 같은) scm/vcs 도구를 사용하고 있다면
+이를 이용해 이전의 커밋 로그를 찾아서 참조하는 것이 가장 좋은 방법이다.
+
+사실 emacs는 vc-mode를 제공하므로 키 입력을 통해 현재 파일에 대한
+annotation (= blame) 정보를 볼 수 있기는 하지만
+이는 파일 전체에 대해 시도하므로 (상대적으로) 매우 느리고
+더욱이 개인적으로 vc-mode 자체를 사용하지 않으므로 고려하지 않는다.
+
+다행히도 git의 blame 명령은 -L 옵션을 제공하여
+주어진 줄번호 (or 정규식) 범위에 해당하는 부분 만을 쉽게 참조할 수 있다.
+하지만 매번 해당 줄번호를 알아내어 터미널에서 이를 입력하는 것도 귀찮은 작업이므로
+이를 에디터에서 직접 실행하는 방식이 가장 좋을 듯하여
+다음과 같은 함수를 작성하여 사용하고 있다.
+
+
+<div class="source">
+(defun git-blame-region ()
+  (interactive)
+  (if (not (use-region-p))
+      (message "please selct the region first!" )
+    (progn
+      (when (get-buffer "*Git blame Output*")
+        (kill-buffer "*Git blame Output*"))
+      (let ((line (format "%d,+%d"
+                          (line-number-at-pos (region-beginning))
+                          (count-lines (region-beginning) (region-end))))
+            (file (file-name-nondirectory buffer-file-name))
+            (buf (generate-new-buffer "*Git blame Output*")))
+        (deactivate-mark)
+        (set-process-sentinel
+         (start-process "git-blame" buf "git" "--no-pager" "blame" "-sL" line file)
+         (lambda (proc out) (goto-line 1)))
+        (switch-to-buffer-other-window buf)))))
+</div>
+
+간단히 설명하면 현재 선택된 영역 (region)의 시작과 끝 부분에 해당하는
+줄 번호를 계산한 뒤 이를 git -L &lt;start&gt;,+&lt;end&gt; 형식으로 실행하여
+그 출력을 "*Git blame Output*"이라는 버퍼에 저장하여 보여주는 것이다.
+출력 시 불필요한 정보를 줄이기 위해 -s 옵션을 추가로 지정하였다.
+
+이를 실행하면 다음과 같은 출력을 얻을 수 있다.
+
+
+<div class="source">
+bdfebd848f2a1 132)     if (opts-&gt;branch_stack) {
+bdfebd848f2a1 133)         attr-&gt;sample_type    |= PERF_SAMPLE_BRANCH_STACK;
+bdfebd848f2a1 134)         attr-&gt;branch_sample_type = opts-&gt;branch_stack;
+bdfebd848f2a1 135)     }
+0f82ebc452f92 136) 
+0f82ebc452f92 137)     attr-&gt;mmap = track;
+0f82ebc452f92 138)     attr-&gt;comm = track;
+0f82ebc452f92 139) 
+d67356e7f80f5 140)     if (perf_target__none(&amp;opts-&gt;target) &amp;&amp;
+d67356e7f80f5 141)         (!opts-&gt;group || evsel == first)) {
+0f82ebc452f92 142)         attr-&gt;enable_on_exec = 1;
+0f82ebc452f92 143)     }
+0f82ebc452f92 144) }
+</div>
+
+이제 이 화면에서 다시 해당 커밋을 확인할 수 있는 명령이 필요하다.
+이를 위해서는 git show 명령을 이용할 수 있는데
+이 때 위 화면에서 가장 왼쪽에 표시되는 SHA-1 hash 값을 인자로 넘겨야 한다.
+
+이를 위해 먼저 현재 커서가 있는 곳의 SHA-1 hash를 읽는 함수를
+다음과 같이 작성하였다. (GNU global 프로젝트의 gtags.el 구현을 참조하였다.)
+
+
+<div class="source">
+(defun git-hash-at-pos ()
+  (let (begin-pos end-pos)
+    (cond
+     ;; If we are in the middle of SHA-1 hash, find back to the beginning
+     ((looking-at "[0-9A-Fa-f]")
+      (while (and (not (bolp)) (looking-at "[0-9A-Fa-f]"))
+        (forward-char -1))
+      (if (not (looking-at "[0-9A-Fa-f]")) (forward-char 1))
+      (setq begin-pos (point)))
+     ;; Otherwise, skip unrelated characters
+     (t
+      (while (not (looking-at "[0-9A-Fa-f]")
+        (forward-char 1)))
+      (setq begin-pos (point))))
+    ;; Let's find the end out
+    (while (and (not (eolp)) (looking-at "[0-9A-Fa-f]"))
+      (forward-char 1))
+    (if (not (looking-at "[0-9A-Fa-f]")) (forward-char -1))
+    (setq end-pos (point))
+    (buffer-substring begin-pos end-pos)))
+</div>
+
+간단히 설명하면 현재 커서가 놓인 위치에 있는 문자가 hex 문자라면
+뒤로 이동하여 시작 위치를 알아내고 다시 끝 위치를 알아낸다.
+그렇지 않으면 hex 문자가 나올 때까지 건너뛰어 시작과 끝 위치를 알아낸 뒤
+buffer-substring 함수를 이용해 이를 추출하는 방식이다.
+(지금 생각해보면 무조건 줄의 처음으로 이동한 뒤 추출하는 방식도 괜찮을 것 같다.)
+
+이제 이를 이용하면 다음과 같은 함수를 통해 git show 명령을 호출할 수 있다.
+
+
+<div class="source">
+(defun git-show-at-pos ()
+  (interactive)
+  (when (get-buffer "*Git show Output*")
+    (kill-buffer "*Git show Output*"))
+  (let ((hash-id (git-hash-at-pos))
+        (buf (generate-new-buffer "*Git show Output*")))
+    (message hash-id)
+    (set-process-sentinel
+     (start-process "git-show" buf "git" "--no-pager" "show" hash-id)
+     (lambda (proc out) (goto-line 1)))
+    (switch-to-buffer-other-window buf)))
+</div>
+
+개인적으로는 이들 blame, show 함수를 각각 "C-c b" 와 "C-c s"에 바인딩하여 사용하고 있다.
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/emacs" rel="tag">emacs</a>, <a href="/tag/git" rel="tag">git</a>
+</div>
+

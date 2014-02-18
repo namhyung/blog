@@ -1,0 +1,612 @@
+<html>
+<head>	<meta http-equiv='pragma' content='no-cache' />
+	<meta http-equiv='cache-control' content='no-cache' />
+	<meta http-equiv='Content-type' content='text/html; charset=utf-8' />
+	<meta name="author" content="namhyung" />
+	<meta name="keywords" content="F/OSS study" />
+	<meta http-equiv="X-XRDS-Location" content="http://namhyung.myid.net/xrds" />
+	<link rel="openid.server" href="http://www.myid.net/server" />
+	<link rel="openid.delegate" href="http://namhyung.myid.net" />
+	<link rel="shortcut icon" href="http://md.egloos.com/img/favicon.ico" />
+	<link rel="pingback" href="https://rpc.egloos.com/rpc1" />
+	<link rel="alternate" type="application/rss+xml" title="F/OSS study" href="http://rss.egloos.com/blog/studyfoss" />
+	<title>F/OSS study</title>
+	<script type="text/javascript" src="http://md.egloos.com/js/ap.js?ver=1.043"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/gd.js?ver=1.002"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/eg.js?ver=1.012"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/cr.js?ver=1.002"></script>
+    <script type="text/javascript" src="http://md.egloos.com/js/page/ins.js?ver=1.4"></script>
+		
+	<script type="text/javascript" src="http://md.egloos.com/js/lib/prototype_v1511.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.ImgModal.js?ver=1.004"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/page/blog/compatible.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/player.js"></script>
+	
+	<script type="text/javascript" src="http://md.egloos.com/js/lazyload.js"></script>
+	
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloos_template.css?ver=1.002" media="screen" />
+<style type="text/css">
+/* jiinny text-only skin
+ */
+
+
+BODY
+{
+	BACKGROUND : #FCFEFF;
+	MARGIN : 0PX;
+	PADDING : 0PX;
+}
+
+BODY,TD,DIV,LI
+{
+	FONT : 9PT/160% Tahoma, SANS-SERIF, Verdana, monaco,굴림,돋움,SANS-SERIF;
+	COLOR : #33455E;
+}
+
+A:LINK		{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:VISITED	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:ACTIVE	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:HOVER		{ COLOR: #C00000; TEXT-DECORATION: UNDERLINE; }
+
+/* filter의 shadow보다 품질을 좋게 하기 위해서*/
+DIV.HEADER
+{
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+	filter:progid:DXImageTransform.Microsoft.Blur;
+}
+
+#HEADER_SHADOW
+{
+	POSITION : relative;
+	top :-50px; right:0px;
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+}
+
+#HEADER_SHADOW A:LINK		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:VISITED		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:HOVER		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+
+DIV.HEADER A:LINK		{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:VISITED	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:HOVER	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+
+DIV.URL			{ FONT : 8PT/100% VERDANA,TAHOMA; }
+DIV.USERMENU
+{
+	POSITION:absolute:
+	left:0px;
+	top:0px;
+	COLOR : #FFFFFF;
+	FONT : bold 7pt;
+	TEXT-ALIGN : RIGHT;
+	MARGIN-BOTTOM : 50px;
+	BACKGROUND : #000060;
+	PADDING : 4px;
+	BORDER-BOTTOM : 2px #336699 SOLID;
+}
+DIV.USERMENU A:LINK {COLOR:#FFF}
+DIV.USERMENU A:VISITED {COLOR:#FFF}
+DIV.USERMENU A:HOVER {COLOR:#FFF}
+
+DIV.PROFILE
+{
+	WIDTH : 200PX;
+	PADDING : 0PX 0PX 10PX;
+	LINE-HEIGHT : 150%;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.MNTTL
+{
+	FONT:BOLD 10pt;
+	WIDTH : 200PX;
+	BORDER-BOTTOM :	1PX #888 DASHED;
+	PADDING : 2PX 0PX 0PX;
+	MARGIN : 25PX 0PX 10PX;
+	TEXT-ALIGN:CENTER;
+}
+
+DIV.MNBODY
+{
+	font:9pt/135%;
+	WIDTH :200PX;
+}
+
+DIV.POST { MARGIN-BOTTOM : 50PX;}
+
+DIV.POST_HEAD
+{
+	MARGIN-BOTTOM : 15PX;
+	PADDING-BOTTOM : 3PX;
+}
+
+DIV.POST_TTL
+{
+	TEXT-DECORATION: UNDERLINE;
+	FONT: BOLD 10pt Georgia ;
+	COLOR: #000;
+}
+
+DIV.POST_BODY
+{
+	FONT:10pt/150%;
+	WIDTH : 100%;
+	MARGIN-BOTTOM : 30PX;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.POST_BODY A:LINK
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION:none;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:VISITED
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:HOVER
+{
+	COLOR: #CF4040;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #CF4040
+}
+
+
+DIV.POST_TAIL {
+	FONT : 11PX/150% VERDANA, TAHOMA, 돋움;
+	MARGIN-TOP : 10PX;
+	TEXT-ALIGN : RIGHT;
+}
+
+DIV.POST_TAIL A:LINK {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:VISITED {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:HOVER {COLOR: #006699; TEXT-DECORATION: NONE; border-bottom:1px dotted #cc0000}
+
+DIV.COMMENT
+{
+	BORDER : 1PX #D3D3D3 SOLID;
+	BACKGROUND : #F7F7F7;
+	PADDING : 15PX;
+	MARGIN : 20PX 0PX;
+}
+
+DIV.COMMENT_BODY
+{
+	MARGIN-BOTTOM : 20PX;
+}
+
+DIV.COMMENT_TAIL
+{
+	MARGIN : 8PX 0PX 5PX;
+	FONT : 8PT/150% VERDANA, TAHOMA, 돋움;
+	COLOR : #777;
+}
+
+DIV.COMMENT_INPUT
+{
+	MARGIN-TOP : 20PX;
+	BORDER-TOP : 1PX #AAA DOTTED;
+	PADDING-TOP : 20PX;
+}
+
+DIV.COMMENT_LINE
+{
+	BORDER-TOP : 1PX #AAA DOTTED;
+	MARGIN : 10PX 0PX 15PX;
+}
+DIV.POST_BODY IMG
+{
+	filter:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	border:1px #000 solid;
+}
+
+DIV.VERSION
+{
+  font-weight: bold;
+  color: white;
+  background: #525d76;
+  border: 1px solid silver;
+#  margin: 0.5em 10% 0.5em 1em;
+  padding: 0.5em;
+}
+
+DIV.SOURCE
+{
+  font-family: monospace, Courier New, Seoul;
+#  margin: 0.5em 10% 0.5em 1em;
+  margin: 1em;
+  color: navy;
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+BLOCKQUOTE
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD dotted;
+	padding:5px;
+	color:#000;
+	margin:20px;
+}
+
+/* begin style of emphasis */
+.BOX1
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#00FF00;
+	background:#000;
+	margin:20px;
+}
+
+.BOX2
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#FFC000;
+	background:#000;
+	margin:20px;
+}
+
+.EM1
+{
+	background : #FFFF80;
+}
+
+.EM2
+{
+	background : #F0C0FF;
+}
+/* end style of emphasis */
+
+#RIGHTMAIN{ POSITION: ABSOLUTE; RIGHT:300px; LEFT:40px;}
+
+#LEFTSIDE
+{
+	POSITION: ABSOLUTE;
+	TOP:60PX;
+	RIGHT: 20PX;
+	FONT: 9PT;
+	WIDTH:200PX;
+	BORDER-LEFT: 2PX #BCBDC4 DASHED;
+	PADDING: 20PX;
+}
+
+#LEFTSHOW
+{
+	TOP:60PX;
+	RIGHT: 0PX;
+	FONT: 7PT/150%;
+	WIDTH:7px;
+	HEIGHT:200px;
+	BACKGROUND:#DDDDDD;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	BORDER-TOP: 3PX #7598A3 SOLID;
+	BORDER-LEFT: 2PX #7598A3 DASHED;
+	BORDER-BOTTOM: 3PX #7598A3 SOLID;
+}
+
+#LEFTHIDE
+{
+	TOP:63PX;
+	RIGHT: 23PX;
+	FONT: 7PT/150%;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	WIDTH:18px;
+	HEIGHT:18px;
+	TEXT-ALIGN:CENTER;
+}
+#BOTTOMBANNER
+{
+	TEXT-ALIGN=CENTER;
+	WIDTH=100%;
+}
+
+IMG.IMG_DECO
+{
+	TEXT-ALIGN:CENTER;BORDER:1px #000 SOLID;
+	filter:progid:DXImageTransform.Microsoft.DropShadow(color=#AAAAAA,offX=3, offY=3)
+}
+
+#LOGO
+{
+	WIDTH=200;
+	TEXT-ALIGN=CENTER;
+	FILTER:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	progid:DXImageTransform.Microsoft.Glow(Color=#AAAAAA, strength=5)
+}
+
+/* 여기서 부터는 시스템에관한 클래스 이므로 변경하지 않으시는 것이 좋습니다. */
+
+DIV.TRACK_TOP { LINE-HEIGHT : 170%; }
+DIV.ARCHIVE_HEAD { FONT-WEIGHT : BOLD; MARGIN-BOTTOM : 10PX; }
+DIV.ARCHIVE_BODY { MARGIN : 20PX 0PX; LINE-HEIGHT : 160%; PADDING-BOTTOM : 100PX; }
+
+IMG.IMAGE_TOP	{ MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_LEFT	{ MARGIN-RIGHT : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_MID	{ MARGIN-TOP : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.BOOKMK		{ MARGIN : 10PX; BORDER : 0PX; }
+IMG.USERMENU	{ MARGIN-LEFT : 8PX; }
+IMG.LOGO
+{
+BORDER: 1PX #000 SOLID;
+}
+
+DIV.BANNER	{ MARGIN-TOP : 30PX; }
+
+.SMALL		{ FONT-SIZE : 11PX; }
+.DATE		{ FONT : BOLD 8PT/150% VERDANA, TAHOMA, 돋움; }
+.TIME		{ FONT : 8PT/150% VERDANA, TAHOMA, 돋움; TEXT-ALIGN : LEFT; }
+.AUTHOR		{ FONT : BOLD 9PT; }
+.TXTFLD		{ FONT-SIZE:9PT;COLOR:#000; BORDER:1PX SOLID #666678; BACKGROUND:#FFF; }
+
+
+
+/* 여기서 부터는 달력 및 XML에 관련된 클래스입니다. */
+
+
+DIV.CAL_TOP { }
+DIV.CAL { MARGIN : 20PX 0PX 20PX; WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_HEAD { WIDTH : 150PX; FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; PADDING : 4PX 0PX; MARGIN-BOTTOM : 10PX;}
+DIV.CAL_BODY { WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_BOTTOM { }
+
+.CAL
+{
+	FONT : 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+}
+
+.CAL_DAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SUN
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #D36654;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SAT
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #3572A1;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_TODAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	BACKGROUND : #E3E3E3;
+	COLOR : #3D5586;
+	TEXT-ALIGN : CENTER;
+	BORDER : 1px #AAA SOLID;
+}
+
+.CAL_TR
+{
+	BACKGROUND:#EFEFEF;
+}
+
+DIV.XML { FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; }
+   div.memobody {
+       width : 200px;
+       overflow : hidden;
+       }
+   </style>
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloo_navibar.css?ver=1.2" media="screen" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/popup.css?ver=2.00" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/button.css" />
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.Center.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/page/blog/Modal.BookmarkDlg.js?ver=1.002"></script>
+<script type="text/javascript">
+//<![CDATA[
+Event.observe(window, 'load', function() {
+    new Modal.BookmarkDlg('egloo_bookmark', {overlay: true,
+                'groupURL'     : "/exec/egloo_bookmark_group.php",
+                'remoteURL'    : "/exec/egloo_insbookmark_exec.php"});
+    if(''==''){
+	    	copy_contents('studyfoss.egloos.com','namhyung','0');
+    }
+});
+//]]>
+</script></head>
+<body>
+<iframe name="cmtviewfrm" id="cmtviewfrm" src="about:blank" width="0" height="0" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" style="display:block;border:0px;"></iframe>
+<DIV CLASS=USERMENU>  
+<a href="http://www.egloos.com">Egloos</a> | <a href="http://sec.egloos.com/login.php?returnurl=http%3A%2F%2Fstudyfoss.egloos.com%2Fpage%2F102">Log-in</a> </DIV>
+
+<DIV ID=RIGHTMAIN>
+<DIV CLASS=HEADER><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<DIV ID=HEADER_SHADOW><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<!--		<DIV CLASS=URL><a href="http://studyfoss.egloos.com" name="egloo_url">studyfoss.egloos.com</a></DIV>-->
+		<!-- egloos content start -->
+<div class='hentry'><span class='copyright_entry' style='display:none;' title='[bash] root 권한으로 redirection 사용하기@@**@@http://studyfoss.egloos.com/5204344'></span><DIV CLASS=POST>
+	<DIV CLASS=POST_HEAD>
+	<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=100%>
+	<TR><TD WIDTH=80%><DIV CLASS=POST_TTL><img src=http://md.egloos.com/img/vl/ico_star_o.gif> <a name="5204344" title="[bash] root 권한으로 redirection 사용하기">[bash] root 권한으로 redirection 사용하기</a></DIV></TD>
+		<TD WIDTH=20% ALIGN=RIGHT></TD></TR>
+	</TABLE>
+	</DIV>
+	<DIV CLASS=POST_BODY>
+	간혹 커널 설정을 바꿀 때에 sudo와 함께 echo 명령을 실행해도<br/>permission denied 에러가 나고 실행되지 않는 경우가 있을 것이다.<br/><br/><div class="source">$ sudo echo 1 &gt; /proc/sys/vm/drop_caches <br/>bash: /proc/sys/vm/drop_caches: Permission denied</div><br/>이는 shell (bash)이 echo 명령에는 sudo를 적용하지만<br/>redirection 자체에는 원래 사용자 권한을 그대로 남겨두기 때문이다.<br/><br/>이를 위한 해법은 다음과 같은 3가지 중 하나를 이용하면 된다.<br/><ol><li>sudo -s 명령을 통해 아예 root로 login 한 후 해당 명령을 수행하고 logout<br/></li><li>shell 자체를 sudo로 실행하여 redirection을 포함한 명령을 수행</li><li>tee 명령을 sudo로 실행하여 redirection을 수행</li></ol><br/>1번은 굳이 설명할 필요가 없을테고 2번은 다음과 같다.<br/><br/><div class="source">$ sudo sh -c "echo 1 &gt; /proc/sys/vm/drop_caches"</div><br/>3번은 개인적으로 가장 우아한? 해법이라고 생각되는데<br/>tee 명령은 기본적으로 stdin을 stdout으로 그대로 보내주는 역할을 하며<br/>추가적으로 파일 이름이 argument로 주어지면 해당 파일에도 stdin의 내용을 쓴다.<br/><br/><div class="source">$ echo 1 | sudo tee /proc/sys/vm/drop_caches</div><br/>앞서 말했다시피 tee 명령은 stdout에도 쓰기때문에 위의 명령을 실행하면 터미널에 1이 출력된다.<br/>이것이 보기 싫은 사람은 단순히 tee의 stdout을 /dev/null로 redirect시키면 된다.<br/>또한 "echo 1 &gt;&gt; /some/file"과 같은 append 연산을 수행하려면 tee 명령에 -a 옵션을 주면 된다.<br/><br/><div style="clear:both; _display: none;"></div><div class="posttaglist"><a href="/tag/bash" rel="tag">bash</a>,&nbsp;<a href="/tag/coreutils" rel="tag">coreutils</a></div>
+       <!--
+       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+		    xmlns:dc="http://purl.org/dc/elements/1.1/"
+		    xmlns:trackback="http://madskills.com/public/xml/rss/module/trackback/">
+       <rdf:Description
+	        rdf:about="http://studyfoss.egloos.com/5204344"
+	        dc:identifier="http://studyfoss.egloos.com/5204344"
+	        dc:title="[bash] root 권한으로 redirection 사용하기"
+	        trackback:ping="http://studyfoss.egloos.com/tb/5204344"/>
+       </rdf:RDF>
+       -->
+
+	</DIV>
+	<DIV CLASS=POST_TAIL ALIGN=RIGHT><span class="TIME"> <a href="/5204344" class="permalink" title="[bash] root 권한으로 redirection 사용하기" rel="bookmark">#</a> by <span class="AUTHOR">namhyung</span> | <a href="/5204344" class="time"  title="[bash] root 권한으로 redirection 사용하기" rel="bookmark">2009/12/23 15:18</a></span> | <a href="/category/Tips" class="category">Tips</a> | <span class="linkback"><a href="#trb" onclick="trbview('5204344','c0098335','0'); return false;" class="tail_trb">트랙백<span id="trbcnt5204344"></span></a></span> | <span class="linkback"><a href="#cmt" onclick="cmtview('5204344','c0098335','0'); return false;" class="tail_cmt">덧글(<span id="cmtcnt5204344">2</span>)</a></span></DIV>
+		<span id="cmt5204344"></span>
+</DIV>
+</div><!-- egloos content end -->
+<span style="float: left"><a href="/page/101">◀ 이전 페이지</a></a></span>
+<span style="float: right"><a href="/page/103">다음 페이지 ▶</a></span>
+<BR><BR>
+<DIV ID='BOTTOMBANNER' style="display:none;">	<div class="BANNER"><a href="http://www.egloos.com"><img src="http://md.egloos.com/img/edt/banner_ffffff_1.gif" width="150" height="50" border="0" alt="Powered by egloos" /></a></div>
+<BR><BR></DIV>
+</DIV>
+<DIV ID=LEFTSIDE style="display:block;">
+	<DIV ID=LOGO></DIV>
+	     <script language="javascript" type="text/javascript">
+     <!--
+     var s_calendar = new Array();
+     s_calendar = [];
+	  calendar("","");
+     -->
+     </script>
+
+	
+<DIV CLASS=MNTTL>카테고리</DIV>
+<DIV CLASS=MNBODY>
+<a href="/category/General">General</a><br/><a href="/category/Application">Application</a><br/><a href="/category/System">System</a><br/><a href="/category/Kernel">Kernel</a><br/><a href="/category/Book">Book</a><br/><a href="/category/Tips">Tips</a><br/>
+</DIV>
+
+<DIV CLASS=MNTTL>태그</DIV>
+<DIV CLASS=MNBODY><a href="/tag/elf" class="tlevel3"> elf</a>
+<a href="/tag/x86" class="tlevel3"> x86</a>
+<a href="/tag/linux" class="tlevel3"> linux</a>
+<a href="/tag/kernel" class="tlevel3"> kernel</a>
+<a href="/tag/script" class="tlevel1"> script</a>
+<a href="/tag/C" class="tlevel3"> C</a>
+<a href="/tag/compiler" class="tlevel3"> compiler</a>
+<a href="/tag/block-layer" class="tlevel2"> block-layer</a>
+<a href="/tag/computer-architecture" class="tlevel3"> computer-architecture</a>
+<a href="/tag/patch" class="tlevel3"> patch</a>
+<a href="/tag/awk" class="tlevel1"> awk</a>
+<a href="/tag/git" class="tlevel2"> git</a>
+<a href="/tag/algorithm" class="tlevel3"> algorithm</a>
+<a href="/tag/sed" class="tlevel1"> sed</a>
+<a href="/tag/bash" class="tlevel2"> bash</a>
+<a href="/tag/documentation" class="tlevel1"> documentation</a>
+<a href="/tag/memory" class="tlevel3"> memory</a>
+<a href="/tag/gcc" class="tlevel3"> gcc</a>
+<a href="/tag/perf" class="tlevel1"> perf</a>
+<a href="/tag/synchronization" class="tlevel3"> synchronization</a>
+<a href="/tag/scm" class="tlevel1"> scm</a>
+<a href="/tag/build" class="tlevel3"> build</a>
+<a href="/tag/glibc" class="tlevel3"> glibc</a>
+<a href="/tag/vcs" class="tlevel1"> vcs</a>
+<a href="/tag/CAaQA3" class="tlevel3"> CAaQA3</a>
+<a href="/tag/blktrace" class="tlevel1"> blktrace</a>
+<a href="/tag/binutils" class="tlevel2"> binutils</a>
+<a href="/tag/SMP" class="tlevel2"> SMP</a>
+<a href="/tag/emacs" class="tlevel3"> emacs</a>
+<a href="/tag/CARM" class="tlevel1"> CARM</a>
+<div style="text-align:right;margin-top:5px;"><a href="/tag">전체보기</a></div>
+</DIV>
+
+<DIV CLASS=MNTTL>이글루 파인더</DIV>
+<DIV CLASS=MNBODY><form id="finder" style="margin:0;" name="finder" method="post" action="http://studyfoss.egloos.com/" onsubmit="return go_search(document.finder);"><input type="text" id="srch_kwd" name="srch_kwd" size="10" style="vertical-align: middle;width: 100px;font-size:12px;" maxlength="30"/><input type="image" style="vertical-align: middle;margin-left:3px;" src="http://md.egloos.com/img/fnd/searchb.gif" /><p style="margin:3px 0 0 13px;text-align:left"><a href="http://www.zum.com" target="_blank"><img src="http://md.egloos.com/img/search/txt_power.png"></a></p></form>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 덧글</DIV>
+<DIV CLASS=MNBODY>
+<style type="text/css"> 
+.reply_write {margin:10px 0;}
+.reply_write fieldset {border:none;margin:0;padding:0;}
+.reply_write legend {display:none;}
+.reply_write .comment_info {width:95%;}
+.reply_write .comment_info span.comment_name,
+.reply_write .comment_info span.comment_passwd,
+.reply_write .comment_info span.comment_blog {display:block;padding:0 0 2px 0;clear:both;}
+.reply_write .comment_info span.comment_blog {float:left;}
+.reply_write .comment_info span.comment_name label,
+.reply_write .comment_info span.comment_passwd label,
+.reply_write .comment_info span.comment_blog label {display:block;float:left;width:55px;}
+.reply_write .comment_info input {padding:1px 0 0 1px;vertical-align:middle;}
+.reply_write .comment_info input.name {width:100px;}
+.reply_write .comment_info input.passwd {width:60px;}
+.reply_write .comment_info input.blog {width:200px;font-family:tahoma,sans-serif;font-size:11px;}
+.reply_write .comment_info span.comment_now {display:none;}
+.reply_write .comment_info span.comment_login {float:right;}
+.reply_write textarea {margin:2px 0;padding:0;width:95%;height:100px;margin-left:0 !important;font:normal 12px '돋움',sans-serif;}
+.reply_write .comment_btn {width:95%;height:23px;position:relative;*position:static;*text-align:right;}
+.reply_write .comment_btn .comment_submit {position:absolute;top:0;right:0;*position:static;*text-align:right;}
+</style>     
+
+<a href="http://studyfoss.egloos.com/5129119#12438993">이렇게 좋은 글이 한글로 있다는 것..</a><br/><span class="SMALL">by 프로그라머 at 02/17</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5512112#12419757">흐름을 이해할 수 있는글이라 좋..</a><br/><span class="SMALL">by morenice at 11/26</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#12401092">좋은 글 감사합니다~퍼갑니다~</a><br/><span class="SMALL">by 김석범 at 09/10</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 트랙백</DIV>
+<DIV CLASS=MNBODY>
+<a href="http://studyfoss.egloos.com/5350643#515727">이맥스의 파일 변수 사용하기</a><br/><span class="SMALL">by 개똥이야기</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#512679">asmlinkage modifier in Linux..</a><br/><span class="SMALL">by novum의 공유창고</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5409933#511713">구조체의 패킹에 대한 이야기</a><br/><span class="SMALL">by 김재호의 디지털보단 아날로그</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+
+
+
+
+
+
+
+<DIV style="TEXT-ALIGN:center; width:200px;">
+<div class="XML"><a href="http://rss.egloos.com/blog/studyfoss" target="_new"><img src="http://md.egloos.com/img/skn/rss.gif" alt="rss" border="0" /></a><br /><br /> skin by <a href="http://jiinny.egloos.com">jiinny</a></div>
+<BR /><BR />
+<DIV ID=OHLOH><a href='https://www.ohloh.net/accounts/115130?ref=Detailed'>
+  <img alt='Ohloh profile for Namhyung Kim' height='35' src='https://www.ohloh.net/accounts/115130/widgets/account_detailed.gif' width='191' border='0' />
+</a></DIV>
+</DIV>
+</DIV>
+<DIV ID='LEFTSHOW'  onclick=document.all['RIGHTMAIN'].style.right='300px';document.all['BOTTOMBANNER'].style.display='none';document.all['LEFTSIDE'].style.display='block';document.all['LEFTSHOW'].style.display='none';document.all['LEFTHIDE'].style.display='block';  style='color:red;display:none;'>
+</DIV>
+
+<DIV id='LEFTHIDE' onclick=document.all['RIGHTMAIN'].style.right='20px';document.all['BOTTOMBANNER'].style.display='block';document.all['LEFTSIDE'].style.display='none';document.all['LEFTHIDE'].style.display='none';document.all['LEFTSHOW'].style.display='block';  style='color:red'>X</DIV><iframe src="http://www.egloos.com/estat/stat_logger.php?bid=c0098335&ref=&openflag=" style="width: 0px; height: 0px; border: 0px solid #fff;"></iframe>
+<img width="0" height="0" border="0" src="http://studyfoss.egloos.com/egloo_pds.php?eid=c0098335" alt="" />
+<form id="trackfrom" name="trackfrom" method="post" action="">
+<input type="hidden" name="url" value="" />
+<input type="hidden" name="title" value="" />
+<input type="hidden" name="trburl" value="" />
+</form>
+<div style="z-index:9901;top:764px;left:169px;display:none;" id="egloo_bookmark" class="popupWrap">
+    <div class="popupTitle">이글루링크 추가하기</div>
+    <dl class="popupBody">
+        <dt class="no-arrow" style="background:none;font-size:12px;text-align:center;">
+            <span id="egloo-bookmark-url" style="color:#0F71A1;"></span>
+            (<span id="egloo-bookmark-name"></span>)을(를)</dt>
+        <dd class="notice" style="margin:0;padding:0 0 0 8px;line-height:1.8em;color:#000;font-size:12px;text-align:center;">이글루링크로 추가하시겠습니까? 추가하시려면 그룹선택을 하세요.</dd>
+        <dd class="notice weak" style="margin:0;padding:0 0 0 8px;line-height:1.8em;font-size:11px;color:#666666;text-align:center;">(그룹선택 하지 않는 경우, 최상단 목록에 추가됩니다.)</dd>
+        <dd class="egloo-bookmark-group" style="margin:0;padding:10px 0 8px;line-height:1.8em;text-align:center;color:#333;font-size:12px;text-align:center;">그룹선택 :
+            <select name="groupID" id="egloo-bookmark-groupID" style="font-family:'돋움','dotum','Trebuchet MS',Sans-serif;margin-left:10px;"><option value="000">그룹선택없음</option></select></dd>
+        <dd class="buttons">
+            <input type="button" value="지금 확인" onfocus="blur();" onclick="Modal.insertBookmark(true);" class="button btn24 btn_bold"/>
+            <input type="button" value="나중에 확인" onfocus="blur();" onclick="Modal.insertBookmark(false);" class="button btn24 btn_weak"/>
+        </dd>
+        <dd class="close" onclick="Modal.close();"><img src="http://md.egloos.com/img/www/btn/button_popup_close.gif" alt="이글루링크 취소" title="이글루링크 취소" /></dd>
+    </dl>
+</div>
+</body>
+</html>

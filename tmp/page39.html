@@ -1,0 +1,162 @@
+	이전 글 보기:
+
+<ul>
+  <li><a href="http://studyfoss.egloos.com/5454726">Dekker's Algorithm (1)</a></li>
+  <li><a href="http://studyfoss.egloos.com/5455023" title="">Dekker's Algorithm (2)</a></li>
+</ul>
+
+마지막으로 Dekker의 알고리즘을 3개 이상의 멀티 스레드 환경에서도 적용가능하도록 일반화시킨 알고리즘을 살펴보기로 한다.
+여기서 살펴볼 알고리즘은 Alain J. Martin이 1985년 논문 (아래 참고)에서 제시한 것을 구현한 것이다.
+
+Dekker의 알고리즘을 좀 더 일반적으로 생각해 보면 다음과 같은 단계로 나눌 수 있을 것이다.
+
+lock:
+<ol>
+  <li>자신이 lock에 접근 중임을 표시</li>
+  <li>다른 경쟁자가 있는지 검사</li>2-1. 자신이 lock에 접근하지 않음을 표시
+2-2. 자신의 차례가 되기를 기다림
+2-3. 1번으로 이동
+
+  <li>lock을 얻음</li></ol>
+unlock:
+<ol>
+  <li>자신이 lock에 접근하지 않음을 표시</li>
+  <li>다른 경쟁자에게 lock을 양보</li></ol>
+이를 임의의 개수의 멀티 스레드로 확장하는 것은
+전체 스레드 수 만큼의 flag를 준비하는 것과 오직 한 스레드에게만 turn을 지정해 주는 것으로 구현할 수 있다.
+turn의 경우를 처리하는 것이 조금 생각해 볼 만한 일인데 논문에서는 아무에게도 지정되지 않은 상태를 나타내기 위해
+스레드 id로 지정될 수 없는 값을 하나 마련하여 모든 스레드에게 공정한 기회를 부여하도록 하였다.
+
+멀티 스레드를 지원하기 위해 자료 구조를 다음과 같이 살짝 변경하도록 하자.
+
+
+<div class="source">
+/* dekker.h */
+
+ struct dekker {
+-    volatile char flag[2];
++    volatile char flag[NR_THREAD];
+     volatile int turn;
+ };
+
++void dekker_init(struct dekker *);
+ void dekker_lock(struct dekker *, int);
+ void dekker_unlock(struct dekker *, int);
+</div>
+
+또한 아래와 같은 초기화 루틴을 추가하도록 하자.
+이 초기화 루틴은 main() 함수 내에서 스레드를 생성하기 전에 반드시 호출해야 한다.
+(이제부터는 lock/unlock 구현도 어차피 몽땅 바뀌어야 하니 더 이상 diff 형식은 사용하지 않는다)
+
+
+<div class="source">
+/* dekker.c */
+
+#include &lt;string.h&gt;
+
+#define TURN_NONE  -1
+
+void dekker_init(struct dekker *d)
+{
+    memset(d-&gt;flag, 0, sizeof(d-&gt;flag));
+    d-&gt;turn = TURN_NONE;
+}
+</div>
+
+turn 필드는 현재 어떠한 스레드에게도 배정되지 않았다는 의미의 TURN_NONE 값으로 초기화 하였다.
+thid 값은 0부터 증가하는 양수이므로 -1은 어떤 스레드의 id로도 할당되지 않을 것이다.
+
+lock 알고리즘은 아래와 같다.
+
+
+<div class="source">
+#define barrier()    asm volatile ("mfence" : : : "memory")
+
+void dekker_lock(struct dekker *d, int thid)
+{
+    int i;
+retry:
+    d-&gt;flag[thid] = 1;
+    barrier();
+
+    for (i = 0; i &lt; NR_THREAD; i++) {
+        if (d-&gt;flag[i] &amp;&amp; i != thid) {
+            d-&gt;flag[thid] = 0;
+            while (d-&gt;turn != TURN_NONE &amp;&amp; d-&gt;turn != thid)
+                (void) 0; /* do nothing */
+            d-&gt;turn = thid;
+            goto retry;
+        }
+    }
+}
+</div>
+
+마찬가지로 두 개의 loop로 구성되는데
+바깥쪽 loop는 전체 스레드의 flag를 검사하여 현재 동시에 lock에 접근 중인 스레드가 있는지 확인하며
+if 문 안으로 들어왔다면 경쟁 상태이므로 다시 flag를 지우고 turn 필드를 검사하는데
+이전처럼 turn이 자신에게 할당된 경우뿐 아니라 아무에게도 할당되지 않은 경우에도 lock을 얻을 수 있으므로
+안쪽 while 문 내의 검사 조건이 약간 달라진 차이가 있다.
+
+또한 제어 흐름을 간단히 하기 위해 lock을 얻을 수 있는 조건이 만족된 경우 goto 문을 이용하여
+바깥쪽 loop부터 다시 시작하도록 하였다.
+
+경쟁 상태에서 최종적으로 lock을 획득하기 위해서는 turn 필드를 자신의 id 값으로 써야 하는데
+d-&gt;turn 값이 변경되는 순간 경쟁 중인 모든 스레드는 동시에 turn의 값을 쓰려고 할 테지만
+결국에는 최종적으로 값을 쓴 스레드의 id 값이 메모리에 기록될 것이므로 해당 스레드를 제외한 다른 스레드들은
+다시 안쪽 loop에서 대기하게 될 것이고 해당 스레드는 lock을 안전하게 획득할 수 있다.
+
+마지막으로 barrier() 매크로가 약간 변경되었는데 단순히 mfence 명령어를 추가하는 것에 더하여
+"memory"라는 assembly constraint를 추가함으로써 컴파일러가 최적화 시 mfence 명령어의 생성 위치를
+변경하지 않도록 보장하는 것이다. (원래 앞의 글에서 컴파일러 최적화를 논할 때 언급하려고 했는데
+예제 프로그램 상에서 실질적인 차이를 보이지 않은 관계로 빼먹어 버렸다.. ;;)
+이는 위와 같은 단순한 예제 프로그램에는 영향을 주지 않았지만
+복잡한 함수 내에서 lock/unlock 함수가 inline 되는 경우에는 실제 프로그램의 동작에 영향을 줄 수도 있을 것이므로
+추가해 두는 것이 좋은 습관일 것이다.
+
+다음으로 unlock 알고리즘은 다음과 같이 구현하면 된다.
+
+
+<div class="source">
+void dekker_unlock(struct dekker *d, int thid)
+{
+    barrier();
+    d-&gt;flag[thid] = 0;
+    d-&gt;turn = TURN_NONE;
+}
+</div>
+
+제일 처음에 barrier() 호출이 추가되었는데 이도 역시 write/write를 reordering하지 않는 x86의 경우에는 필요가 없지만
+그렇지 않은 아키텍처에서나 inline 된 후에 컴파일러의 instruction scheduling으로 인한 오동작을 방지하기 위해
+추가해 두는 것이 안전하다. (하지만 성능에는 도움이 안 될 것이다.. ;;)
+그리고 자신의 flag를 지우고 경쟁 스레드들끼리 순서를 결정하도록 turn 값을 TURN_NONE으로 재설정한다.
+
+이렇게 해서 모든 구현이 완성되었다.
+NR_THREAD 값은 소스 내에 적절히 정의해 둘 수도 있지만 컴파일 시에 -D 옵션으로 직접 지정해 줄 수도 있다.
+(물론 dekker 구조체를 동적 할당하는 방법을 통해 runtime에 스레드 수를 인자로 넘길 수도 있을 것이다.)
+
+
+<div class="source">
+$ gcc -O2 -o dekker-mt main.c dekker.c -pthread -DNR_THREAD=10
+$
+$ ./dekker-mt
+result = 10000000
+</div>
+
+
+=== 참고 문헌 ===
+
+<ul>
+  <li><a target="_blank" href="http://www.amazon.com/UNIX-Systems-Modern-Architectures-Multiprocessing/dp/0201633388">UNIX Systems for Modern Architecture</a> - C. Schimmel</li>
+  <li><a target="_blank" href="http://caltechcstr.library.caltech.edu/359/01/5195_TR_85.pdf">A New Generalization of Dekker's Algorithm for Mutual Exclusion</a> - A. J. Martin</li>
+  <li><a target="_blank" href="http://en.wikipedia.org/wiki/Dekker%27s_algorithm">http://en.wikipedia.org/wiki/Dekker%27s_algorithm</a></li>
+  <li><a target="_blank" href="http://gcc.gnu.org/onlinedocs/gcc/">http://gcc.gnu.org/onlinedocs/gcc/</a></li>
+</ul>
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/memory" rel="tag">memory</a>, <a href="/tag/synchronization" rel="tag">synchronization</a>, <a href="/tag/algorithm" rel="tag">algorithm</a>
+</div>
+

@@ -1,0 +1,370 @@
+	
+<div class="version">
+arch: x86
+linux: 2.6.32
+gcc: 4.4.1
+glibc: 2.10.1
+</div>
+
+이전 글 보기:
+
+<ul>
+  <li><a href="http://studyfoss.egloos.com/5259841">[ELF] TLS (Thread Local Storage) (1)</a></li>
+  <li><a href="http://studyfoss.egloos.com/5263962">[ELF] TLS (Thread Local Storage) (2)</a></li>
+</ul>
+이번에는 gcc가 TLS에 접근하는 코드를 어떻게 생성하는지 살펴볼 것이다.
+이는 크게 실행 파일에서 접근하는 경우와 공유 라이브러리에서 접근하는 경우로 나누어 볼 수 있다.
+
+먼저 가장 일반적인 공유 라이브러리의 경우에 대해서 살펴보기로 하자.
+(영어로는 general dynamic TLS access model이라고 한다.)
+공유 라이브러리 내의 코드는 어딘가에 속한 TLS 변수에 접근하려고 한다.
+컴파일 시에는 해당 변수가 어느 주소에 속하는지 알 수 없으므로 GOT 항목을 하나 만든 뒤
+실행 시 GOT 항목에 기록된 값을 읽어 주소를 알아내고 변수에 접근하도록 코드가 작성될 것이다.
+일반적인 변수라면 이 후 dynamic linker가 모듈 로드 시 심볼에 대한 주소를 알아내어
+해당 GOT 항목에 심볼이 로드된 주소를 기록하면(relocation) 잘 동작한다.
+
+하지만 TLS 변수는 이 방식을 그대로 사용할 수 없다.
+왜냐하면 접근하는 스레드마다 다른 주소를 사용해야 하기 때문이다.
+TLS 변수의 주소를 알아내려면 각 스레드는 매번 DTV에 접근하여 주소를 계산해야 한다.
+이를 위해선 해당 변수가 어느 모듈에 속하는지, 모듈 내의 어느 위치에 존재하는지 알아야 하는데
+따라서 GOT에 변수 하나 당 2개의 항목이 필요하며 이 정보는 dynamic linker가 로드 시 기록해 준다.
+GOT 항목은 메모리 상에 연속적으로 배치되므로 아래와 같은 구조체의 형태로 접근할 수 있다.
+
+
+<div class="source">
+typedef struct dl_tls_index
+{
+  unsigned long int ti_module;
+  unsigned long int ti_offset;
+} tls_index;
+</div>
+
+dynamic linker는 이러한 tls_index 구조체의 주소를 인자로 받아 TLS 변수의 주소를 반환하는
+__tls_get_addr() 함수를 제공한다. 이 함수는 다음과 같이 구현되어 있다.
+
+
+<div class="source">
+# define __tls_get_addr __attribute__ ((__regparm__ (1))) ___tls_get_addr
+
+void *
+__tls_get_addr (tls_index *ti)
+{
+  dtv_t *dtv = THREAD_DTV ();
+  struct link_map *the_map = NULL;
+  void *p;
+
+  if (__builtin_expect (dtv[0].counter != GL(dl_tls_generation), 0))
+    {
+      the_map = _dl_update_slotinfo (ti-&gt;ti_module);
+      dtv = THREAD_DTV ();
+    }
+
+  p = dtv[ti-&gt;ti_module].pointer.val;
+
+  if (__builtin_expect (p == TLS_DTV_UNALLOCATED, 0))
+    p = tls_get_addr_tail (dtv, the_map, ti-&gt;ti_module);
+
+  return (char *) p + ti-&gt;ti_offset;
+}
+</div>
+
+먼저 THREAD_DTV()를 통해 해당 스레드에 대한 DTV 주소를 얻어온다.
+그 후 generation number를 검사하여 같지 않으면 새로운 모듈이 동적으로 로드된 것이므로
+DTV의 내용을 업데이트한다. 그리고 DTV에서 해당 모듈의 시작 주소를 얻어오는데
+만약 해당 모듈의 TLS 영역이 아직 할당되지 않았다면 (TLS_DTV_UNALLOCATED)
+TLS 영역을 동적으로 할당하고 초기화 이미지를 복사한 뒤
+모듈의 시작 주소와 심볼의 오프셋을 더한 심볼의 실제 주소를 반환한다.
+(앞에서 보았듯이 TLS_DTV_UNALLOCATED 매크로는 0xFFFFFFFF로 정의되어 있다.)
+
+먼저 libtls.c 파일을 다음과 같이 수정한다.
+
+libtls.c:
+<div class="source">
+__thread int libtls_a;
+__thread int libtls_b;
+
+void set_both(int c)
+{
+  libtls_a = c;
+  libtls_b = c;
+}
+</div>
+
+컴파일해보면 다음과 같은 어셈블리 파일이 생성되는 것을 볼 수 있다.
+
+
+<div class="source">
+$ gcc -shared -fPIC -o libtls.so -save-temps libtls.c
+$ grep -A13 -F set_both: libtls.s
+set_both:
+    pushl    %ebp
+    movl    %esp, %ebp
+    pushl    %ebx
+    call    __i686.get_pc_thunk.bx
+    addl    $_GLOBAL_OFFSET_TABLE_, %ebx
+    leal    libtls_a@TLSGD(,%ebx,1), %eax
+    call    ___tls_get_addr@PLT
+    movl    8(%ebp), %edx
+    movl    %edx, (%eax)
+    leal    libtls_b@TLSGD(,%ebx,1), %eax
+    call    ___tls_get_addr@PLT
+    movl    8(%ebp), %edx
+    movl    %edx, (%eax)
+</div>
+
+앞부분의 instruction은 ebx에 GOT의 시작 주소를 저장하는 일을 한다.
+첫번째 leal instruction은 ___tls_get_addr() 함수에 넘길 인자를 설정하는데
+위에서 보았듯이 이 함수는 __regparm__(1)로 선언되어 인자를 eax 레지스터에서 받는다.
+(,%ebx,1)은 사실 그냥 (%ebx)와 동일한 의미이지만 이 후 최적화 과정에서 필요할지 모를
+1 바이트의 공간을 확보하기 위해 SIB (scale-index-base) 형식으로 생성한 것이다.
+ebx 레지스터에는 GOT의 시작 주소가 들어있으므로 GOT 내에서
+libtls_a 변수의 모듈 + 오프셋 정보가 저장된 위치를 계산하여 eax에 저장한다.
+(TLSGD에서 GD는 general dynamic을 의미하는 것이라고 추측할 수 있다.)
+
+그리고는 PLT에서 ___tls_get_addr() 함수의 위치를 찾아 호출한다.
+함수가 반환되면 libtls_i의 주소가 반환되어 eax 레지스터에 저장되어 있을 것이다.
+이를 이용하여 ebp + 8에 있는 (함수에 전달된 인자)값을 해당 메모리에 저장한다.
+그 아래는 완전히 동일한 작업을 libtls_b 변수에 대해서 반복한다.
+
+이렇게 생성된 라이브러리는 TLS 변수 하나 당 GOT 항목 2개를 dynamic linker가 처리해야 한다.
+이러한 정보는 다음과 같이 readelf 명령을 통해 확인할 수 있다.
+
+
+<div class="source">
+$ readelf -r libtls.so
+
+Relocation section '.rel.dyn' at offset 0x3a0 contains 8 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name
+0000200c  00000008 R_386_RELATIVE   
+00001fd8  00000723 R_386_TLS_DTPMOD3 00000000   libtls_a
+00001fdc  00000724 R_386_TLS_DTPOFF3 00000000   libtls_a
+00001fe0  00000106 R_386_GLOB_DAT    00000000   __gmon_start__
+00001fe4  00000206 R_386_GLOB_DAT    00000000   _Jv_RegisterClasses
+00001fe8  00000b23 R_386_TLS_DTPMOD3 00000004   libtls_b
+00001fec  00000b24 R_386_TLS_DTPOFF3 00000004   libtls_b
+00001ff0  00000406 R_386_GLOB_DAT    00000000   __cxa_finalize
+
+Relocation section '.rel.plt' at offset 0x3e0 contains 3 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name
+00002000  00000107 R_386_JUMP_SLOT   00000000   __gmon_start__
+00002004  00000307 R_386_JUMP_SLOT   00000000   ___tls_get_addr
+00002008  00000407 R_386_JUMP_SLOT   00000000   __cxa_finalize
+</div>
+
+다음에 살펴볼 것은 컴파일 시 해당 TLS 변수가 동일한 모듈 내에 존재한다는 것을 아는 경우이다.
+즉, 해당 변수가 static으로 선언되었거나 ELF visibility 속성을 가지는 경우를 말한다.
+(영어로는 local dynamic TLS access model이라고 한다.)
+
+이 경우에는 링커가 해당 변수가 자신의 TLS 영역 내에서 위치하는 오프셋을 알기 때문에
+매번 dynamic linker에게 주소를 요청할 필요없이 해당 모듈의 시작 위치만 한 번 알아내면 된다.
+즉 처음에 한 번은 __tls_get_addr() 함수를 호출해야 하지만 이 후의 TLS 변수 접근 시에는
+이 함수를 호출할 필요없이 이미 알고있는 위치로부터 오프셋만 계산하여 접근할 수 있다는 얘기이다.
+이는 일종의 최적화 과정으로 고려되므로 최적화 옵션이 주어진 경우에만 활성화 된다.
+
+이 경우 local TLS 변수에 접근하는 코드는 다음과 같이 생성된다.
+
+
+<div class="source">
+$ gcc -shared -O -fPIC -o libtls.so -save-temps libtls.c
+$ grep -A12 -F set_both: libtls.s
+set_both:
+    pushl    %ebp
+    movl    %esp, %ebp
+    subl    $8, %esp
+    movl    %ebx, (%esp)
+    movl    %esi, 4(%esp)
+    call    __i686.get_pc_thunk.bx
+    addl    $_GLOBAL_OFFSET_TABLE_, %ebx
+    movl    8(%ebp), %esi
+    leal    libtls_a@TLSLDM(%ebx), %eax
+    call    ___tls_get_addr@PLT
+    movl    %esi, libtls_a@DTPOFF(%eax)
+    movl    %esi, libtls_b@DTPOFF(%eax)
+</div>
+
+역시 눈여겨 볼 부분은 leal instruction부터이다.
+우선 TLSGD 대신 TLSLDM 형식으로 변경되었고 ebx도 SIB 형식이 아니라 직접 접근된다.
+(TLSLDM에서 LDM은 local dynamic module?을 의미한다고 추측할 수 있다.)
+더욱 중요한 점은 libtls_b 변수 접근 시 ___tls_get_addr()을 호출하지 않았다는 것이다.
+eax에는 이 모듈의 TLS 시작 위치가 저장되어 있으므로
+DTPOFF 형식으로 각 변수의 오프셋만 더하면 바로 주소를 계산할 수 있게 된다.
+
+relocation 항목을 살펴보면 차이를 확실히 느낄 수 있다.
+
+
+<div class="source">
+$ readelf -r libtls.so
+
+Relocation section '.rel.dyn' at offset 0x358 contains 5 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name
+0000200c  00000008 R_386_RELATIVE   
+00001fe0  00000023 R_386_TLS_DTPMOD3
+00001fe8  00000106 R_386_GLOB_DAT    00000000   __gmon_start__
+00001fec  00000206 R_386_GLOB_DAT    00000000   _Jv_RegisterClasses
+00001ff0  00000406 R_386_GLOB_DAT    00000000   __cxa_finalize
+
+Relocation section '.rel.plt' at offset 0x380 contains 3 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name
+00002000  00000107 R_386_JUMP_SLOT   00000000   __gmon_start__
+00002004  00000307 R_386_JUMP_SLOT   00000000   ___tls_get_addr
+00002008  00000407 R_386_JUMP_SLOT   00000000   __cxa_finalize
+</div>
+
+아까는 8개이던 .rel.dyn 섹션의 항목이 5개로 줄어들었다.
+즉 TLS 변수 중 하나에만 GOT 항목이 생성되면 되기 때문인데 (따라서 심볼 이름도 없어졌다)
+그 중에서도 오프셋 값은 항상 0이므로 dynamic linker가 고려하지 않기 위해 항목이 제거되었다.
+(하지만 GOT 상에서는 실제로 공간을 차지하고 있을 것이다.)
+
+이제 공유 라이브러리가 아닌 실행 파일로 직접 빌드되는 경우를 살펴보기로 하자.
+(영어로는 initial exec TLS access model이라고 한다.)
+실행 파일로 빌드되는 경우는 실행 전에 링커가 이미 relocation을 마치고
+라이브러리에 포함된 TLS 변수들도 모두 정적으로 할당된 이후이므로 훨씬 간단하다.
+
+즉, dlopen() 등을 통해 동적으로 로드하는 모듈을 제외하고는 모든 모듈에서 대한
+TLS 영역이 할당되었고 따라서 각 변수에 대해 절대 주소를 (dynamic linker가) GOT에 모두 기록할 수 있으므로
+dynamic linker에게 주소를 요청할 필요없이 GOT 항목 만을 읽어서 바로 접근이 가능해 진다.
+
+다음과 같이 main.c를 작성해보자.
+
+main.c:
+<div class="source">
+extern __thread int libtls_a;
+extern __thread int libtls_b;
+
+int main(void)
+{
+  libtls_a = 1;
+  libtls_b = 1;
+  
+  return 0;
+}
+</div>
+
+빌드한 후 생성된 코드를 살펴보면 다음과 같다.
+(여기서는 PIE로 빌드되는 경우는 제외하고 설명한다.)
+
+
+<div class="source">
+$ gcc -save-temps main.c -L. -ltls
+$ grep -A9 -F main: main.s
+main:
+    pushl    %ebp
+    movl    %esp, %ebp
+    movl    libtls_a@INDNTPOFF, %eax
+    movl    $1, %gs:(%eax)
+    movl    libtls_b@INDNTPOFF, %eax
+    movl    $1, %gs:(%eax)
+    movl    $0, %eax
+    popl    %ebp
+    ret
+</div>
+
+TLS 변수에 접근하기 위해 INDNTPOFF 형식으로 주소를 계산하는데
+이는 TCB 앞 쪽에 정적으로 할당된 모듈(들) 내에서의 해당 변수의 오프셋이며
+스레드 레지스터(gs)로부터 계산을 간단히 하기 위해 음수값으로 저장된다.
+코드에는 나오지 않지만 컴파일러는 내부적으로 이러한 형태의 instruction의 재배치 정보를
+R_386_TLS_IE 형식으로 저장하며 여기서 IE는 initial exec를 의미한다고 볼 수 있다.
+
+실행 파일의 GOT에는 각 TLS 변수 당 하나의 항목이 할당된다.
+
+
+<div class="source">
+$ readelf -r a.out
+
+Relocation section '.rel.dyn' at offset 0x3c0 contains 3 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name
+08049fe8  0000010e R_386_TLS_TPOFF   00000000   libtls_a
+08049fec  00000206 R_386_GLOB_DAT    00000000   __gmon_start__
+08049ff0  0000050e R_386_TLS_TPOFF   00000000   libtls_b
+
+Relocation section '.rel.plt' at offset 0x3d8 contains 2 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name
+0804a000  00000207 R_386_JUMP_SLOT   00000000   __gmon_start__
+0804a004  00000407 R_386_JUMP_SLOT   00000000   __libc_start_main
+</div>
+
+마지막으로 살펴볼 경우는 실행 파일 내에 포함된 TLS 변수에 접근하는 경우이다.
+(영어로는 local exec TLS access model이라고 한다.)
+
+실행 파일에서 참조하는 변수가 실행 파일 내에 직접 정의되어 있다면
+항상 실행 파일 내의 심볼을 참조하는 것으로 판단할 수 있다.
+dynamic linker는 symbol resolution 시에 실행 파일을 symbol lookup scope의 제일 앞에 두므로
+다른 모듈에 의해 preemption되지 않는다고 보장할 수 있다.
+(--export-dynamic 실행 파일과 -Bsymbolic 라이브러리의 조합이라면 모르겠지만.. ;;)
+
+또한 실행 파일은 가장 첫번째 모듈이므로 항상 TCB의 바로 앞에 존재한다.
+따라서 모듈 내의 오프셋을 TCB 주소와 더하면 항상 TLS 영역의 절대 주소를 바로 얻을 수 있다.
+main.c 파일을 다음과 같이 변경하고 다시 확인해 보자.
+
+main.c:
+<div class="source">
+__thread int tls_a;
+__thread int tls_b;
+
+int main(void)
+{
+  tls_a = 1;
+  tls_b = 1;
+  
+  return 0;
+}
+</div>
+
+라이브러리를 링크할 필요가 없으므로 다음과 같이 빌드한 후 코드를 살펴보자.
+
+
+<div class="source">
+$ gcc -save-temps main.c
+$ grep -A7 -F main: main.s
+main:
+    pushl    %ebp
+    movl    %esp, %ebp
+    movl    $1, %gs:tls_a@NTPOFF
+    movl    $1, %gs:tls_b@NTPOFF
+    movl    $0, %eax
+    popl    %ebp
+    ret
+</div>
+
+변수는 NTPOFF 형식으로 참조하는데 이는 dynamic linker가 알려주는 것이 아니라
+빌드 시 (static) linker가 직접 계산할 수 있는 값이다.
+(코드에는 나오지 않지만 컴파일러는 내부적으로 이러한 형태의 instruction의 재배치 정보를
+R_386_TLS_LE 형식으로 저장하며 여기서 LE는 local exec를 의미한다고 볼 수 있다.)
+그러므로 이 경우에는 GOT 항목이 전혀 필요가 없게 된다.
+
+
+<div class="source">
+$ readelf -r a.out
+
+Relocation section '.rel.dyn' at offset 0x384 contains 1 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name
+08049ff0  00000106 R_386_GLOB_DAT    00000000   __gmon_start__
+
+Relocation section '.rel.plt' at offset 0x38c contains 2 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name
+0804a000  00000107 R_386_JUMP_SLOT   00000000   __gmon_start__
+0804a004  00000307 R_386_JUMP_SLOT   00000000   __libc_start_main
+</div>
+
+정리해보면 다음과 같은 차이를 느낄 수 있다.
+
+<ul>
+  <li>general dynamic: 매번 ___tls_get_addr() 호출. 변수 별로 GOT 항목 2개 사용</li>
+  <li>local dynamic: 한번 __tls_get_addr() 호출 후 오프셋 계산. GOT 항목 2개 사용 (1개만 계산)</li>
+  <li>initial exec: ___tls_get_addr() 호출 없음. 변수 별로 GOT 항목 1개 사용</li>
+  <li>local exec: ___tls_get_addr() 호출 없음. GOT 항목 사용 안함</li>
+</ul>
+=== 참고 문헌 ===
+
+<ul>
+  <li><a target="_blank" href="http://people.redhat.com/drepper/tls.pdf">http://people.redhat.com/drepper/tls.pdf</a></li>
+</ul>
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/elf" rel="tag">elf</a>, <a href="/tag/glibc" rel="tag">glibc</a>, <a href="/tag/ld" rel="tag">ld</a>, <a href="/tag/gcc" rel="tag">gcc</a>, <a href="/tag/memory" rel="tag">memory</a>, <a href="/tag/x86" rel="tag">x86</a>
+</div>
+

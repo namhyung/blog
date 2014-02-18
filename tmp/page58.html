@@ -1,0 +1,160 @@
+	
+<div class="version">
+gdb: 7.1
+binutils: 2.20.1
+python: 2.6.5
+</div>
+
+
+보통 disassemble 결과를 보기 위해서는 objdump를 이용하는데
+objdump는 각 section 단위로만 구분할 수 있으므로
+큰 실행 파일의 경우 원하는 특정 함수의 출력 결과 만 보는 것이 좀 불편한 면이 있다.
+
+그래서 특정 함수 만 disassemble하여 출력하는 기능을 찾아보았는데
+별다른 방법을 찾지 못해서 몇 가지 간단한 방법을 정리해 두기로 한다.
+(혹시 더 좋은 방법을 알고 있다면 알려주시기 바란다.)
+
+먼저 gdb를 이용하는 방법이 있다.
+gdb는 자체적으로 특정 함수만 disassemble하는 기능을 제공하므로
+batch 모드로 실행하면 바로 원하는 결과를 얻을 수 있다.
+단 batch 모드로 실행하기 위해서는 command file이 필요하기 때문에
+다음과 같이 임시 파일을 이용하는 스크립트를 만들어 두면 간편하게 이용할 수 있다.
+
+fdas:
+<div class="source">
+#!/bin/sh
+#
+# function disassembler using gdb
+#
+
+GDB=/usr/bin/gdb
+
+if [ $# -ne 2 ]; then
+    echo "Usage: fdas &lt;executable&gt; &lt;function&gt;"
+    exit 1
+fi
+
+EXEC=$1
+FUNC=$2
+
+CMDFILE=$(mktemp)
+cat &gt; ${CMDFILE} &lt;&lt; EOF
+disas ${FUNC}
+quit
+EOF
+
+# run gdb in batch mode: disassemble the function and quit.
+${GDB} -q -batch -x ${CMDFILE} ${EXEC}
+
+rm ${CMDFILE}
+</div>
+
+이 스크립트를 fdas라는 이름으로 저장하고 실행 권한을 준 뒤
+실행 가능한 경로 (여기서는 ~/bin) 상에 위치시키면 다음과 같이 실행할 수 있다.
+
+
+<div class="source">
+$ chmod +x fdas
+$ mv fdas ~/bin/
+$ fdas a.out main
+Dump of assembler code for function main:
+   0x0000000000400524 &lt;+0&gt;:    push   %rbp
+   0x0000000000400525 &lt;+1&gt;:    mov    %rsp,%rbp
+   0x0000000000400528 &lt;+4&gt;:    mov    $0x40062c,%edi
+   0x000000000040052d &lt;+9&gt;:    callq  0x400418 &lt;puts@plt&gt;
+   0x0000000000400532 &lt;+14&gt;:    mov    $0x0,%eax
+   0x0000000000400537 &lt;+19&gt;:    leaveq 
+   0x0000000000400538 &lt;+20&gt;:    retq   
+End of assembler dump.
+</div>
+
+만약 어떤 이유로든 gdb를 이용할 수 없다면
+binutils의 readelf와 objdump 만으로도 동일한 작업을 할 수는 있다.
+
+사실 objdump는 --start-address와 --stop-address 라는 옵션을 제공하는데
+이를 해당 함수의 시작 주소와 끝 주소로 맞춰주기만 하면 원하는 결과를 얻을 수 있다.
+이를 이용하려면 readelf에서 심볼 정보를 출력하도록 하여 필요한 정보를 찾을 수 있는데
+(사실 objdump 자체에서도 symbol table 출력 기능을 제공하기는 한다)
+readelf는 시작 주소와 함수의 크기를 출력하므로 간단한 계산을 거쳐야 한다.
+
+아래의 python 스크립트는 이 작업을 수행하는 것으로
+중간 데이터를 줄이기 위해 추가적으로 grep을 사용하였다.
+(참고로 subprocess 모듈로 인해 python 2.4 이상의 버전이 필요하다)
+
+fdas.py:
+<div class="source">
+#!/usr/bin/python
+#
+# function disassembler using binutils (readelf &amp; objdump)
+#
+
+import sys
+import subprocess as sp
+
+if len(sys.argv) != 3:
+    print "Usage: fdas.py &lt;executable&gt; &lt;function&gt;"
+    sys.exit(1)
+
+exefile = sys.argv[1]
+fntname = sys.argv[2]
+
+# run "readelf -s $exefile | grep $fntname"
+readelf = sp.Popen(['readelf', '-s', exefile], stdout=sp.PIPE)
+grep    = sp.Popen(['grep', fntname], stdin=readelf.stdout, stdout=sp.PIPE)
+result  = grep.communicate()[0].split('\n')
+
+# result may have several partial-matching symbols
+for line in result:
+    sym = line.split()
+    if len(sym) &lt; 8:
+        continue
+    # find exact one (ignore library symbol version)
+    if sym[7].split('@')[0] == fntname:
+        saddr = long(sym[1], 16)
+        size  = int(sym[2])
+        eaddr = saddr + size
+        
+        cmdline = "objdump -d %s --start-address=%ld --stop-address=%ld" \
+            % (exefile, saddr, eaddr)
+        sp.call(cmdline.split())
+        sys.exit(0)
+
+print "can't find the function", fntname, "in", exefile
+sys.exit(1)
+</div>
+
+마찬가지로 실행하면 다음과 같은 출력을 얻을 수 있다.
+
+
+<div class="source">
+$ chmod +x fdas.py
+$ mv fdas.py ~/bin/
+$ fdas.py a.out main
+
+a.out:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000400524 &lt;main&gt;:
+  400524:    55                       push   %rbp
+  400525:    48 89 e5                 mov    %rsp,%rbp
+  400528:    bf 2c 06 40 00           mov    $0x40062c,%edi
+  40052d:    e8 e6 fe ff ff           callq  400418 &lt;puts@plt&gt;
+  400532:    b8 00 00 00 00           mov    $0x0,%eax
+  400537:    c9                       leaveq 
+  400538:    c3                       retq   
+</div>
+
+위의 스크립트들은 자유롭게 사용할 수 있지만
+이로 인해 발생할 수 있는 어떠한 결과에 대해서도 책임이 없음을 미리 밝혀둔다.. ^^;
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/binutils" rel="tag">binutils</a>, <a href="/tag/elf" rel="tag">elf</a>
+</div>
+

@@ -1,0 +1,240 @@
+	
+<div class="version">
+Linux: 2.6.38-rc1
+</div>
+
+
+드디어 2.6.38 merge window에 Nick Piggin님의 vfs-scale series가 포함되었다.
+아직 inode_lock에 대한 이슈가 남아있긴 하지만 이 부분은 아직 LKML에서도 합의가 이루어지지 않았고
+이번에 추가된 dcache_lock에 대한 작업 만으로도 상당한 성능 향상을 이루어 낼 수 있으리라 생각된다.
+아직 많이 부족하지만 마침 vfs 코드를 살펴보던 참이니 아는 데 까지만이라도 정리할 겸 글로 남겨보도록 한다.
+
+dcache는 directory-entry (= dentry)의 cache를 말하는 것이다.
+dentry는 기본적으로 디렉터리 내의 요소들, 즉 파일 (및 하위 디렉터리의) 이름을 나타내는 것이고
+(이름 외의 파일에 대한 정보는 inode 상에 저장된다. 물론 dentry에는 주어진 이름을 통해
+해당하는 inode를 알아낼 수 있도록 inode 번호를 함께 저장한다.)
+이러한 정보는 당연히 파일 시스템 상의 디스크 블록에 저장되어 있게 되지만
+성능 향상을 위해 이를 메모리에 저장해 두는 것이 바로 dcache가 된다.
+
+dcache는 부모 dentry와 파일 이름을 키로 하는 hash table로 구현되어 있으며
+시스템의 가용 메모리 크기에 따라 동적으로 크기를 조정하기 위해 LRU 리스트를 별도로 유지한다.
+
+따라서 dcache는 이름을 통해 파일에 접근하는 (보통 path lookup 혹은 path walk라고 한다) 시스템 콜
+(즉, open, access, stat, chmod, ...)의 성능에 많은 영향을 미치게 된다.
+여기서는 가장 대표적인 open의 경우를 살펴볼 것이다.
+
+이번에 수정된 내용을 이해하기 위해서는 먼저 이전에 사용하던 동작 방식과 그에 따른 문제점을 살펴보아야 한다.
+path lookup의 기본은 주어진 경로를 각 dentry로 분리한 후 경로의 시작 위치에서 부터 차례로
+각각의 dentry를 dcache에 찾고 (만약 dcache에 없다면 부모 inode-&gt;i_op-&gt;lookup() 함수를 통해 디스크에 접근한다)
+그로부터 inode를 얻어서 적절한 권한이 있는지, 심볼릭 링크인지, 마운트 포인트 인지를 검사하고
+그에 대한 적절한 처리를 최종 경로에 이를 때까지 반복하는 것이다.
+
+예를 들어 C 라이브러리인 /lib/libc.so.6 파일에 접근하는 경우
+이는 각각 "/", "libc", "libc.so.6"으로 나누어지게 되고
+절대 경로이므로 current-&gt;fs-&gt;root.dentry가 가리키는 dentry에서 path lookup을 시작하게 된다.
+
+하지만 path lookup은 커널의 다른 활동에 의해 영향을 받게될 수 있는데
+간단한 예로 시스템의 메모리가 부족하여 dcache 내의 dentry 들을 해제하거나
+파일/디렉터리 추가/삭제로 인해 dentry가 추가/삭제되거나
+rename/move를 통해 dentry의 내용이 변경되는 경우 등을 꼽을 수 있겠다.
+
+dcache는 RCU를 통해 관리하기 때문에 reader의 입장에서는 rcu_read_lock의 보호 아래에서
+dentry 들이 제거되리라는 걱정없이 dcache에 접근할 수 있다.
+하지만 이는 한 번의 dcache 접근에만 해당하는 얘기로 path lookup 시에는 경우에 따라 수 많은
+dentry에 접근할 수도 있으며 특히나 하위 dentry를 dcache에서 찾지 못한 경우에는 디스크 접근이 필요하며
+따라서 이 시간 동안 (이미 접근해 둔) 경로 내부의 dentry가 해제되지 않도록 보장하기 위해
+얻어진 각각의 dentry에 대해서 ref-count를 증가시켜야 한다.
+
+이러한 기존의 방식을 이제는 ref-walk라고 부른다.
+이름이 말하는 바와 같이 ref-walk는 경로 내의 각 dentry의 ref-count를 변경하는데
+바로 이 부분이 성능 향상의 걸림돌이 되는 부분 중의 하나이다.
+(다른 부분 중 하나는 대부분의 dcache 연산들이 dcache_lock이라는 coarse-grained lock을 이용한다는 점이다.)
+왜냐하면 ref-count를 갱신하기 위해 dentry의 내용을 변경하면 다른 CPU의 cache line이 invalidate되고
+따라서 path lookup이 매우 빈번하게 발생되는 환경에서 공통적으로 접근하게 되는 dentry의 접근 시간에
+심각한 영향을 주게 되기 때문이다. 예를 들어 C 라이브러리는 모든 프로그램이 실행될 때 마다 참조된다.
+
+바로 이점을 개선한 것이 이번 vfs/dcache-scaling series의 핵심이다.
+이는 lookup path에서 dentry 객체의 어떤 필드도 변경하지 않기 때문에 (store-free) 위와 같은 문제를 극복할 수 있다.
+하지만 당연히 모든 상황에 적용할 수 있는 방법은 아니고 fast-path에서의 성능 향상을 노린 것이다.
+이를 위해 RCU를 lookup 과정 전체에 적용하므로 이를 RCU-walk라고 부른다.
+
+좀 더 자세히 말하면 RCU-walk는 접근하려는 모든 경로가 이미 dcache에 존재한다고 가정한다.
+따라서 이러한 경우 각 경로의 dcache 접근이 성공할 것이므로
+path lookup 과정에서 block되는 일 없이 짧은 시간 안에 종료될 것이다.
+(rcu_read_lock 구간 내에서 프로세스가 block되면 안 된다!)
+따라서 ref-walk에서처럼 각 단계 별로 dcache에 접근할 때 마다 rcu_read_lock/unlock을 수행하는 대신
+시작 단계에서 rcu_read_lock을 걸고 마지막 단계에서 rcu_read_unlock을 수행하면
+중간의 모든 dentry가 해지되지 않을 것이라고 보장할 수 있게 되며
+따라서 ref-count에 의존할 필요가 없게 되는 것이다.
+
+물론 path lookup 도중 dcache에 존재하지 않는 dentry를 만나면 더 이상 RCU-walk를 수행할 수 없다.
+이러한 경우 현재까지 찾은 최종 dentry에 대해서만 ref-count를 증가시키고
+ref-walk로 전환되어 path lookup을 계속 진행하게 된다.
+
+동일한 내용이 vfsmount 객체에도 적용된다.
+lookup 도중 umount가 발생하는 것을 방지하기 위해 ref-count가 필요하게 되는데
+이도 path lookup의 성능에 영향을 미칠 수 있으므로 동일한 방식으로 이를 방지하는데
+vfsmount 객체는 RCU가 아닌 brlock (big reader lock)이라는 per-CPU lock을 통해 보호한다.
+
+가장 미묘한 부분은 path lookup 도중 rename이 발생하는 경우인데
+비록 dentry가 RCU를 통해 관리되고 있긴 하지만
+이 경우에는 일반적인 RCU의 개념과 달리 기존의 객체를 새로운 copy로 update 하는 것이 아니라
+기존의 객체 내용 (여기서는 dentry의 이름) 자체를 바꿔버리게 된다.
+(아마도, rename 연산은 dentry가 참조되고 있는 상황에서도 수행될 수 있기 때문에
+단순히 기존의 객체를 제거하고 새로운 객체를 삽입하는 것이 불가능하기 때문이라 생각된다.)
+
+path lookup 도중 rename으로부터 보호하려면 각 dentry의 이름을 비교하거나 변경할 때 마다
+해당 dentry의 d_lock을 얻어야 하는데 이는 위에서 살펴본 ref-count의 경우와 동일한 문제를 유발시킨다.
+따라서 spin lock 대신 seqlock/count를 도입하여 path lookup 시의 데이터 변경을 방지하였다.
+
+또한 RCU-walk 외에도 dcache_lock을 fine-grained lock으로 분리하는 작업도 추가되었다.
+dcache (hashtable)자체를 보호하기 위해서 각 bucket 별로 bit spin lock을 사용하고
+LRU 리스트의 경우 별도의 dcache_lru_lock이 도입되었으며
+dentry 내부의 자료 구조를 보호하는 경우에는 내부의 d_lock 필드를 이용하게 되었다.
+
+이제 실제로 open 시스템을 수행하는 경우에 어떤 일이 벌어지는지 살펴보기로 한다.
+open 시스템 콜의 서비스 루틴인 sys_open은 먼저 주어진 플래그를 적절히 설정하고
+사용하지 않은 fd 및 file 구조체를 할당한 후 do_filp_open() 함수를 거쳐 do_path_lookup()을 호출한다.
+
+do_path_lookup은 먼저 RCU-walk를 시도하고 실패한 경우 다시 ref-walk를 수행한다.
+여기서는 RCU-walk의 경우를 중점적으로 살펴볼 것이다.
+
+fs/namei.c:
+<div class="source">
+static int do_path_lookup(int dfd, const char *name,
+                       unsigned int flags, struct nameidata *nd)
+{
+    int retval;
+
+    retval = path_init_rcu(dfd, name, flags, nd);
+    if (unlikely(retval))
+        return retval;
+    retval = path_walk_rcu(name, nd);
+    path_finish_rcu(nd);
+    if (nd-&gt;root.mnt) {
+        path_put(&amp;nd-&gt;root);
+        nd-&gt;root.mnt = NULL;
+    }
+
+    if (unlikely(retval == -ECHILD || retval == -ESTALE)) {
+        /* slower, locked walk */
+        if (retval == -ESTALE)
+            flags |= LOOKUP_REVAL;
+        retval = path_init(dfd, name, flags, nd);
+        if (unlikely(retval))
+            return retval;
+        retval = path_walk(name, nd);
+        if (nd-&gt;root.mnt) {
+            path_put(&amp;nd-&gt;root);
+            nd-&gt;root.mnt = NULL;
+        }
+    }
+
+    ...
+}
+</div>
+
+path_init_rcu() 함수는 path lookup 과정에서 사용될 nameidata 구조체의 필드를 적절히 초기화하는데
+먼저 flags에 LOOKUP_RCU를 추가하여 RCU-walk를 수행 중임을 표시하고
+위에서 설명한 대로 rcu_read_lock() 과 br_read_lock(vfsmount_lock)을 호출한 뒤
+주어진 name이 절대 경로인지 상대 경로인지 아니면 openat() 류의 시스템 콜을 통한 경우인지에 따라
+적절한 시작 경로에 대한 path 구조체를 초기화하고 해당 dentry에 대한 seqcount 값을 읽어둔다.
+
+다음으로 path_walk_rcu() 함수는 link_path_walk() 함수를 호출하는데
+이 함수는 loop를 돌며 주어진 name에 해당하는 경로가 모두 탐색될 때까지 다음을 수행한다:
+
+<ul>
+  <li>현재 디렉터리가 실행 권한를 가지는지를 먼저 검사한다. (여기서 디렉터리의 실행 권한은 디렉터리 내의 dentry에 접근할 수 있는지 여부를 나타낸다.)</li>
+  <li>주어진 name을 '/' 문자로 구분하여 현재 단계의 경로명을 추출한 뒤 hash 값을 계산한다.</li>
+  <li>현재 경로명이 "."이면 무시하고 ".."이면 follow_dotdot() 함수를 호출하여 부모 디렉터리로 이동한다.</li>
+  <li>그렇지 않으면 do_lookup() 함수를 호출하여 해당 dentry를 탐색한다.</li>
+  <li>만약 탐색한 dentry가 symbolic link인 경우라면 do_follow_link()를 호출하여 실제 dentry를 탐색한다.</li>
+  <li>그렇지 않으면 현재 경로와 찾아낸 inode를 기억해 둔다.</li>
+</ul>
+여기서는 do_lookup() 함수에 대해서만 간략히 살펴볼 것이다.
+
+
+<div class="source">
+static int do_lookup(struct nameidata *nd, struct qstr *name,
+                   struct path *path, struct inode **inode)
+{
+    ...
+
+    if (nd-&gt;flags &amp; LOOKUP_RCU) {
+        unsigned seq;
+
+        *inode = nd-&gt;inode;
+        dentry = __d_lookup_rcu(parent, name, &amp;seq, inode);
+        if (!dentry) {
+            if (nameidata_drop_rcu(nd))
+                return -ECHILD;
+            goto need_lookup;
+        }
+        /* Memory barrier in read_seqcount_begin of child is enough */
+        if (__read_seqcount_retry(&amp;parent-&gt;d_seq, nd-&gt;seq))
+            return -ECHILD;
+
+        nd-&gt;seq = seq;
+        path-&gt;mnt = mnt;
+        path-&gt;dentry = dentry;
+        if (likely(__follow_mount_rcu(nd, path, inode, false)))
+            return 0;
+        if (nameidata_drop_rcu(nd))
+            return -ECHILD;
+        /* fallthru */
+    }
+
+    ...
+}
+</div>
+
+이 함수는 RCU-walk의 경우 먼저 __d_lookup_rcu() 함수를 호출하여
+dcache 내에 동일한 부모 dentry와 일치하는 이름을 가진 dentry 객체가 있는지 검사한다.
+이 과정에서 rename 연산이 발생하지 않았다는 것을 확인하기 위해 seq 값을 읽어서 확인해 둘 뿐
+아무런 lock이나 ref-count 연산이 발생하지 않는다는 것을 알 수 있다.
+
+적절한 dentry를 찾았다면 그 사이 부모 dentry가 변경되지 않았는지 확인하기 위해 seq 값을 검사하고
+(__read_seqcount_retry) 올바른 값이라면 이를 저장해 둔다.
+
+마지막으로 __follow_mount_rcu() 함수를 호출하는데
+이는 주어진 dentry가 mount point라면 가장 상위의 vfsmount 객체를 찾아준다.
+이 때 vfsmount 객체의 hashtable을 검색하기 위해 __lookup_mnt() 함수를 이용하는데
+여기서도 마찬가지로 lock이나 ref-count 연산이 발생하지 않는다.
+
+하지만 이러한 연산들이 도중에 실패하게 된다면 위에서 보듯이 nameidata_drop_rcu() 함수가 호출되며
+이는 현재의 parent에 해당하는 dentry와 이에 대한 vfsmount 객체의 ref-count를 증가시키고
+rcu_read_unlock()과 br_read_unlock(vfsmount_lock)을 호출한 뒤 LOOKUP_RCU 플래그를 지운다.
+
+단순히 __d_lookup_rcu() 함수에서 실패한 것이라면 해당 dentry가 dcache 내에 존재하지 않는 것이므로
+디스크 접근을 통해 읽어온 후 현재 위치에서부터 ref-walk를 진행해도 되지만
+seqcount가 일치하지 않는다면 rename이 발생한 것이므로 처음부터 path lookup을 다시 시도하게 된다. (-ECHILD)
+
+ref-walk는 path_init() 함수에서 시작하는데 이 함수는 nd 구조체를 초기화하고
+주어진 경로에 따라 적절히 path 구조체를 초기화하고 dentry와 vfsmount 객체의 ref-count를 증가시킨다.
+
+path_walk() 함수는 RCU-walk와 마찬가지로 link_path_walk()를 거쳐 do_lookup() 함수를 호출한다.
+하지만 이 경우는 __d_lookup_rcu() 대신 __d_lookup()을
+__lookup_mnt() 대신 lookup_mnt() 함수를 호출한다는 차이가 있다.
+두 경우 공통적으로 hashtable에 접근하기 위해 lock을 얻고, 원하는 객체를 찾은 후에는 ref-count를 증가시킨다.
+
+이렇게 path lookup이 종료되면 해당 정보를 file 구조체에 저장하고
+필요한 접근 권한을 확인한 후에 경우에 따라 truncate를 수행한 후
+마지막으로 현재 file 객체 정보를 fdtable에 저장한 뒤 해당 fd 값을 사용자 공간으로 반환한다.
+
+
+=== 참고 문헌 ===
+
+<ul>
+  <li><a target="_blank" href="http://lwn.net/Articles/419826/">http://lwn.net/Articles/419826/</a></li>
+  <li><a target="_blank" href="http://lwn.net/Articles/419811/">http://lwn.net/Articles/419811/</a></li>
+  <li><a target="_blank" href="http://linuxplumbersconf.org/2009/slides/Nick-Piggin-presentation.pdf">http://linuxplumbersconf.org/2009/slides/Nick-Piggin-presentation.pdf</a></li>
+</ul>
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/filesystem" rel="tag">filesystem</a>
+</div>
+

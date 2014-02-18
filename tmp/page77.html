@@ -1,0 +1,171 @@
+	
+<div class="version">
+gcc: 4.4.3
+glibc: 2.10.1
+</div>
+
+
+FORTIFY_SOURCE는 SSP와 비슷하지만 스택이 아닌 일반 메모리 버퍼에 대해서도
+overflow를 감지하여 주는 역할을 한다.
+이를 적용하기 위해서는 컴파일 시 -D_FORTIFY_SOURCE=N 옵션을 추가해야 하며
+또한 반드시 (-O1 이상의) 최적화 옵션도 추가해 주어야 한다.
+(우분투에서는 -D_FORTIFY_SOURCE=2 옵션이 아래와 같이 내장 spec을 통해 자동 적용되어 있다.)
+
+
+<div class="source">
+*cpp_unique_options:
+    %{!D_FORTIFY_SOURCE:%{!D_FORTIFY_SOURCE=*:%{!U_FORTIFY_SOURCE:-D_FORTIFY_SOURCE=2}}}
+</div>
+
+FORTIFY_SOURCE가 적용되면 일반 메모리/문자열 및 버퍼 관련 함수들은 gcc builtin 함수로 바뀌는데
+이들은 연산을 수행할 대상 (destination, 즉 결과가 저장될 영역)의 크기를 알아야만
+overflow 검사를 할 수 있다. (당연한 얘기겠지만...;;)
+이러한 메모리 영역의 크기를 알아내기 위해 __builtin_object_size() 내장 함수가 사용된다.
+
+__builtin_object_size()는 두 개의 인자를 받는데
+하나는 크기를 검사할 메모리 영역의 주소이고 다른 하나는 이를 조정하는 플래그이다.
+만약 메모리 영역의 중간을 가리키는 경우에는 그 이후의 영역의 크기 만을 반환한다.
+플래그는 메모리 영역이 구조체 내에 포함되어 있는 경우에 차이를 보이며
+0을 사용하면 구조체 전체의 크기를, 1을 사용하면 해당 필드의 크기 만을 반환한다.
+해당 메모리 영역의 크기를 알 수 없을 때는 -1을 반환한다.
+
+다음과 같은 예제를 살펴보면 이를 확인할 수 있다.
+
+bos.c:
+<div class="source">
+#include &lt;stdio.h&gt;
+
+struct buf {
+  char b1[10];
+  char b2[100];
+} g_buf;
+
+int main(void)
+{
+  char *p1 = g_buf.b1;
+  char *p2 = &amp;g_buf.b1[5];
+
+  printf("__builtin_object_size: %d, %d, %d, %d\n",
+      __builtin_object_size(p1, 0),
+      __builtin_object_size(p1, 1),
+      __builtin_object_size(p2, 0),
+      __builtin_object_size(p2, 1));
+  return 0;
+}
+</div>
+
+위의 예제를 컴파일하여 실행하면 다음과 같은 결과를 얻을 수 있다.
+
+
+<div class="source">
+$ gcc bos.c
+$ ./a.out
+__builtin_object_size: 110, 10, 105, 5
+</div>
+
+gcc로 컴파일 시 -D_FORTIFY_OPTION 옵션을 사용할 때 2 이상의 값을 지정하면
+__builtin_object_size의 플래그로 1을 사용하고 (즉, 더 강력한 검사를 수행하고)
+값을 지정하지 않거나 (기본값이 1로 지정), 1을 지정하면 플래그로 0을 사용한다.
+실제로 cdefs.h 헤더 파일에는 다음과 같이 정의되어 있다.
+
+/usr/include/sys/cdefs.h:
+<div class="source">
+/* Fortify support.  */
+#define __bos(ptr) __builtin_object_size (ptr, __USE_FORTIFY_LEVEL &gt; 1)
+#define __bos0(ptr) __builtin_object_size (ptr, 0)
+</div>
+
+위에서 언급했듯이 FORTIFY_SOURCE가 적용되면 일반 함수가 검사를 위한 builtin 함수로 바뀐다.
+예를 들어 strcpy() 함수의 경우 다음과 같은 형태로 정의된다.
+
+/usr/include/bits/string3.h:
+<div class="source">
+__extern_always_inline char *
+__NTH (strcpy (char *__restrict __dest, __const char *__restrict __src))
+{
+  return __builtin___strcpy_chk (__dest, __src, __bos (__dest));
+}
+</div>
+
+__NTH는 예외를 발생시키지 않는다는 (no throw) 의미이므로 무시해도 상관없다.
+__builtin__strcpy_chk() 함수는 주어진 인자에 따라 다르게 동작하는데
+먼저 저장될 위치의 크기를 알 수 없다면 (__bos(__dest) == -1) 아무런 검사를 수행할 수 없으므로
+단순히 strcpy() 호출로 변경된다. 그렇지 않다면 __src 문자열의 길이를 검사하여
+__str의 길이가 __dest의 길이보다 작다면 아무런 문제가 없으므로 단순히 strcpy()를 호출하며
+__str의 길이가 더 큰 경우에는 overflow가 발생한다는 경고를 보여주고 __strcpy_chk()를 호출하며
+__str의 길이를 알 수 없다면 그냥 __strcpy_chk()를 호출하여 실행 시 __dest의 길이를 넘어가서
+덮어쓰는지 검사하고 필요한 경우 오류 메시지와 함께 프로그램을 종료시킨다.
+
+위의 예제 파일을 다음과 같이 수정한 후 확인해 보도록 하자.
+
+strcpy_chk.c:
+<div class="source">
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+
+struct buf {
+  char b1[10];
+  char b2[100];
+} g_buf;
+
+int main(void)
+{
+  char *p1 = g_buf.b1;
+  char *p2 = &amp;g_buf.b1[5];
+
+  strcpy(p1, "very long character string");
+  puts(p1);
+  return 0;
+}
+</div>
+
+먼저 FORTIFY_SOURCE=1에 대해서는 아무 문제없이 동작한다.
+
+
+<div class="source">
+$ gcc -O -D_FORTIFY_SOURCE=1 strcpy_chk.c
+$ ./a.out
+very long character string
+</div>
+
+하지만 FORTIFY_SOURCE=2를 적용하면 다음과 같은 경고를 보여준다.
+(참고로 이 경고는 strcpy 등의 함수에 문자열 상수가 직접 사용된 경우에만 출력된다.)
+
+
+<div class="source">
+$ gcc -O -D_FORTIFY_SOURCE=2 strcpy_chk.c
+In file included from /usr/include/string.h:640,
+                 from strcpy_chk.c:2:
+In function ‘strcpy’,
+    inlined from ‘main’ at strcpy_chk.c:14:
+/usr/include/bits/string3.h:106: warning: call to __builtin___strcpy_chk will always overflow destination buffer
+</div>
+
+이 프로그램을 실행하면 SSP의 경우와 비슷한 형태로 backtrace와 memory map을 출력한 후 종료한다.
+
+FORTIFY_SOURCE의 가장 큰 약점은 포인터가 함수 호출을 통해 전달되는 경우
+크기 정보가 모두 사라지기 때문에 검사를 수행할 수 없다는 점이다.
+검사를 수행하려면 문자열 처리를 수행하는 함수 내에서 반드시 메모리 크기를 알아야 하기 때문에
+필요한 경우 해당 함수를 inline 시켜서 정보를 알려줘야 한다.
+
+SSP와 마찬가지로 FORTIFY_SOURCE 기능은 gcc의 libssp 라이브러리 내에 구현되어 있다.
+glibc 내에는 이 기능이 이미 구현되어 있으므로 일반적으로는 이를 링크시켜야 할 필요는 없지만
+그렇지 않은 환경에서는 이를 이용할 수 있을 것이다.
+
+
+=== 참고 문헌 ===
+
+<ul>
+  <li><a target="_blank" href="http://gcc.gnu.org/onlinedocs/gcc-4.4.3/gcc/Object-Size-Checking.html">http://gcc.gnu.org/onlinedocs/gcc-4.4.3/gcc/Object-Size-Checking.html</a>
+</li>
+  <li><a target="_blank" href="http://lfs.phayoune.org/hints/downloads/files/ssp.txt">http://lfs.phayoune.org/hints/downloads/files/ssp.txt</a></li>
+</ul>
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/gcc" rel="tag">gcc</a>, <a href="/tag/glibc" rel="tag">glibc</a>, <a href="/tag/memory" rel="tag">memory</a>, <a href="/tag/debug" rel="tag">debug</a>
+</div>
+

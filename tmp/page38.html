@@ -1,0 +1,44 @@
+	
+<div style="text-align:center">
+<img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds19.egloos.com/pds/201012/23/35/c0098335_4d12360b4c21b.jpg" width="150" height="199" onclick="Control.Modal.openDialog(this, event, 'http://pds19.egloos.com/pds/201012/23/35/c0098335_4d12360b4c21b.jpg');" />
+</div>
+
+
+
+<div class="version">
+UNIX Systems for Modern Architecture:
+     Symmetric Multiprocessing and Caching for Kernel Programmers
+by Curl Schimmel
+Addison-Wesley, 1994
+</div>
+
+
+출간된지 제법 오래되긴 했지만 아직도 커널 프로그래머들이 반드시 알아야 할 내용들을
+쉽고 간략하게 정리해 둔 책이 아닌가 싶다.
+
+사실 책 자체의 인쇄 품질은 마치 불법 복제본인 듯 아주 좋지 않았고 (특히나 음영 처리 부분)
+더구나 책을 받았을 때 뒷표지의 거의 절반 가량 칼자국이 나있었기 때문에 매우 실망했지만 (반품할껄 그랬나..)
+책에 담긴 내용이 마음에 들었기 때문에 용서하기로 했다.. ;;
+
+책은 크게 3부로 나누어져 있는데
+1부에서는 (UP 시스템에서) 캐시의 구성 및 종류와 그에 따른 커널 수준의 고려 사항을 설명하고 있고
+2부에서는 (캐시를 고려하지 않은) SMP 시스템에서의 고려 사항을 설명한 뒤에
+마지막 3부에서 이를 통합하여 (실제로 사용되는) 캐시 기반의 SMP 시스템에서의 사례를 설명해 준다.
+
+저자인 Curl Schimmel은 Bell Lab과 SGI에서 UNIX 커널을 개발한 사람답게
+비교적 적은 분량으로 커널의 핵심적인 요소를 잘 짚어내었다.
+CA:AQA와 같이 하드웨어 적인 지식을 많이 전달하고 있지만 이를 커널 프로그래머의 관점에서 바라보기 때문에
+소프트웨어 개발자의 입장에서 받아들이기가 더 수월하다는 장점이 있다고 하겠다.
+
+개인적으로는 13장의 memory ordering model 부분과
+15장의 cache consistency protocol 비교 부분이 많은 도움이 되었다.
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/SMP" rel="tag">SMP</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/cache" rel="tag">cache</a>
+</div>
+

@@ -1,0 +1,224 @@
+	
+<div class="version">
+gcc: 4.4.3
+</div>
+
+
+mudflap 라이브러리는 gcc 내에 포함된 메모리 검사 기능으로
+포인터를 통한 메모리 접근 시 이를 검사하는 코드를 원래의 코드 내에 직접 삽입하는 방식이다.
+mudflap은 gcc와 통합되어 있기 때문에 코드를 생성하는 과정 내에서
+포인터를 통한 메모리 접근을 인식하면 자동으로 그에 대한 검사 코드를 만들 수 있다.
+
+기본적인 동작 방식은 미리 할당된 메모리 영역에 대한 정보를 등록하여 데이터베이스를 구성해 두고
+포인터를 이용한 메모리 접근 시 등록된 메모리 영역에 대한 접근인지를 체크하는 식이다.
+
+전역 변수 및 문자열 상수, 명령행 인자, 환경 변수 등은 프로그램 실행 시작 시 자동으로 등록되며
+스택 변수의 경우 해당 block에 진입/탈출 시 동적으로 등록/해제된다.
+help 변수의 경우도 heap 할당 함수를 (malloc, calloc 등) wrapping하여
+해당 영역에 대한 정보를 등록하도록 되어 있다.
+
+이러한 등록 과정은 __mf_register() 함수가 수행하는데
+기본적으로 메모리 영역의 시작 주소, 크기, 객체 타입, 이름 등의 정보가 저장된다.
+여기서 객체 타입은 heap, stack, static 등을 구분하기 위한 정수값이며
+객체 이름은 "파일명:줄번호:행번호 (함수명) 변수명"의 형태이다.
+
+간단한 예제를 살펴보기로 하자.
+
+
+<div class="source">
+#include &lt;stdio.h&gt;
+
+int main(void)
+{
+  char buf[16];
+  char msg[] = "Hello mudflap!";
+  char *p = msg;
+  p[-1] = '\0';
+  return 0;
+}
+</div>
+
+p 변수는 원래의 msg 영역을 벗어난 메모리 영역에 접근했다.
+이 경우 사실은 msg 아래에는 buf가 할당되어 있으니 메모리 자체로는 접근이 가능한 구역이긴 하다.
+하지만 mudflap은 코드에서 buf에 접근하지 않았으므로 buf를 등록하지 않기 때문에
+이러한 종류의 메모리 접근도 오류로 잡아낼 수 있다.
+
+mudflap을 이용하도록 컴파일하려면 -fmudflap 옵션을 추가해야 한다.
+(multi-thread 프로그램에서 이용할 경우에는 mudflapth 옵션을 대신 이용해야 한다.)
+이에 관련된 builtin spec들을 살펴보면 다음과 같다.
+
+
+<div class="source">
+*cpp_unique_options:
+    %{fmudflap:-D_MUDFLAP -include mf-runtime.h}
+    %{fmudflapth:-D_MUDFLAP -D_MUDFLAPTH -include mf-runtime.h} 
+
+*cc1_options:
+    %{fmudflap|fmudflapth:-fno-builtin -fno-merge-constants}
+
+*mfwrap:
+    %{static: %{fmudflap|fmudflapth:  --wrap=malloc --wrap=free --wrap=calloc --wrap=realloc
+                                      --wrap=mmap --wrap=munmap --wrap=alloca}
+        %{fmudflapth: --wrap=pthread_create}}
+    %{fmudflap|fmudflapth: --wrap=main}
+
+*mflib:
+    %{fmudflap|fmudflapth: -export-dynamic}
+
+*link_command:
+    %(mfwrap) %(link_libgcc) %o %(mflib)
+</div>
+
+cpp 실행 시에는 _MUDFLAP 매크로를 정의하고 mf-runtime.h 파일을 #include한다.
+cc1 실행 시에는 문자열/메모리 관련 함수들을 최적화하지 않고 mudflap을 통하여 실행하기 위해
+builtin 함수를 사용하지 않도록 하고 동일한 문자열 상수로 별도로 관리하기 위해 병합하지 않는다.
+링크 시에는 main 함수를 wrapping하기 위해 실행 파일 내의 심볼들도 dynamic symbol table을 통해 공개하며
+특히 static 빌드 시에는 동적 메모리 함수들도 관리하기 위해 모두 wrapping한다.
+
+다음과 같이 컴파일 후 실행하면 아래와 같은 메시지를 출력할 것이다.
+(-fmudflap 옵션을 주고 맨 뒤에 -lmudflap을 링크하도록 지정해야 한다.)
+우분투의 경우 libmudflap0 와 libmudflap0-dev 패키지를 설치하면 테스트해 볼 수 있다.
+
+
+<div class="source">
+$ gcc -fmudflap test.c -lmudflap
+$ ./a.out
+*******
+mudflap violation 1 (check/write): time=1269503302.202747 ptr=0xbfb80bdc size=1
+pc=0xb77a2d6d location=`test.c:8:3 (main)'
+      /usr/local/lib/libmudflap.so.0(__mf_check+0x3d) [0xb77a2d6d]
+      ./a.out(main+0xcf) [0x80488d3]
+      /usr/local/lib/libmudflap.so.0(__wrap_main+0x49) [0xb77a2569]
+Nearby object 1: checked region begins 1B before and ends 1B before
+mudflap object 0x8627588: name=`test.c:6:8 (main) msg'
+bounds=[0xbfb80bdd,0xbfb80beb] size=15 area=stack check=0r/0w liveness=0
+alloc time=1269503302.202732 pc=0xb77a250d
+number of nearby objects: 1
+</div>
+
+메시지는 메모리 쓰기 접근 시 오류가 났음을 보여주며 (check/write)
+접근 주소 및 크기와 소스 코드에서의 위치까지 표시해 준다.
+그 아래는 stack backtrace 정보를 출력한 것이다.
+그 아래는 접근한 영역의 근처에 있는 등록된 메모리 영역 정보를 표시하는 것으로
+1 바이트 뒤에 "test.c:6:8 (main) msg" 객체가 있다는 것을 보여준다.
+해당 객체의 메모리 위치는 bounds 속성에서 볼 수 있고, 객체 타입(area)은 stack이다.
+
+그럼 mudflap은 어떻게 스택에 할당된 메모리 영역을 관리할 수 있을까?
+가장 기본적으로는 포인터에 대한 대입 (assignment) 연산이 일어나는지 확인한 후
+해당 (즉, 포인터에 대입된) 메모리 영역을 __mf_register() 함수로 등록하는 것이다.
+
+gcc는 코드 생성 과정에서 포인터를 통한 스택 접근을 확인하면
+다음과 같은 식으로 (C++의 예외 처리 방식을 이용하도록) 코드를 변경한다.
+위에서 코드 컴파일 시 -fdump-tree-mudflap1 옵션을 주면 이 과정을 볼 수 있다.
+
+
+<div class="source">
+$ gcc -fmudflap -fdump-tree-mudflap1 test.c -lmudflap
+$ cat test.c.008t.mudflap1 
+
+;; Function main (main)
+
+main ()
+{
+  char * D.1297;
+  int D.1298;
+  char buf[16];
+  char msg[15];
+  char * p;
+
+  try
+    {
+      __mf_register (&amp;msg, 15, 3, "test.c:6:8 (main) msg");
+      msg = "Hello mudflap!";
+      p = &amp;msg;
+      D.1297 = p + -1;
+      *D.1297 = 0;
+      D.1298 = 0;
+      return D.1298;
+    }
+  finally
+    {
+      __mf_unregister (&amp;msg, 15, 3);
+    }
+}
+</div>
+
+위에서 보듯이 해당 코드는 try-finally 블록으로 감싸지고
+코드의 시작과 finally 부분에 msg를 등록/해제하는 register/unregister 함수가 추가되었다.
+참고로 3번째 인자로 주어진 3이라는 값은 해당 객체가 stack 타입 임을 나타낸다. (__MF_TYPE_STACK)
+
+위의 코드는 아직 mudflap 처리가 완전히 끝난 것이 아니라서 빠져있지만
+최종적으로 메모리를 역참조(dereference) 하는 부분에는 메모리 접근을 검사하는 코드가 추가될 것이다.
+GNU C 확장 기능인 statement expression을 이용하여 표현하면 p-&gt;f 식의 메모리 접근은
+({ __mf_check(p, sizeof(*p), __MF_CHECK_WRITE, location); p; })-&gt;f 와 같은 형태로 바뀐다.
+실제로는 lookup cache 검사 및 필드 f의 위치로 인해 이와는 약간 다른 형태의 코드가 생성된다.
+
+또한 string이나 memory 관련 표준 함수들도 mudflap에 의해 wrapping되어
+실제 함수 수행 전에 먼저 메모리 영역에 대한 검사가 이루어진다.
+다음은 memcpy 함수에 대한 wrapper 루틴이다.
+
+
+<div class="source">
+WRAPPER2(void *, memcpy, void *dest, const void *src, size_t n)
+{
+  TRACE ("%s\n", __PRETTY_FUNCTION__);
+  MF_VALIDATE_EXTENT(src, n, __MF_CHECK_READ, "memcpy source");
+  MF_VALIDATE_EXTENT(dest, n, __MF_CHECK_WRITE, "memcpy dest");
+  return memcpy (dest, src, n);
+}
+</div>
+
+여기서 실제 검사하는 MF_VALIDATE_EXTENT 매크로에서 수행하는데
+이는 다음과 같이 정의되어 있다.
+
+
+<div class="source">
+#define MF_VALIDATE_EXTENT(value,size,acc,context) \
+ do { \
+  if (UNLIKELY (size &gt; 0 &amp;&amp; __MF_CACHE_MISS_P (value, size))) \
+    if (acc == __MF_CHECK_WRITE || ! __mf_opts.ignore_reads) \
+    __mf_check ((void *) (value), (size), acc, "(" context ")"); \
+ } while (0)
+</div>
+
+먼저 주어진 메모리 영역을 최근에 참조한 캐시 (__mf_lookup_cache)에서 찾아보는데
+찾지못한다면 (__MF_CACHE_MISS_P()가 true를 반환) __mf_check()를 호출하여 등록된 전체 객체를 모두 찾아본다.
+이 때 설정에 따라 read 접근인 경우 검사를 수행하지 않을 수도 있다. (-ignore-reads)
+
+동적 메모리 함수의 경우에는 마찬가지로 wrapper 함수를 만들어서 내부적으로 실제 함수를 호출한 뒤
+결과로 얻어진 영역을 __mf_register() 함수를 통해 자동으로 등록하도록 되어 있다.
+
+하지만 이렇게 하더라도 모든 메모리 정보를 추적할 수는 없는 경우가 있다.
+예를 들어 mudflap을 이용하지 않고 빌드된 외부 라이브러리를 이용하는 경우
+해당 라이브러리 함수 내에서 할당된 동적 메모리 등의 경우는 mudflap에서 알아낼 수가 없다.
+
+이 경우 프로그램에서 해당 메모리 접근 시 violation이 발생할 수 있는데
+(혹은 어떤 이유로든 mudflap이 인식하지 못하는 정상적인 영역에 접근 시에도 마찬가지다)
+이런 상황에 대처하기 위해 mudflap이 제공하는 몇 가지 heuristic을 이용할 수 있다.
+이는 MUDFLAP_OPTIONS라는 환경 변수를 다음 중 하나로 설정하면 된다.
+
+<ul>
+  <li>-heur-proc-maps : 리눅스에서 제공하는 /proc/&lt;pid&gt;/maps 파일에 등록된 영역이면 허가한다.</li>
+  <li>-heur-stack-bound : 현재 할당된 스택 영역 내의 접근은 허가한다.</li>
+  <li>-heur-start-end : 프로그램의 text/data/bss 영역 내의 접근은 허가한다.</li>
+  <li>-heur-argv-environ : 프로그램 실행 시 주어진 argv, env 배열에 대한 접근은 허가한다. (기본값: enable)</li>
+</ul>
+이 외에도 MUDFLAP_OPTIONS는 mudflap의 전반적인 동작 모드를 변경하거나
+violation 발생 시 동작 변경 및 추가적인 정보를 표시할 수 있는 등의 여러가지 옵션을 설정할 수 있다.
+옵션의 전체 목록은 mudflap을 이용해 빌드된 프로그램 실행 시 MUDFLAP_OPTIONS에 -help를 설정하면 볼 수 있다.
+
+
+=== 참고 문헌 ===
+
+<ul>
+  <li><a target="_blank" href="http://gcc.fyxm.net/summit/2003/mudflap.pdf">http://gcc.fyxm.net/summit/2003/mudflap.pdf</a></li>
+  <li><a target="_blank" href="http://gcc.gnu.org/wiki/Mudflap_Pointer_Debugging">http://gcc.gnu.org/wiki/Mudflap_Pointer_Debugging</a></li>
+</ul>
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/gcc" rel="tag">gcc</a>, <a href="/tag/memory" rel="tag">memory</a>, <a href="/tag/debug" rel="tag">debug</a>
+</div>
+

@@ -1,0 +1,612 @@
+<html>
+<head>	<meta http-equiv='pragma' content='no-cache' />
+	<meta http-equiv='cache-control' content='no-cache' />
+	<meta http-equiv='Content-type' content='text/html; charset=utf-8' />
+	<meta name="author" content="namhyung" />
+	<meta name="keywords" content="F/OSS study" />
+	<meta http-equiv="X-XRDS-Location" content="http://namhyung.myid.net/xrds" />
+	<link rel="openid.server" href="http://www.myid.net/server" />
+	<link rel="openid.delegate" href="http://namhyung.myid.net" />
+	<link rel="shortcut icon" href="http://md.egloos.com/img/favicon.ico" />
+	<link rel="pingback" href="https://rpc.egloos.com/rpc1" />
+	<link rel="alternate" type="application/rss+xml" title="F/OSS study" href="http://rss.egloos.com/blog/studyfoss" />
+	<title>F/OSS study</title>
+	<script type="text/javascript" src="http://md.egloos.com/js/ap.js?ver=1.043"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/gd.js?ver=1.002"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/eg.js?ver=1.012"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/cr.js?ver=1.002"></script>
+    <script type="text/javascript" src="http://md.egloos.com/js/page/ins.js?ver=1.4"></script>
+		
+	<script type="text/javascript" src="http://md.egloos.com/js/lib/prototype_v1511.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.ImgModal.js?ver=1.004"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/page/blog/compatible.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/player.js"></script>
+	
+	<script type="text/javascript" src="http://md.egloos.com/js/lazyload.js"></script>
+	
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloos_template.css?ver=1.002" media="screen" />
+<style type="text/css">
+/* jiinny text-only skin
+ */
+
+
+BODY
+{
+	BACKGROUND : #FCFEFF;
+	MARGIN : 0PX;
+	PADDING : 0PX;
+}
+
+BODY,TD,DIV,LI
+{
+	FONT : 9PT/160% Tahoma, SANS-SERIF, Verdana, monaco,굴림,돋움,SANS-SERIF;
+	COLOR : #33455E;
+}
+
+A:LINK		{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:VISITED	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:ACTIVE	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:HOVER		{ COLOR: #C00000; TEXT-DECORATION: UNDERLINE; }
+
+/* filter의 shadow보다 품질을 좋게 하기 위해서*/
+DIV.HEADER
+{
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+	filter:progid:DXImageTransform.Microsoft.Blur;
+}
+
+#HEADER_SHADOW
+{
+	POSITION : relative;
+	top :-50px; right:0px;
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+}
+
+#HEADER_SHADOW A:LINK		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:VISITED		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:HOVER		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+
+DIV.HEADER A:LINK		{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:VISITED	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:HOVER	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+
+DIV.URL			{ FONT : 8PT/100% VERDANA,TAHOMA; }
+DIV.USERMENU
+{
+	POSITION:absolute:
+	left:0px;
+	top:0px;
+	COLOR : #FFFFFF;
+	FONT : bold 7pt;
+	TEXT-ALIGN : RIGHT;
+	MARGIN-BOTTOM : 50px;
+	BACKGROUND : #000060;
+	PADDING : 4px;
+	BORDER-BOTTOM : 2px #336699 SOLID;
+}
+DIV.USERMENU A:LINK {COLOR:#FFF}
+DIV.USERMENU A:VISITED {COLOR:#FFF}
+DIV.USERMENU A:HOVER {COLOR:#FFF}
+
+DIV.PROFILE
+{
+	WIDTH : 200PX;
+	PADDING : 0PX 0PX 10PX;
+	LINE-HEIGHT : 150%;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.MNTTL
+{
+	FONT:BOLD 10pt;
+	WIDTH : 200PX;
+	BORDER-BOTTOM :	1PX #888 DASHED;
+	PADDING : 2PX 0PX 0PX;
+	MARGIN : 25PX 0PX 10PX;
+	TEXT-ALIGN:CENTER;
+}
+
+DIV.MNBODY
+{
+	font:9pt/135%;
+	WIDTH :200PX;
+}
+
+DIV.POST { MARGIN-BOTTOM : 50PX;}
+
+DIV.POST_HEAD
+{
+	MARGIN-BOTTOM : 15PX;
+	PADDING-BOTTOM : 3PX;
+}
+
+DIV.POST_TTL
+{
+	TEXT-DECORATION: UNDERLINE;
+	FONT: BOLD 10pt Georgia ;
+	COLOR: #000;
+}
+
+DIV.POST_BODY
+{
+	FONT:10pt/150%;
+	WIDTH : 100%;
+	MARGIN-BOTTOM : 30PX;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.POST_BODY A:LINK
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION:none;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:VISITED
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:HOVER
+{
+	COLOR: #CF4040;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #CF4040
+}
+
+
+DIV.POST_TAIL {
+	FONT : 11PX/150% VERDANA, TAHOMA, 돋움;
+	MARGIN-TOP : 10PX;
+	TEXT-ALIGN : RIGHT;
+}
+
+DIV.POST_TAIL A:LINK {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:VISITED {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:HOVER {COLOR: #006699; TEXT-DECORATION: NONE; border-bottom:1px dotted #cc0000}
+
+DIV.COMMENT
+{
+	BORDER : 1PX #D3D3D3 SOLID;
+	BACKGROUND : #F7F7F7;
+	PADDING : 15PX;
+	MARGIN : 20PX 0PX;
+}
+
+DIV.COMMENT_BODY
+{
+	MARGIN-BOTTOM : 20PX;
+}
+
+DIV.COMMENT_TAIL
+{
+	MARGIN : 8PX 0PX 5PX;
+	FONT : 8PT/150% VERDANA, TAHOMA, 돋움;
+	COLOR : #777;
+}
+
+DIV.COMMENT_INPUT
+{
+	MARGIN-TOP : 20PX;
+	BORDER-TOP : 1PX #AAA DOTTED;
+	PADDING-TOP : 20PX;
+}
+
+DIV.COMMENT_LINE
+{
+	BORDER-TOP : 1PX #AAA DOTTED;
+	MARGIN : 10PX 0PX 15PX;
+}
+DIV.POST_BODY IMG
+{
+	filter:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	border:1px #000 solid;
+}
+
+DIV.VERSION
+{
+  font-weight: bold;
+  color: white;
+  background: #525d76;
+  border: 1px solid silver;
+#  margin: 0.5em 10% 0.5em 1em;
+  padding: 0.5em;
+}
+
+DIV.SOURCE
+{
+  font-family: monospace, Courier New, Seoul;
+#  margin: 0.5em 10% 0.5em 1em;
+  margin: 1em;
+  color: navy;
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+BLOCKQUOTE
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD dotted;
+	padding:5px;
+	color:#000;
+	margin:20px;
+}
+
+/* begin style of emphasis */
+.BOX1
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#00FF00;
+	background:#000;
+	margin:20px;
+}
+
+.BOX2
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#FFC000;
+	background:#000;
+	margin:20px;
+}
+
+.EM1
+{
+	background : #FFFF80;
+}
+
+.EM2
+{
+	background : #F0C0FF;
+}
+/* end style of emphasis */
+
+#RIGHTMAIN{ POSITION: ABSOLUTE; RIGHT:300px; LEFT:40px;}
+
+#LEFTSIDE
+{
+	POSITION: ABSOLUTE;
+	TOP:60PX;
+	RIGHT: 20PX;
+	FONT: 9PT;
+	WIDTH:200PX;
+	BORDER-LEFT: 2PX #BCBDC4 DASHED;
+	PADDING: 20PX;
+}
+
+#LEFTSHOW
+{
+	TOP:60PX;
+	RIGHT: 0PX;
+	FONT: 7PT/150%;
+	WIDTH:7px;
+	HEIGHT:200px;
+	BACKGROUND:#DDDDDD;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	BORDER-TOP: 3PX #7598A3 SOLID;
+	BORDER-LEFT: 2PX #7598A3 DASHED;
+	BORDER-BOTTOM: 3PX #7598A3 SOLID;
+}
+
+#LEFTHIDE
+{
+	TOP:63PX;
+	RIGHT: 23PX;
+	FONT: 7PT/150%;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	WIDTH:18px;
+	HEIGHT:18px;
+	TEXT-ALIGN:CENTER;
+}
+#BOTTOMBANNER
+{
+	TEXT-ALIGN=CENTER;
+	WIDTH=100%;
+}
+
+IMG.IMG_DECO
+{
+	TEXT-ALIGN:CENTER;BORDER:1px #000 SOLID;
+	filter:progid:DXImageTransform.Microsoft.DropShadow(color=#AAAAAA,offX=3, offY=3)
+}
+
+#LOGO
+{
+	WIDTH=200;
+	TEXT-ALIGN=CENTER;
+	FILTER:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	progid:DXImageTransform.Microsoft.Glow(Color=#AAAAAA, strength=5)
+}
+
+/* 여기서 부터는 시스템에관한 클래스 이므로 변경하지 않으시는 것이 좋습니다. */
+
+DIV.TRACK_TOP { LINE-HEIGHT : 170%; }
+DIV.ARCHIVE_HEAD { FONT-WEIGHT : BOLD; MARGIN-BOTTOM : 10PX; }
+DIV.ARCHIVE_BODY { MARGIN : 20PX 0PX; LINE-HEIGHT : 160%; PADDING-BOTTOM : 100PX; }
+
+IMG.IMAGE_TOP	{ MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_LEFT	{ MARGIN-RIGHT : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_MID	{ MARGIN-TOP : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.BOOKMK		{ MARGIN : 10PX; BORDER : 0PX; }
+IMG.USERMENU	{ MARGIN-LEFT : 8PX; }
+IMG.LOGO
+{
+BORDER: 1PX #000 SOLID;
+}
+
+DIV.BANNER	{ MARGIN-TOP : 30PX; }
+
+.SMALL		{ FONT-SIZE : 11PX; }
+.DATE		{ FONT : BOLD 8PT/150% VERDANA, TAHOMA, 돋움; }
+.TIME		{ FONT : 8PT/150% VERDANA, TAHOMA, 돋움; TEXT-ALIGN : LEFT; }
+.AUTHOR		{ FONT : BOLD 9PT; }
+.TXTFLD		{ FONT-SIZE:9PT;COLOR:#000; BORDER:1PX SOLID #666678; BACKGROUND:#FFF; }
+
+
+
+/* 여기서 부터는 달력 및 XML에 관련된 클래스입니다. */
+
+
+DIV.CAL_TOP { }
+DIV.CAL { MARGIN : 20PX 0PX 20PX; WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_HEAD { WIDTH : 150PX; FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; PADDING : 4PX 0PX; MARGIN-BOTTOM : 10PX;}
+DIV.CAL_BODY { WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_BOTTOM { }
+
+.CAL
+{
+	FONT : 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+}
+
+.CAL_DAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SUN
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #D36654;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SAT
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #3572A1;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_TODAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	BACKGROUND : #E3E3E3;
+	COLOR : #3D5586;
+	TEXT-ALIGN : CENTER;
+	BORDER : 1px #AAA SOLID;
+}
+
+.CAL_TR
+{
+	BACKGROUND:#EFEFEF;
+}
+
+DIV.XML { FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; }
+   div.memobody {
+       width : 200px;
+       overflow : hidden;
+       }
+   </style>
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloo_navibar.css?ver=1.2" media="screen" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/popup.css?ver=2.00" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/button.css" />
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.Center.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/page/blog/Modal.BookmarkDlg.js?ver=1.002"></script>
+<script type="text/javascript">
+//<![CDATA[
+Event.observe(window, 'load', function() {
+    new Modal.BookmarkDlg('egloo_bookmark', {overlay: true,
+                'groupURL'     : "/exec/egloo_bookmark_group.php",
+                'remoteURL'    : "/exec/egloo_insbookmark_exec.php"});
+    if(''==''){
+	    	copy_contents('studyfoss.egloos.com','namhyung','0');
+    }
+});
+//]]>
+</script></head>
+<body>
+<iframe name="cmtviewfrm" id="cmtviewfrm" src="about:blank" width="0" height="0" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" style="display:block;border:0px;"></iframe>
+<DIV CLASS=USERMENU>  
+<a href="http://www.egloos.com">Egloos</a> | <a href="http://sec.egloos.com/login.php?returnurl=http%3A%2F%2Fstudyfoss.egloos.com%2Fpage%2F3">Log-in</a> </DIV>
+
+<DIV ID=RIGHTMAIN>
+<DIV CLASS=HEADER><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<DIV ID=HEADER_SHADOW><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<!--		<DIV CLASS=URL><a href="http://studyfoss.egloos.com" name="egloo_url">studyfoss.egloos.com</a></DIV>-->
+		<!-- egloos content start -->
+<div class='hentry'><span class='copyright_entry' style='display:none;' title='[gcc] 배열 초기화 코드@@**@@http://studyfoss.egloos.com/5667564'></span><DIV CLASS=POST>
+	<DIV CLASS=POST_HEAD>
+	<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=100%>
+	<TR><TD WIDTH=80%><DIV CLASS=POST_TTL><img src=http://md.egloos.com/img/vl/ico_star_o.gif> <a name="5667564" title="[gcc] 배열 초기화 코드">[gcc] 배열 초기화 코드</a></DIV></TD>
+		<TD WIDTH=20% ALIGN=RIGHT></TD></TR>
+	</TABLE>
+	</DIV>
+	<DIV CLASS=POST_BODY>
+	<div class="version">gcc: 4.7.0<br/>arch: x86_64</div><br/><br/>김민장님의 블로그에서 <a target="_blank" href="http://minjang.egloos.com/2934460">흥미로운 글</a>을 읽고 gcc에서도 어떻게 동작하는지 궁금하여<br/>약간의(?) 삽질 끝에 알아낸 몇가지 사실들을 글로 남겨본다.<br/><br/>테스트에 사용한 코드는 원글에서와 동일하게 다음과 같다.<br/><br/>arrinit.c:<div class="source">void foo(void)<br/>{<br/>&nbsp;&nbsp; &nbsp;char arr1[16] = { 2, 3, 4 };<br/>}</div><br/>위 함수를 gcc로 아무런 최적화없이 (-O0) 컴파일하면 (-S) 아래와 같은 어셈블리 출력을 얻을 수 있다.<br/>참고로 최근에 공개된 <a target="_blank" href="http://gcc.godbolt.org/">GCC explorer 웹사이트</a>를 이용하면<br/>웹에서 곧바로 테스트를 해 볼 수 있으므로 매우 편리하다.<br/>(사실 gcc가 아닌 g++이긴 하지만 이 글에서는 크게 상관없는 듯 하다.)<br/><br/><div class="source">foo:<br/>.LFB0:<br/>&nbsp;&nbsp;&nbsp; .cfi_startproc<br/>&nbsp;&nbsp;&nbsp; pushq&nbsp;&nbsp; %rbp<br/>&nbsp;&nbsp;&nbsp; .cfi_def_cfa_offset 16<br/>&nbsp;&nbsp;&nbsp; movq&nbsp;&nbsp;&nbsp; %rsp, %rbp<br/>&nbsp;&nbsp;&nbsp; .cfi_offset 6, -16<br/>&nbsp;&nbsp;&nbsp; .cfi_def_cfa_register 6<br/>&nbsp;&nbsp;&nbsp; subq&nbsp;&nbsp;&nbsp; $32, %rsp<br/>&nbsp;&nbsp;&nbsp; movq&nbsp;&nbsp;&nbsp; %fs:40, %rax<br/>&nbsp;&nbsp;&nbsp; movq&nbsp;&nbsp;&nbsp; %rax, -8(%rbp)<br/>&nbsp;&nbsp;&nbsp; xorl&nbsp;&nbsp;&nbsp; %eax, %eax<br/>&nbsp;&nbsp;&nbsp; movq&nbsp;&nbsp;&nbsp; $0, -32(%rbp)<br/>&nbsp;&nbsp;&nbsp; movq&nbsp;&nbsp;&nbsp; $0, -24(%rbp)<br/>&nbsp;&nbsp;&nbsp; movb&nbsp;&nbsp;&nbsp; $2, -32(%rbp)<br/>&nbsp;&nbsp;&nbsp; movb&nbsp;&nbsp;&nbsp; $3, -31(%rbp)<br/>&nbsp;&nbsp;&nbsp; movb&nbsp;&nbsp;&nbsp; $4, -30(%rbp)<br/>&nbsp;&nbsp;&nbsp; movq&nbsp;&nbsp;&nbsp; -8(%rbp), %rax<br/>&nbsp;&nbsp;&nbsp; xorq&nbsp;&nbsp;&nbsp; %fs:40, %rax<br/>&nbsp;&nbsp;&nbsp; je&nbsp; .L3<br/>&nbsp;&nbsp;&nbsp; call&nbsp;&nbsp;&nbsp; __stack_chk_fail<br/>.L3:<br/>&nbsp;&nbsp;&nbsp; leave<br/>&nbsp;&nbsp;&nbsp; ret<br/>&nbsp;&nbsp;&nbsp; .cfi_endproc</div><br/>여기서 불필요한 DWARF CFI 생성 코드와 (-fno-dwarf2-cfi-asm)<br/>stack protection 코드를 제거하면 (-fno-stack-protector)<br/>대략 다음과 같은 형태가 된다. (참고로 GCC explorer에서는<br/>이미 CFI directive를 필터링해서 보여주므로 첫 번째 옵션은 생략해도 무방하다)<br/><br/><div class="source">foo():<br/>&nbsp;&nbsp;&nbsp; pushq&nbsp;&nbsp; %rbp<br/>&nbsp;&nbsp;&nbsp; movq&nbsp;&nbsp;&nbsp; %rsp, %rbp<br/>&nbsp;&nbsp;&nbsp; movq&nbsp;&nbsp;&nbsp; $0, -16(%rbp)<br/>&nbsp;&nbsp;&nbsp; movq&nbsp;&nbsp;&nbsp; $0, -8(%rbp)<br/>&nbsp;&nbsp;&nbsp; movb&nbsp;&nbsp;&nbsp; $2, -16(%rbp)<br/>&nbsp;&nbsp;&nbsp; movb&nbsp;&nbsp;&nbsp; $3, -15(%rbp)<br/>&nbsp;&nbsp;&nbsp; movb&nbsp;&nbsp;&nbsp; $4, -14(%rbp)<br/>&nbsp;&nbsp;&nbsp; popq&nbsp;&nbsp;&nbsp; %rbp<br/>&nbsp;&nbsp;&nbsp; ret</div><br/>코드는 무척 단순하게도 전체 배열을 우선 0으로 초기화한 후 각각의 초기값들을 채워주는 형태이다.<br/>배열의 크기를 여러가지로 바꿔보면 코드가 조금 다르게 생성되는 것을 볼 수 있지만<br/>기본적으로 전체 배열을 초기화한 후 각각의 원소를 설정하는 형식 자체는 바뀌지 않는다.<br/><br/>이를 좀 더 확실히 보기 위해서는 C 언어 소스를 gcc가 최적화하기 위한 형태인<br/>gimple로 바꾸는 (gimplify) 과정에서 이 코드가 어떻게 처리되는지 보면 알 수 있다.<br/><br/>컴파일 시에 -fdump-tree-gimple 옵션을 추가하면 다음과 같은 파일을 얻을 수 있다.<br/>(주석으로 처리한 부분은 -fdump-tree-gimple-raw 옵션을 주었을 때의 출력 결과이다)<br/><br/><div class="source">$ gcc -S -fdump-tree-gimple arrinit.c<br/>$ cat arrinit.c.004t.gimple<br/>foo ()<br/>{<br/>&nbsp; char arr1[16];<br/><br/>&nbsp; arr1 = {};&nbsp;&nbsp; &nbsp;&nbsp; // gimple_assign &lt;constructor, arr1, {}, NULL&gt;<br/>&nbsp; arr1[0] = 2;&nbsp;&nbsp; &nbsp;// gimple_assign &lt;integer_cst, arr1[0], 2, NULL&gt;<br/>&nbsp; arr1[1] = 3;&nbsp;&nbsp; &nbsp;// gimple_assign &lt;integer_cst, arr1[1], 3, NULL&gt;<br/>&nbsp; Arr1[2] = 4;&nbsp;&nbsp; &nbsp;// gimple_assign &lt;integer_cst, arr1[2], 4, NULL&gt;<br/>}</div><br/>위에서처럼 변수 선언 시 초기값을 대입하는 형태의 식은<br/>C 언어 파서(front-end)에서 init expression으로 분류되며<br/>일반적인 대입 연산과 마찬가지로 gimplify_modify_expr() 함수에서 이를 처리한다.<br/>이 때 배열의 초기화인 경우 다음과 같은 gimplify_init_constructor() 함수를 거치게 된다.<br/>(설명을 위해 불필요한 부분과 주석은 제거하였다.)<br/><br/>gcc/gimplify.c:<div class="source">gimplify_init_constructor (...)<br/>{<br/>&nbsp; ...<br/>&nbsp;&nbsp; &nbsp;valid_const_initializer<br/>&nbsp;&nbsp; &nbsp;&nbsp; = categorize_ctor_elements (ctor, &amp;num_nonzero_elements,<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &amp;num_ctor_elements, &amp;complete_p);<br/><br/>&nbsp;&nbsp; &nbsp;if (int_size_in_bytes (TREE_TYPE (ctor)) &lt; 0)<br/>&nbsp;&nbsp; &nbsp;&nbsp; cleared = false;<br/>&nbsp;&nbsp; &nbsp;else if (!complete_p)<br/>&nbsp;&nbsp; &nbsp;&nbsp; cleared = true;<br/>&nbsp;&nbsp; &nbsp;else if (num_ctor_elements - num_nonzero_elements<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp; &gt; CLEAR_RATIO (optimize_function_for_speed_p (cfun))<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp; &amp;&amp; num_nonzero_elements &lt; num_ctor_elements / 4)<br/>&nbsp;&nbsp; &nbsp;&nbsp; cleared = true;<br/>&nbsp;&nbsp; &nbsp;else<br/>&nbsp;&nbsp; &nbsp;&nbsp; cleared = false;<br/><br/>&nbsp;&nbsp;&nbsp; ...<br/><br/>&nbsp;&nbsp; &nbsp;if (cleared)<br/>&nbsp;&nbsp; &nbsp;&nbsp; {<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; CONSTRUCTOR_ELTS (ctor) = NULL;<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; TREE_SIDE_EFFECTS (ctor) = 0;<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; object = unshare_expr (object);<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; gimplify_stmt (expr_p, pre_p);<br/>&nbsp;&nbsp; &nbsp;&nbsp; }<br/><br/>&nbsp;&nbsp; &nbsp;if (!cleared || num_nonzero_elements &gt; 0)<br/>&nbsp;&nbsp; &nbsp;&nbsp; gimplify_init_ctor_eval (object, elts, pre_p, cleared);<br/>&nbsp; ...<br/>}</div><br/>먼저 categorize_ctor_elements() 함수를 통해<br/>0이 아닌 값을 가지는 배열의 원소(element)의 수 (num_nonzero_elements)와 <br/>초기값에 명시된 원소의 수 (num_ctor_elements)를 계산하고<br/>명시된 원소의 수가 전체 배열의 원소 수보다 작다면 complete_p 변수를 false로 설정한다.<br/><br/>따라서 뒤의 조건문에서 첫번째 경우 int_size_in_bytes() 함수는 배열의 크기인 16을 반환할 것이므로,<br/>다음의 complete_p 부분에서 걸려서 cleared 변수를 true로 설정하게 된다.<br/>따라서 아래쪽의 코드에서 초기값을 NULL로 초기화한 후<br/>배열 전체를 0으로 초기화하는 gimple assign 문장을 생성하며<br/>gimplify_init_ctor_eval() 함수를 통해 각각의 원소의 값을 설정하는 assign 문장이 추가된다.<br/><br/>만약 배열의 모든 원소에 명시적으로 초기값을 설정한 경우라면 complete_p가 true가 되며<br/>이 때는 초기값이 0인 원소의 수가 CLEAR_RATIO 보다 크고, 초기값이 0이 아닌 원소의 수가<br/>전체 원소의 수의 1/4 미만인 경우에만 cleared를 true로 설정한다.<br/><br/>CLEAR_RATIO는 x86(_64) 아키텍처의 경우 다음과 같이 정의되어 있다.<br/><br/>gcc/config/i386/i386.h:<div class="source">#define CLEAR_RATIO(speed) ((speed) ? MIN (6, ix86_cost-&gt;move_ratio) : 2)</div><br/>이 매크로는 현재 컴파일러가 (현재 함수에 대한) 코드를 생성할 때 최종 결과로 나올 바이너리가<br/>실행 속도를 중요시하는지 아니면 파일 크기를 줄이려고 하는지에 따라 다른 값을 리턴하는데<br/>일반적으로 -Os 최적화 옵션을 주지 않은 경우라면 optimize_function_for_speed_p 함수가<br/>true를 리턴하게되고, 따라서 6과 ix86_cost-&gt;move_ratio 중에서 작은 값을 가지게 되는데<br/>Intel Pentium 급 이상의 머신에서는 move_ratio가 6 이상의 값을 가지므로 보통 6이 선택된다.<br/>(참고로 _p 형태로 끝나는 함수/매크로는 predicate을 의미하는 듯하며,<br/>일반적으로 리턴값의 타입이 boolean이다.)<br/><br/>ix86_cost는 컴파일러가 코드를 생성할 때 고려할, 명령어 별 overhead(?) 정보를 저장하는<br/>processor_costs 구조체이며 gcc/config/i386/i386.c 파일의 첫 부분에 정의되어 있고<br/>필요에 따라 컴파일 시 -mtune (혹은 -march) 옵션을 통해 제어할 수 있게 된다.<br/><br/>다시 원래 함수로 돌아오면, 배열의 모든 원소에 대해 초기값이 지정되어 있고,<br/>그 중 초기값이 0인 원소들이 6개 보다 많은 (그리고 0이 아닌 원소들이 상대적으로 적은) 경우라면<br/>일단 전체 배열을 0으로 초기화 한 후에 나머지 (0이 아닌) 원소들을 초기화한다.<br/><br/>그렇지 않은 경우 (즉, 0이 아닌 초기값을 가지는 원소가 많은 경우)라면<br/>전체 배열을 0으로 초기화하지 않고 (cleared = false) 그냥 각각의 원소를 별도로 설정하게 된다.<br/><br/>그러면 이제 배열 전체를 0으로 초기화하는 코드가 실제로 어떻게 생성되는지를 살펴보도록 하자.<br/>테스트해 본 결과 6개 미만의 명령어를 이용하여 배열을 초기화할 수 있는 경우<br/>mov 명령어를 직접 삽입하는 형태가 되며 그 이상의 명령어가 필요한 경우<br/>rep stos 형태의 명령을 이용하는 것을 확인할 수 있었다.<br/><br/>rtl 코드 생성(expand) 시 gimple_assign 문장은 expand_assignment() 함수에 의해 처리되며<br/>이 때 전체를 0으로 초기화하는 코드는 expand_constructor() 함수를 거쳐 결국<br/>clear_storage_hints() 함수에서 다음과 같이 처리된다.<br/><br/>gcc/expr.c:<div class="source">clear_storage_hints (...)<br/>{<br/>&nbsp; ...<br/>&nbsp; if (CONST_INT_P (size)<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &amp;&amp; CLEAR_BY_PIECES_P (INTVAL (size), align))<br/>&nbsp;&nbsp;&nbsp; clear_by_pieces (object, INTVAL (size), align);<br/>&nbsp; else if (set_storage_via_setmem (object, size, const0_rtx, align,<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; expected_align, expected_size))<br/>&nbsp;&nbsp;&nbsp; ;<br/>&nbsp; else if (ADDR_SPACE_GENERIC_P (MEM_ADDR_SPACE (object)))<br/>&nbsp;&nbsp;&nbsp; return set_storage_via_libcall (object, size, const0_rtx,<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; method == BLOCK_OP_TAILCALL);<br/>&nbsp; else<br/>&nbsp;&nbsp;&nbsp; gcc_unreachable ();<br/><br/>&nbsp; return NULL;<br/>}</div><br/>먼저 배열의 크기(size)는 컴파일러가 알 수 있으므로 CONST_INT_P 매크로는 true를 리턴하고<br/>CLEAR_BY_PIECES_P 매크로를 검사하게 된다. 이는 다음과 같이 정의되어 있다.<br/><br/><div class="source">#define CLEAR_BY_PIECES_P(SIZE, ALIGN) \<br/>&nbsp; (move_by_pieces_ninsns (SIZE, ALIGN, STORE_MAX_PIECES + 1) \<br/>&nbsp;&nbsp; &lt; (unsigned int) CLEAR_RATIO (optimize_insn_for_speed_p ()))</div><br/>move_by_pieces_ninsns() 함수는 주어진 SIZE 크기의 메모리 영역을<br/>mov 명령어를 통해 각각 설정(초기화)하는 경우 필요한 명령어의 수를 계산한다.<br/>이 때 계산된 명령어의 개수가 CLEAR_RATIO 매크로의 리턴값 보다 작은 경우에만 true를 리턴할 것이다.<br/>즉, 위에서 살펴본대로 6개 미만인 경우에만 mov 명령어를 통해 직접 초기화될 것이다. (clear_by_pieces)<br/><br/>이제 6개 이상의 mov 명령어가 필요한 경우를 고려해 보자.<br/>이 때는 set_storage_via_setmem() 함수가 호출되는데<br/>이 함수는 코드를 생성할 (back-end) 아키텍처에서 정의해 둔 setmem_optab 테이블을 검사하여<br/>(비교적) 큰 영역의 메모리를 설정할 때 효율적으로 처리할 수 있는 방법이 있는지 찾는다.<br/><br/>gcc/config/i386/i386.md 파일에 보면 setmemsi와 setmemdi가 정의된 부분을 찾을 수 있는데<br/>(끝에 붙은 si, di는 machine mode를 나타내는 것으로 각각 4, 8 바이트 크기의 정수형에 해당한다)<br/>이는 모두 ix86_expand_setmem() 함수를 통해 구현됨을 알 수 있다.<br/><br/>이 함수는 내부적으로 decide_alg() 함수를 호출하여 현재 상황에 알맞는 알고리즘을 선택하는데<br/>이 알고리즘의 종류는 다음과 같이 정의되어 있다.<br/><br/>gcc/config/i386/i386-opts.h:<div class="source">enum stringop_alg<br/>{<br/>&nbsp;&nbsp; no_stringop,<br/>&nbsp;&nbsp; libcall,<br/>&nbsp;&nbsp; rep_prefix_1_byte,<br/>&nbsp;&nbsp; rep_prefix_4_byte,<br/>&nbsp;&nbsp; rep_prefix_8_byte,<br/>&nbsp;&nbsp; loop_1_byte,<br/>&nbsp;&nbsp; loop,<br/>&nbsp;&nbsp; unrolled_loop<br/>};</div><br/>크게 보면 libcall은 memset 라이브러리 함수를 호출하는 것이고,<br/>rep 명령어를 이용하여 코드를 생성하거나, 컴파일러가 자체적으로 루프를 만들어주는 경우가 있다.<br/>이러한 알고리즘을 선택하기 위해서 (위에서 언급한) processor_costs 구조체 내에<br/>다음과 같이 정의된 stringop_algs 구조체 멤버를 포함하고 있다.<br/><br/>gcc/config/i386/i386.h:<div class="source">#define NAX_STRINGOP_ALGS 4<br/><br/>struct stringop_algs<br/>{<br/>&nbsp; const enum stringop_alg unknown_size;<br/>&nbsp; const struct stringop_strategy {<br/>&nbsp;&nbsp;&nbsp; const int max;<br/>&nbsp;&nbsp;&nbsp; const enum stringop_alg alg;<br/>&nbsp; } size [NAX_STRINGOP_ALGS];<br/>};<br/><br/>struct processor_costs {<br/>&nbsp; ...<br/>&nbsp; struct stringop_algs memcpy[2], memset[2];<br/>&nbsp; ...<br/>};</div><br/>memcpy와 memset의 경우를 위해 각각 32비트와 64비트 아키텍처를 구분하여<br/>어떤 알고리즘을 사용할 지 정의할 수 있도록 하고 있다.<br/>최근의 (64비트) CPU를 사용하고 있다면 generic64_cost가 적용될 것이다<br/><br/>gcc/config/i386/i386.c:<div class="source">#define DUMMY_STRINGOP_ALGS {libcall, {{-1, libcall}}}<br/><br/>struct processor_costs generic64_cost = {<br/>&nbsp; ...<br/>&nbsp; {DUMMY_STRINGOP_ALGS,<br/>&nbsp;&nbsp; {libcall, {{32, loop}, {8192, rep_prefix_8_byte}, {-1, libcall}}}},<br/>&nbsp; {DUMMY_STRINGOP_ALGS,<br/>&nbsp;&nbsp; {libcall, {{32, loop}, {8192, rep_prefix_8_byte}, {-1, libcall}}}},<br/>&nbsp; ...<br/>};</div><br/>이 경우 memset[1]에 해당하는 것이 선택될 터이므로 맨 마지막 것을 보면 되겠다.<br/>처음의 libcall은 unknown_size 즉, 컴파일 시점에 크기를 알 수 없는<br/>메모리 영역을 초기화하는 경우에 사용할 알고리즘이다.<br/>이 경우라면 memset 라이브러리를 호출하고 인자로 크기를 저장한 변수를 넘기면 될 것이다.<br/><br/>다음으로 메모리 영역의 크기가 32바이트 이하인 경우 loop 알고리즘을 사용하여 코드를 생성할 것이다.<br/>(하지만 이러한 경우들은 앞서 본 clear_by_pieces() 함수에서 대부분 먼저 처리되므로<br/>지금과 같이 배열을 초기화하는 경우에서는 거의 확인할 수 없지만<br/>유일하게 31은 8 + 8 + 8 + 4 + 2 + 1의 6개의 명령어가 필요하므로 확인 가능하다!)<br/>그리고 8192 바이트 이하인 경우에는 rep 명령어를 통한 반복문을 만들고<br/>그 보다 더 큰 경우에는 memset 라이브러리 함수를 이용하도록 코드를 생성할 것이다.<br/><br/>마지막으로 만약 (코드 생성을 위한) 타겟 아키텍처에서 setmem_optab을 설정하지 않은 경우라면<br/>set_storage_via_libcall() 함수를 통해 memset() 함수를 호출하는 코드를 생성하게 된다.<br/><br/><div style="clear:both; _display: none;"></div><div class="posttaglist"><a href="/tag/gcc" rel="tag">gcc</a>,&nbsp;<a href="/tag/C" rel="tag">C</a>,&nbsp;<a href="/tag/x86" rel="tag">x86</a></div>
+       <!--
+       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+		    xmlns:dc="http://purl.org/dc/elements/1.1/"
+		    xmlns:trackback="http://madskills.com/public/xml/rss/module/trackback/">
+       <rdf:Description
+	        rdf:about="http://studyfoss.egloos.com/5667564"
+	        dc:identifier="http://studyfoss.egloos.com/5667564"
+	        dc:title="[gcc] 배열 초기화 코드"
+	        trackback:ping="http://studyfoss.egloos.com/tb/5667564"/>
+       </rdf:RDF>
+       -->
+
+	</DIV>
+	<DIV CLASS=POST_TAIL ALIGN=RIGHT><span class="TIME"> <a href="/5667564" class="permalink" title="[gcc] 배열 초기화 코드" rel="bookmark">#</a> by <span class="AUTHOR">namhyung</span> | <a href="/5667564" class="time"  title="[gcc] 배열 초기화 코드" rel="bookmark">2012/06/14 00:11</a></span> | <a href="/category/System" class="category">System</a> | <span class="linkback"><a href="#trb" onclick="trbview('5667564','c0098335','0'); return false;" class="tail_trb">트랙백<span id="trbcnt5667564"></span></a></span> | <span class="linkback"><a href="#cmt" onclick="cmtview('5667564','c0098335','0'); return false;" class="tail_cmt">덧글(<span id="cmtcnt5667564">3</span>)</a></span></DIV>
+		<span id="cmt5667564"></span>
+</DIV>
+</div><!-- egloos content end -->
+<span style="float: left"><a href="/page/2">◀ 이전 페이지</a></a></span>
+<span style="float: right"><a href="/page/4">다음 페이지 ▶</a></span>
+<BR><BR>
+<DIV ID='BOTTOMBANNER' style="display:none;">	<div class="BANNER"><a href="http://www.egloos.com"><img src="http://md.egloos.com/img/edt/banner_ffffff_1.gif" width="150" height="50" border="0" alt="Powered by egloos" /></a></div>
+<BR><BR></DIV>
+</DIV>
+<DIV ID=LEFTSIDE style="display:block;">
+	<DIV ID=LOGO></DIV>
+	     <script language="javascript" type="text/javascript">
+     <!--
+     var s_calendar = new Array();
+     s_calendar = [];
+	  calendar("","");
+     -->
+     </script>
+
+	
+<DIV CLASS=MNTTL>카테고리</DIV>
+<DIV CLASS=MNBODY>
+<a href="/category/General">General</a><br/><a href="/category/Application">Application</a><br/><a href="/category/System">System</a><br/><a href="/category/Kernel">Kernel</a><br/><a href="/category/Book">Book</a><br/><a href="/category/Tips">Tips</a><br/>
+</DIV>
+
+<DIV CLASS=MNTTL>태그</DIV>
+<DIV CLASS=MNBODY><a href="/tag/algorithm" class="tlevel3"> algorithm</a>
+<a href="/tag/memory" class="tlevel3"> memory</a>
+<a href="/tag/perf" class="tlevel1"> perf</a>
+<a href="/tag/git" class="tlevel2"> git</a>
+<a href="/tag/x86" class="tlevel3"> x86</a>
+<a href="/tag/linux" class="tlevel3"> linux</a>
+<a href="/tag/scm" class="tlevel1"> scm</a>
+<a href="/tag/C" class="tlevel3"> C</a>
+<a href="/tag/compiler" class="tlevel3"> compiler</a>
+<a href="/tag/elf" class="tlevel3"> elf</a>
+<a href="/tag/CARM" class="tlevel1"> CARM</a>
+<a href="/tag/glibc" class="tlevel3"> glibc</a>
+<a href="/tag/patch" class="tlevel3"> patch</a>
+<a href="/tag/emacs" class="tlevel3"> emacs</a>
+<a href="/tag/binutils" class="tlevel2"> binutils</a>
+<a href="/tag/block-layer" class="tlevel2"> block-layer</a>
+<a href="/tag/script" class="tlevel1"> script</a>
+<a href="/tag/kernel" class="tlevel3"> kernel</a>
+<a href="/tag/vcs" class="tlevel1"> vcs</a>
+<a href="/tag/blktrace" class="tlevel1"> blktrace</a>
+<a href="/tag/gcc" class="tlevel3"> gcc</a>
+<a href="/tag/synchronization" class="tlevel3"> synchronization</a>
+<a href="/tag/build" class="tlevel3"> build</a>
+<a href="/tag/awk" class="tlevel1"> awk</a>
+<a href="/tag/bash" class="tlevel2"> bash</a>
+<a href="/tag/documentation" class="tlevel1"> documentation</a>
+<a href="/tag/sed" class="tlevel1"> sed</a>
+<a href="/tag/computer-architecture" class="tlevel3"> computer-architecture</a>
+<a href="/tag/CAaQA3" class="tlevel3"> CAaQA3</a>
+<a href="/tag/SMP" class="tlevel2"> SMP</a>
+<div style="text-align:right;margin-top:5px;"><a href="/tag">전체보기</a></div>
+</DIV>
+
+<DIV CLASS=MNTTL>이글루 파인더</DIV>
+<DIV CLASS=MNBODY><form id="finder" style="margin:0;" name="finder" method="post" action="http://studyfoss.egloos.com/" onsubmit="return go_search(document.finder);"><input type="text" id="srch_kwd" name="srch_kwd" size="10" style="vertical-align: middle;width: 100px;font-size:12px;" maxlength="30"/><input type="image" style="vertical-align: middle;margin-left:3px;" src="http://md.egloos.com/img/fnd/searchb.gif" /><p style="margin:3px 0 0 13px;text-align:left"><a href="http://www.zum.com" target="_blank"><img src="http://md.egloos.com/img/search/txt_power.png"></a></p></form>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 덧글</DIV>
+<DIV CLASS=MNBODY>
+<style type="text/css"> 
+.reply_write {margin:10px 0;}
+.reply_write fieldset {border:none;margin:0;padding:0;}
+.reply_write legend {display:none;}
+.reply_write .comment_info {width:95%;}
+.reply_write .comment_info span.comment_name,
+.reply_write .comment_info span.comment_passwd,
+.reply_write .comment_info span.comment_blog {display:block;padding:0 0 2px 0;clear:both;}
+.reply_write .comment_info span.comment_blog {float:left;}
+.reply_write .comment_info span.comment_name label,
+.reply_write .comment_info span.comment_passwd label,
+.reply_write .comment_info span.comment_blog label {display:block;float:left;width:55px;}
+.reply_write .comment_info input {padding:1px 0 0 1px;vertical-align:middle;}
+.reply_write .comment_info input.name {width:100px;}
+.reply_write .comment_info input.passwd {width:60px;}
+.reply_write .comment_info input.blog {width:200px;font-family:tahoma,sans-serif;font-size:11px;}
+.reply_write .comment_info span.comment_now {display:none;}
+.reply_write .comment_info span.comment_login {float:right;}
+.reply_write textarea {margin:2px 0;padding:0;width:95%;height:100px;margin-left:0 !important;font:normal 12px '돋움',sans-serif;}
+.reply_write .comment_btn {width:95%;height:23px;position:relative;*position:static;*text-align:right;}
+.reply_write .comment_btn .comment_submit {position:absolute;top:0;right:0;*position:static;*text-align:right;}
+</style>     
+
+<a href="http://studyfoss.egloos.com/5129119#12438993">이렇게 좋은 글이 한글로 있다는 것..</a><br/><span class="SMALL">by 프로그라머 at 02/17</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5512112#12419757">흐름을 이해할 수 있는글이라 좋..</a><br/><span class="SMALL">by morenice at 11/26</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#12401092">좋은 글 감사합니다~퍼갑니다~</a><br/><span class="SMALL">by 김석범 at 09/10</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 트랙백</DIV>
+<DIV CLASS=MNBODY>
+<a href="http://studyfoss.egloos.com/5350643#515727">이맥스의 파일 변수 사용하기</a><br/><span class="SMALL">by 개똥이야기</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#512679">asmlinkage modifier in Linux..</a><br/><span class="SMALL">by novum의 공유창고</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5409933#511713">구조체의 패킹에 대한 이야기</a><br/><span class="SMALL">by 김재호의 디지털보단 아날로그</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+
+
+
+
+
+
+
+<DIV style="TEXT-ALIGN:center; width:200px;">
+<div class="XML"><a href="http://rss.egloos.com/blog/studyfoss" target="_new"><img src="http://md.egloos.com/img/skn/rss.gif" alt="rss" border="0" /></a><br /><br /> skin by <a href="http://jiinny.egloos.com">jiinny</a></div>
+<BR /><BR />
+<DIV ID=OHLOH><a href='https://www.ohloh.net/accounts/115130?ref=Detailed'>
+  <img alt='Ohloh profile for Namhyung Kim' height='35' src='https://www.ohloh.net/accounts/115130/widgets/account_detailed.gif' width='191' border='0' />
+</a></DIV>
+</DIV>
+</DIV>
+<DIV ID='LEFTSHOW'  onclick=document.all['RIGHTMAIN'].style.right='300px';document.all['BOTTOMBANNER'].style.display='none';document.all['LEFTSIDE'].style.display='block';document.all['LEFTSHOW'].style.display='none';document.all['LEFTHIDE'].style.display='block';  style='color:red;display:none;'>
+</DIV>
+
+<DIV id='LEFTHIDE' onclick=document.all['RIGHTMAIN'].style.right='20px';document.all['BOTTOMBANNER'].style.display='block';document.all['LEFTSIDE'].style.display='none';document.all['LEFTHIDE'].style.display='none';document.all['LEFTSHOW'].style.display='block';  style='color:red'>X</DIV><iframe src="http://www.egloos.com/estat/stat_logger.php?bid=c0098335&ref=&openflag=" style="width: 0px; height: 0px; border: 0px solid #fff;"></iframe>
+<img width="0" height="0" border="0" src="http://studyfoss.egloos.com/egloo_pds.php?eid=c0098335" alt="" />
+<form id="trackfrom" name="trackfrom" method="post" action="">
+<input type="hidden" name="url" value="" />
+<input type="hidden" name="title" value="" />
+<input type="hidden" name="trburl" value="" />
+</form>
+<div style="z-index:9901;top:764px;left:169px;display:none;" id="egloo_bookmark" class="popupWrap">
+    <div class="popupTitle">이글루링크 추가하기</div>
+    <dl class="popupBody">
+        <dt class="no-arrow" style="background:none;font-size:12px;text-align:center;">
+            <span id="egloo-bookmark-url" style="color:#0F71A1;"></span>
+            (<span id="egloo-bookmark-name"></span>)을(를)</dt>
+        <dd class="notice" style="margin:0;padding:0 0 0 8px;line-height:1.8em;color:#000;font-size:12px;text-align:center;">이글루링크로 추가하시겠습니까? 추가하시려면 그룹선택을 하세요.</dd>
+        <dd class="notice weak" style="margin:0;padding:0 0 0 8px;line-height:1.8em;font-size:11px;color:#666666;text-align:center;">(그룹선택 하지 않는 경우, 최상단 목록에 추가됩니다.)</dd>
+        <dd class="egloo-bookmark-group" style="margin:0;padding:10px 0 8px;line-height:1.8em;text-align:center;color:#333;font-size:12px;text-align:center;">그룹선택 :
+            <select name="groupID" id="egloo-bookmark-groupID" style="font-family:'돋움','dotum','Trebuchet MS',Sans-serif;margin-left:10px;"><option value="000">그룹선택없음</option></select></dd>
+        <dd class="buttons">
+            <input type="button" value="지금 확인" onfocus="blur();" onclick="Modal.insertBookmark(true);" class="button btn24 btn_bold"/>
+            <input type="button" value="나중에 확인" onfocus="blur();" onclick="Modal.insertBookmark(false);" class="button btn24 btn_weak"/>
+        </dd>
+        <dd class="close" onclick="Modal.close();"><img src="http://md.egloos.com/img/www/btn/button_popup_close.gif" alt="이글루링크 취소" title="이글루링크 취소" /></dd>
+    </dl>
+</div>
+</body>
+</html>

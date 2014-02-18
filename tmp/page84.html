@@ -1,0 +1,245 @@
+	
+<div class="version">
+gcc: 4.4.1
+</div>
+
+이전 글 보기 :
+
+<ul>
+  <li><a href="http://studyfoss.egloos.com/5037962" title="">[gcc] spec 파일 이용하기</a></li>
+</ul>
+전에 gcc의 spec 파일을 살펴보면서 gcc의 동작을 제어할 수 있다는 것을 알았다.
+이번에는 실제로 gcc가 컴파일을 수행할 때 어떤 식으로 호출되는지를 자세히 살펴보기로 하자.
+
+전에도 말했듯이 /usr/bin/gcc 프로그램 자체는 컴파일러가 아니고
+주어진 파일에 따라 적절한 컴파일 과정이 진행되도록
+실제 전처리기, 컴파일러, 어셈블러, 링커 등을 순서대로 호출해주는 driver 역할을 한다.
+이 때 각 과정에서 수행해야 할 일들을 상세히 서술하는 것이 바로 spec 파일이다.
+
+gcc는 입력으로 주어진 파일의 확장자를 보고 해당 파일에 맞는 컴파일러를 찾는다.
+각 컴파일러에 대한 기본 spec은 gcc.c 파일 내에 default_compilers[] 배열에 정의되어 있다.
+C 언어 소스 (.c) 파일인 경우 @c라는 이름의 spec이 적용되는데 이는 다음과 같이 정의된다.
+(보기 편하도록 들여쓰기를 수정하였다.)
+
+
+<div class="source">
+/* cc1 has an integrated ISO C preprocessor.  We should invoke the
+   external preprocessor if -save-temps is
+%{E|M|MM:%(trad_capable_cpp) %(cpp_options) %(cpp_debug_options)}
+%{!E:%{!M:%{!MM:
+    %{traditional|ftraditional:
+        %eGNU C no longer supports -traditional without -E}
+    %{!combine:
+        %{save-temps|traditional-cpp|no-integrated-cpp:
+        %(trad_capable_cpp) %(cpp_options) -o %{save-temps:%b.i} %{!save-temps:%g.i}
+        cc1 -fpreprocessed %{save-temps:%b.i} %{!save-temps:%g.i} %(cc1_options)}
+    %{!save-temps:%{!traditional-cpp:%{!no-integrated-cpp:
+        cc1 %(cpp_unique_options) %(cc1_options)}}}
+        %{!fsyntax-only:%(invoke_as)}}
+    %{combine:
+    %{save-temps|traditional-cpp|no-integrated-cpp:
+        %(trad_capable_cpp)    %(cpp_options) -o %{save-temps:%b.i} %{!save-temps:%g.i}}
+    %{!save-temps:%{!traditional-cpp:%{!no-integrated-cpp:
+        cc1 %(cpp_unique_options) %(cc1_options)}}
+            %{!fsyntax-only:%(invoke_as)}}}}}}
+</div>
+
+뭔가 복잡해 보이지만 천천히 살펴보면 구조가 보일 것이다.
+먼저 -E 혹은 -M 혹은 -MM 옵션이 지정되었는지를 확인한다.
+이 옵션들은 cpp (C pre-processor)에만 관련된 것으로
+이 경우 cpp만 호출하고 더 이상 컴파일을 진행하지 않는다. (즉, 종료한다.)
+
+그렇지 않다면 (or 조건은 '|' 기호로 간단히 표현되지만 and 조건은 좀 지저분하다..)
+-traditional 혹은 -ftraditional 옵션이 주어졌는지 검사하여 에러 메시지를 출력하고 종료한다.
+("GNU C no longer supports -traditional without -E")
+
+그 다음부터가 실제 컴파일 과정인데 주어진 옵션에 따라 몇 가지 경우로 나뉜다.
+일단 가장 기본적인 경우인 관련된 옵션이 (-combine, -save-temps, -fsyntax-only)
+하나도 주어지지 않은 경우에는 다음이 수행될 것이다.
+
+
+<div class="source">
+cc1 %(cpp_unique_options) %(cc1_options)
+%(invoke_as)
+</div>
+
+%(이름) 형식의 인자는 이 후 spec를 참조하여 해당 이름으로 정의된 내용으로 치환된다.
+당연하게도 C 컴파일러인 cc1을 호출한 후 어셈블러인 as를 호출하도록 되어 있다.
+
+cc1은 cpp의 기능을 포함하고 있기 때문에 컴파일 과정 내에서 자동으로 전처리를 수행하고
+곧바로 컴파일을 시작하여 어셈블러 파일을 생성한다.
+하지만 -save-temps 옵션을 주어 전처리가 끝난 상태의 (.i) 파일을 보관하도록 요청하거나
+-traditional-cpp 혹은 -no-integrated-cpp 옵션을 주어 cpp를 별도로 실행하도록 하면
+다음과 같은 세 단계를 거쳐 컴파일이 진행된다.
+
+
+<div class="source">
+%(trad_capable_cpp) %(cpp_options) -o %{save-temps:%b.i} %{!save-temps:%g.i}
+cc1 -fpreprocessed %{save-temps:%b.i} %{!save-temps:%g.i} %(cc1_options)
+%(invoke_as)
+</div>
+
+cc1에 -fpreprocessed 옵션이 추가되고 %(cpp_unique_options) spec이 사라진 것을 볼 수 있다.
+-save-temps 옵션에 따라 중간 파일 이름은 원래 이름(%b) 혹은 임시 파일 이름(%g)에 확장자 i가 붙은 형태로 사용된다.
+trad_capable_cpp의 spec은 다음과 같이 정의되어 있다.
+
+
+<div class="source">
+*trad_capable_cpp:
+    cc1 -E %{traditional|ftraditional|traditional-cpp:-traditional-cpp}
+</div>
+
+즉, 결국 cc1 -E [-traditional-cpp] 명령이 수행된다.
+(혼동스러울 수도 있지만 앞에서 말했듯이 cc1 내에 cpp의 기능이 모두 들어가있다!)
+
+그리고 -fsyntax-only 옵션이 주어지지 않았다면 %(invoke_as) spec을 통해 as가 호출된다.
+invoke_as는 다음과 같이 정의되어 있다.
+
+
+<div class="source">
+*invoke_as:
+    %{!S:-o %|.s |
+    as %(asm_options) %|.s %A }
+</div>
+
+우선 -S 옵션이 없는 경우에만 as를 호출한다.
+사실 이 명령은 (-pipe 옵션의 경우를 위해) 위의 cc1 호출 과정과 연결되어 있는데
+-pipe 옵션이 주어진 경우 중간 파일 없이 파이프(|)를 통해 cc1의 출력을 as로 넘기게 된다.
+-pipe 옵션이 주어지지 않았다면 %|.s는 임시 파일 이름에 확장자 s가 붙은 형태로 치환된다.
+맨 뒤의 %A는 asm_final spec으로 치환되는데 기본값은 비어있다.
+
+컴파일이 끝나면 다음으로 링크를 수행한다.
+이 과정은 link_command spec이 지정하는데 다음과 같이 좀 복잡하게 정의되어 있다.
+
+
+<div class="source">
+*link_command:
+%{!fsyntax-only:%{!c:%{!M:%{!MM:%{!E:%{!S:
+    %(linker) %l %{pie:-pie} %X %{o*} %{A} %{d} %{e*} %{m} %{N} %{n} %{r}
+    %{s} %{t} %{u*} %{x} %{z} %{Z} %{!A:%{!nostdlib:%{!nostartfiles:%S}}}
+    %{static:} %{L*} %(mfwrap) %(link_libgcc) %o
+    %{fopenmp|ftree-parallelize-loops=*:%:include(libgomp.spec)%(link_gomp)} %(mflib)
+    %{fprofile-arcs|fprofile-generate|coverage:-lgcov}
+    %{!nostdlib:%{!nodefaultlibs:%(link_ssp) %(link_gcc_c_sequence)}}
+    %{!A:%{!nostdlib:%{!nostartfiles:%E}}} %{T*} }}}}}}
+</div>
+
+마음을 가라앉히고 찬찬히 살펴보면 (;;)
+먼저 -E, -c, -S, -M, -MM 등과 같이 중간에 컴파일이 종료되는 옵션이 있는 경우에는 아무 일도 하지 않는다.
+%(linker)는 collect2로 정의되어 있는데 일반적인 (최소한 C 프로그램의) 경우
+그냥 ld가 호출되는 경우와 크게 차이가 없는 듯 하다.. (누가 차이점 좀 알려주시면 감사!)
+
+%l은 link spec으로 치환되는데 링커에 전달되는 각종 기봅 옵션들에 해당한다.
+나머지 {}로 둘러싼 한 글짜 (혹은 *가 붙은) 옵션은 해당 옵션을 그대로 링커로 전달하라는 의미이다.
+그리고 -A, -nostdlib, -nostartfiles 옵션이 주어지지 않았다면 %S로 지정된 start file들을 함께 링크한다.
+%(mfwrap)과 %(mflib)은 메모리 검사 라이브러리인 mudflap과 관련된 것으로 -fmudflap 옵션이 주어졌을 때만 의미가 있다.
+%(link_libgcc)는 %D로 치환되는데 start/end file 및 라이브러리 경로를 -L 옵션으로 추가한다.
+%o는 앞의 과정에서 컴파일 된 object file들의 목록으로 확장된다.
+
+또한 -fopenmp 나 -ftree-parallelize-loops 옵션이 주어진 경우 OpenMP와 관련된 spec 파일을 추가로 검사하여
+%(link_gomp) spec을 이용한다. 기본값은 아무 것도 없다.
+그리고 coverage test에 관련된 옵션 (-profile-arcs, -profile-generate, -coverage)이 주어진 경우
+gcov 라이브러리를 자동으로 링크하게 한다.
+
+-nostdlib 혹은 -nodefaultlibs 옵션이 주어진 경우
+%(link_ssp)와 %(link_gcc_c_sequence) spec이 차례로 이용되는데
+link_ssp는 -fstack-protector 옵션을 무시하며 (아마 glibc 내에 이미 포함되었기 때문인 것 같다)
+link_gcc_c_sequence spec의 경우 다음과 같이 정의되어 있다.
+
+
+<div class="source">
+*link_gcc_c_sequence:
+    %{static:--start-group} %G %L %{static:--end-group}%{!static:%G}
+</div>
+
+%G와 %L은 각각 libgcc와 lib spec으로 치환된다.
+static으로 컴파일하는 경우에는 --start/end-group으로 묶고
+그렇지 않은 경우에는 libgcc spec을 한 번 더 적용하여 라이브러리의 순환 의존성에 관련된 미묘한 문제를 방지한다.
+
+libgcc spec은 static 모드로 컴파일하는 경우에는 -lgcc -gcc_eh 로 확장되고
+그렇지 않은 경우에는 -lgcc --as-needed -lgcc_s --no-as-needed 로 확장된다.
+static-libgcc와 shared-libgcc 옵션을 이용하면 이를 조절할 수 있다.
+
+lib spec은 일반적으로 -lc로 확장되지만 -profile 옵션이 주어진다면 -lc_p가 사용된다.
+또한 -pthread 옵션이 주어졌다면 -lpthread도 추가해 준다.
+
+끝으로는 -A, -nostdlib, -nostartfiles 옵션이 주어지지 않았다면 %E로 지정된 end file들을 함께 링크한다.
+
+startfile 과 endfile spec은 다음과 같이 정의되어 있다.
+
+
+<div class="source">
+*startfile:
+    %{!shared: %{pg|p|profile:gcrt1.o%s;pie:Scrt1.o%s;:crt1.o%s}}
+    crti.o%s
+    %{static:crtbeginT.o%s;shared|pie:crtbeginS.o%s;:crtbegin.o%s}
+
+*endfile:
+    %{ffast-math|funsafe-math-optimizations:crtfastmath.o%s}
+    %{mpc32:crtprec32.o%s}
+    %{mpc64:crtprec64.o%s}
+    %{mpc80:crtprec80.o%s}
+    %{shared|pie:crtendS.o%s;:crtend.o%s}
+    crtn.o%s
+</div>
+
+먼저 파일명 뒤의 %s 기호는 무시하기 바란다. (단순히 start/end file에 속한다는 표시이다.)
+보다시피 static/shared의 경우에 따라 여러 가지 가능성이 있는데
+가장 일반적인 경우라면 crt1.o crti.o crtbegin.o / crtend.o crtn.o 가 사용된다.
+static으로 컴파일할 때는 crt1.o crti.o crtbeginT.o / crtend.o crtn.o 가 사용되고
+shared로 컴파일할 때는 crti.o crtbeginS.o / crtendS.o crtn.o 가 사용된다.
+추가로 -profile, -pie 및 부동 소수점 정밀도에 따라 약간씩 다른 파일들이 사용되기도 한다.
+
+비록 위에서 나온 %(cpp_options), (cc1_options), %(asm_options), %(link) 등의
+옵션 처리에 대한 자세한 내용은 살펴보지 못했지만 (지면과 귀차니즘으로 인해..;;)
+이제 gcc verbose 모드로 컴파일 시에 나오는 메시지들을 대략적으로나마 파악할 수 있게 되었다(고 믿는다!).
+
+
+<div class="source">
+$ gcc -v hello.c 2&gt;&amp;1 | grep COLLECT_GCC_OPTIONS -A1 | grep -v COLLECT_GCC_OPTIONS
+ /usr/lib/gcc/i486-linux-gnu/4.4.1/cc1 -quiet -v hello.c -D_FORTIFY_SOURCE=2 -quiet -dumpbase hello.c -mtune=generic -march=i486 -auxbase hello -version -fstack-protector -o /tmp/ccEpFwPu.s
+--
+ as -V -Qy -o /tmp/ccy2dymO.o /tmp/ccEpFwPu.s
+--
+ /usr/lib/gcc/i486-linux-gnu/4.4.1/collect2 --build-id --eh-frame-hdr -m elf_i386 --hash-style=both -dynamic-linker /lib/ld-linux.so.2 -z relro /usr/lib/gcc/i486-linux-gnu/4.4.1/../../../../lib/crt1.o /usr/lib/gcc/i486-linux-gnu/4.4.1/../../../../lib/crti.o /usr/lib/gcc/i486-linux-gnu/4.4.1/crtbegin.o -L/usr/lib/gcc/i486-linux-gnu/4.4.1 -L/usr/lib/gcc/i486-linux-gnu/4.4.1 -L/usr/lib/gcc/i486-linux-gnu/4.4.1/../../../../lib -L/lib/../lib -L/usr/lib/../lib -L/usr/lib/gcc/i486-linux-gnu/4.4.1/../../.. -L/usr/lib/i486-linux-gnu /tmp/ccy2dymO.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/i486-linux-gnu/4.4.1/crtend.o /usr/lib/gcc/i486-linux-gnu/4.4.1/../../../../lib/crtn.o
+</div>
+
+링커 호출 시의 command line이 제일 지저분하니 그 부분만 다시 정리해 보면 아래와 같다.
+(편의상 여러 줄로 나누었다..)
+
+
+<div class="source">
+/usr/lib/gcc/i486-linux-gnu/4.4.1/collect2                # %(linker)
+--build-id --eh-frame-hdr -m elf_i386 --hash-style=both   # %(link)
+-dynamic-linker /lib/ld-linux.so.2
+-z relro
+/usr/lib/gcc/i486-linux-gnu/4.4.1/../../../../lib/crt1.o  # %(startfile)
+/usr/lib/gcc/i486-linux-gnu/4.4.1/../../../../lib/crti.o
+/usr/lib/gcc/i486-linux-gnu/4.4.1/crtbegin.o
+-L/usr/lib/gcc/i486-linux-gnu/4.4.1                       # %(link_libgcc)
+-L/usr/lib/gcc/i486-linux-gnu/4.4.1
+-L/usr/lib/gcc/i486-linux-gnu/4.4.1/../../../../lib
+-L/lib/../lib -L/usr/lib/../lib
+-L/usr/lib/gcc/i486-linux-gnu/4.4.1/../../..
+-L/usr/lib/i486-linux-gnu
+/tmp/ccy2dymO.o                                           # linker input files
+-lgcc --as-needed -lgcc_s --no-as-needed -lc               # %(link_gcc_c_sequence)
+-lgcc --as-needed -lgcc_s --no-as-needed 
+/usr/lib/gcc/i486-linux-gnu/4.4.1/crtend.o                # %(endfile)
+/usr/lib/gcc/i486-linux-gnu/4.4.1/../../../../lib/crtn.o
+</div>
+
+
+=== 참고 문헌 ===
+
+<ul>
+  <li><a target="_blank" href="http://gcc.gnu.org/onlinedocs/gcc-4.4.1/gcc/Spec-Files.html">http://gcc.gnu.org/onlinedocs/gcc-4.4.1/gcc/Spec-Files.html</a></li>
+</ul>
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/gcc" rel="tag">gcc</a>
+</div>
+

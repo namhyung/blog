@@ -1,0 +1,213 @@
+	
+<div class="version">
+Linux: 2.6.30
+arch: x86
+</div>
+
+
+spin lock은 mutiprocessor system에서
+여러 processor가 동시에 critical section에 진입하지 못하도록 하는 synchronization 기법이다.
+한 processor가 lock을 가지고 있으면 다른 processor들은 unlock될 때까지 busy-wait하다가
+lock을 차지하기 위해 동시에 lock 변수에 접근(write)한다.
+
+여기서 두 가지 문제가 발생할 수 있는데
+첫 번째는 각 processor 간에 lock을 획득하는 순서를 보장할 수 없기 때문에
+먼저 spin lock을 기다리던 processor가 더 나중에 lock을 얻을 수도 있다는 것이다.
+때문에 spin lock은 공정하지 못하다.
+
+또 하나의 문제는 성능에 관련된 것으로
+cache coherency로 인해 한 processor가 lock 변수에 write를 하게되면
+다른 모든 processor의 cache line이 invalidate된다.
+따라서 contention이 심한 경우 lock을 얻은 processor에서도 반복적으로 cache miss가 발생하여
+실행 성능이 매우 나빠질 수 있다. (보통 lock 변수와 데이터는 같은 line에 놓여있을 것이다.)
+
+ticket spin lock은 이를 개선하기 위해 2.6.25 버전부터 도입된 것으로
+lock을 기다리는 각 processor들은 자신 만의 ticket을 부여받고
+자기 차례가 돌아오는 경우에만 write를 시도하므로
+순서대로 lock을 얻을 수 있으며 전체적으로 cache miss 횟수를 줄일 수 있다.
+
+그럼 코드를 살펴보자.
+spin_lock()은 다음과 같이 정의되어 있다.
+
+
+<div class="source">
+/* include/linux/spinlock.h */
+#define spin_lock(lock)            _spin_lock(lock)
+
+/* kernel/spinlock.c */
+void __lockfunc _spin_lock(spinlock_t *lock)
+{
+    preempt_disable();
+    spin_acquire(&amp;lock-&gt;dep_map, 0, 0, _RET_IP_);
+    LOCK_CONTENDED(lock, _raw_spin_trylock, _raw_spin_lock);
+}
+</div>
+
+먼저 커널 선점 기능을 disable한 후에 spin_acquire()를 호출하는데
+이는 CONFIG_LOCKDEP가 선택된 경우 lock을 얻으려는 processor의 정보를 기록하기 위한 것이다.
+LOCK_CONTENDED의 경우도 비슷한데 CONFIG_LOCKSTAT이 설정되지 않은 경우에는
+단순히 _raw_spin_lock()을 호출하는 코드로 확장된다.
+_raw_spin_lock도 CONFIG_DEBUG_SPINLOCK이 설정되지 않았다면
+단순히 __raw_spin_lock()을 호출하는 코드로 확장된다.
+__raw_spin_lock 계열의 함수는 architecture-specific 함수로 x86의 경우 다음과 같이 정의된다.
+
+
+<div class="source">
+static __always_inline void __raw_spin_lock(raw_spinlock_t *lock)
+{
+    __ticket_spin_lock(lock);
+}
+
+static __always_inline int __raw_spin_trylock(raw_spinlock_t *lock)
+{
+    return __ticket_spin_trylock(lock);
+}
+
+static __always_inline void __raw_spin_unlock(raw_spinlock_t *lock)
+{
+    __ticket_spin_unlock(lock);
+}
+</div>
+
+위에서 볼 수 있듯이 단순히 ticket_spin_lock 계열의 함수를 호출하는 방식으로 구현되어 있다.
+먼저 간단한 unlock의 경우부터 살펴보기로 하자.
+ticket spin lock은 processor의 수가 256 개를 넘어가는 머신의 경우를 구분하여 구현되어 있는데
+여기서는 이 부분은 무시하고 NR_CPUS 값이 256 이하인 경우 만을 살펴볼 것이다.
+따라서 spin lock을 기다라는 모든 processor의 정보는 한 byte 내에 포함할 수 있다. (TICKET_SHIFT = 8)
+
+
+<div class="source">
+static __always_inline void __ticket_spin_unlock(raw_spinlock_t *lock)
+{
+    asm volatile(UNLOCK_LOCK_PREFIX "incb %0"
+             : "+m" (lock-&gt;slock)
+             :
+             : "memory", "cc");
+}
+</div>
+
+unlock은 단순히 raw_spinlock_t 구조체의 slock 변수를 1 증가시키는 일만 수행한다.
+여기서 주의깊게 살펴보아야 할 부분은 incb로 최하위 바이트의 값 만을 증가시킨다는 것이다.
+
+slock 변수는 개념적으로 두 부분으로 나누어지는데
+위에서 언급한대로 NR_CPUS가 256보다 작은 경우에는 하위 두 바이트를 사용하며
+상위 바이트는 lock을 기다리는 processor들을 위한 ticket 값이고 (next)
+하위 바이트는 현재 lock을 가지고 있는 processor의 ticket 값이다. (owner)
+
+unlock()이 호출되면 현재 processor가 lock을 반환한다는 의미이므로
+다음 processor가 lock을 얻을 수 있도록 owner ticket을 증가시킨다.
+lock은 자기가 보관하고 있는 next ticket 값과 owner ticket 값이 일치하는 경우에 얻는다.
+
+
+<div class="source">
+static __always_inline void __ticket_spin_lock(raw_spinlock_t *lock)
+{
+    short inc = 0x0100;
+
+    asm volatile (
+        LOCK_PREFIX "xaddw %w0, %1\n"
+        "1:\t"
+        "cmpb %h0, %b0\n\t"
+        "je 2f\n\t"
+        "rep ; nop\n\t"
+        "movb %1, %b0\n\t"
+        /* don't need lfence here, because loads are in-order */
+        "jmp 1b\n"
+        "2:"
+        : "+Q" (inc), "+m" (lock-&gt;slock)
+        :
+        : "memory", "cc");
+}
+</div>
+
+이 코드는 (동기화와 관련된 문제를 제외하면) 개념적으로 아래와 같다.
+
+
+<div class="source">
+static __always_inline void __ticket_spin_lock(raw_spinlock_t *lock)
+{
+    short inc = 0x100;
+    short tmp = (short) lock-&gt;slock;
+    lock-&gt;slock += inc;
+
+    while ((tmp &gt;&gt; 8) != (tmp &amp; 0xFF)) {
+        cpu_relax();
+        tmp = (tmp &amp; 0xFF00) | (unsigned char) lock-&gt;slock;
+    }
+}
+</div>
+
+우선 lock-&gt;slock 값을 읽어오고 동시에 next ticket을 증가시킨다. (lock; xaddw)
+읽어온 slock의 상위 바이트는 현재 processor의 ticket 값으로 저장하고
+동시에 다음 processor가 lock을 얻기 위한 ticket을 증가시키는 것이다.
+이는 LOCK_PREFIX가 붙어있으므로 atomic하게 수행된다.
+
+그리고는 증가시키기 전의 slock 변수에서 next와 owner ticket이 동일한지 검사한다. (cmpb %h0, %b0)
+만약 같다면 현재 processor가 lock을 얻은 것이므로 loop을 종료하고 critical section에 진입한다.
+그렇지 않다면 계속 slock의 owner ticket 값을 갱신한 후 다시 검사한다. (movb %1, %b0)
+즉, unlock이 수행된 후에 lock을 얻기 위해 다시 lock 변수를 write하지 않아도 된다!
+
+trylock()은 slock 값을 먼저 살펴본 후 lock을 얻을 수 있는 경우에만 slock 변수를 write한다.
+
+
+<div class="source">
+static __always_inline int __ticket_spin_trylock(raw_spinlock_t *lock)
+{
+    int tmp, new;
+
+    asm volatile("movzwl %2, %0\n\t"
+             "cmpb %h0,%b0\n\t"
+             "leal 0x100(%k0), %1\n\t"
+             "jne 1f\n\t"
+             LOCK_PREFIX "cmpxchgw %w1,%2\n\t"
+             "1:"
+             "sete %b1\n\t"
+             "movzbl %b1,%0\n\t"
+             : "=&amp;a" (tmp), "=&amp;q" (new), "+m" (lock-&gt;slock)
+             :
+             : "memory", "cc");
+
+    return tmp;
+}
+</div>
+
+이 코드는 개념적으로 아래와 같다.
+
+
+<div class="source">
+static __always_inline int __ticket_spin_trylock(raw_spinlock_t *lock)
+{
+    int tmp, new;
+
+   tmp = (short) lock-&gt;slock;
+    if ((tmp &gt;&gt; 8) != (tmp &amp; 0xFF)) {
+        return 0;
+
+    new = tmp + 0x100;
+    if (tmp == (short) lock-&gt;slock) {
+        lock-&gt;slock = new;
+        tmp = 1;
+    } else {
+        tmp = 0;
+    }
+    return tmp;
+}
+</div>
+
+먼저 현재 slock 변수의 값을 읽어서 lock을 기다리는 processor가 있는지 확인한다. (movzwl %2, %0)
+이는 next ticket과 owner ticket이 다른 경우이므로 바로 0을 return한다. (cmpb %h0, %b0)
+그렇지 않다면 next ticket을 1 증가시켜두는데 (leal 0x100(%k0), %1)
+이는 tmp(%0)의 값을 new(%1)로 옮기고 new 값을 증가시키는 작업을 한 번에 처리해주는 hack이다.
+
+그 동안 slock값이 바뀌지 않았다면 증가시킨 값으로 갱신한다. (lock; cmpxchgw %w1,%2)
+이도 LOCK_PREFIX가 붙어있으므로 atomic하게 수행된다.
+cmpxchg의 결과는 ZF 플래그에 저장되므로 이 값을 읽어서 new 변수의 최하위 바이트에 저장하고 (sete %b1)
+이를 다시 tmp 변수에 옮긴 후 return한다. (movzbl %b1,%0)
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/x86" rel="tag">x86</a>, <a href="/tag/synchronization" rel="tag">synchronization</a>
+</div>
+

@@ -1,0 +1,165 @@
+	
+<div class="version">
+git: 1.7.5
+</div>
+
+
+이전 글 보기:
+
+<ul>
+  <li><a href="http://studyfoss.egloos.com/5519952" title="">[git] object database</a></li>
+</ul>
+앞서 살펴보았듯이 git에서 관리하는 각 객체는 zlib의 deflate 알고리즘을 이용하여 압축된 형태로 저장되며
+압축되기 전의 객체의 내용 및 헤더에 대한 SHA-1 해시값을 계산하여 이를 객체를 가리키는 ID로 사용한다.
+SHA-1은 20바이트 (160비트)의 해시값을 생성하므로 이를 16진수로 나타내기 위해서는 40개의 문자가 필요하다.
+하지만 실질적으로 특정한 객체를 나타내기 위해 40개의 문자를 일일이 적어주는 것은 귀찮으므로
+앞부분에서 적당한 길이의 문자 만을 추출하여 사용할 수 있도록 배려하고 있다.
+(단, 추출된 SHA-1 해시값은 해당 객체를 유일하게 찾아낼 수 있을 만큼 길어야 한다.)
+
+이러한 생략된 형태의 객체 ID를 abbrev(iation)이라고 하며 기본 길이는 7로 정해져 있다. (DEFAULT_ABBREV)
+("git log --oneline"과 같은 명령을 수행해보면 그 결과를 볼 수 있다.)
+하지만 프로젝트가 진행될수록 관리하는 객체가 점차 늘어나게되면 7개의 문자로는 특정 객체를
+유일하게 구별하지 못하는 (해시 충돌) 상황이 발생하게 된다.
+
+이를 수학적으로는 '생일 문제' (birthday problem 혹은 birthday paradox)라고 부르는데
+축구 시합을 하기 위해 23명의 (선수 11x2명, 심판 1명?) 사람들이 모이면
+그 중 생일이 같은 사람이 있을 확률이 50% 이상이 된다는 사실을 말한다.
+
+영문 위키를 참조해보면 총 d개의 가능한 경우의 수 중에서 실제 n개의 경우가 존재할 때
+해시 충돌이 일어날 확률 p는 대략 (계산하기 쉬운 형태로 근사화했을 때) 다음과 같다.
+(이러한 정보를 제공해 준 Jeff King님에게 감사한다. ^^)
+
+<a href="http://www.codecogs.com/eqnedit.php?latex=p%28n;%20d%29%20%5Capprox%201%20-%20e%5E%7B-%5Cfrac%7Bn%5E2%7D%7B2d%7D%7D" target="_blank"><img src="http://latex.codecogs.com/gif.latex?p%28n;%20d%29%20%5Capprox%201%20-%20e%5E%7B-%5Cfrac%7Bn%5E2%7D%7B2d%7D%7D" title="p(n; d) \approx 1 - e^{-\frac{n^2}{2d}}" border="0"></a>
+
+커널의 경우 2.6.39-rc5 현재 약 220만 개의 (loose + packed) 객체가 존재하므로
+7개의 문자를 사용하는 16^7 (= 2^28)개의 경우의 수를 따져볼 때
+p(2.2E+6; 2^28)은 거의 1 (= 100%)에 가까우며, 10개의 문자를 사용한다하더라도 (16^10 = 2^40)
+p(2.2E+6; 2^40)은 88.9% 정도로 충돌이 발생할 것이다.
+
+
+<div class="source">
+$ echo '1 - e(-1.0 * 2200000^2 / (2 * 2^28))' | bc -l
+1.00000000000000000000
+$ echo '1 - e(-1.0 * 2200000^2 / (2 * 2^40))' | bc -l
+.88930506319404585387
+</div>
+
+반대로 5%의 확률로 충돌이 발생하도록 d를 결정하려면 위의 식을 정리하여 아래와 같이 만들 수 있다.
+
+<a href="http://www.codecogs.com/eqnedit.php?latex=d%28n;%20p%29%20%5Capprox%20%5Cfrac%7Bn%5E2%7D%7B2%20%5Cln%20%28%5Cfrac%7B1%7D%7B1-p%7D%29%7D" target="_blank"><img src="http://latex.codecogs.com/gif.latex?d%28n;%20p%29%20%5Capprox%20%5Cfrac%7Bn%5E2%7D%7B2%20%5Cln%20%28%5Cfrac%7B1%7D%7B1-p%7D%29%7D" title="d(n; p) \approx \frac{n^2}{2 \ln (\frac{1}{1-p})}" border="0"></a>
+
+여기서 d는 2의 제곱수 형태일 것이므로 우리가 원하는 지수값을 얻기 위해 밑수를 2로 하는 로그를 취하고
+이를 hex 형태로 나타내기 위해 다시 이 값을 4로 나누면 될 것이다.
+
+<a href="http://www.codecogs.com/eqnedit.php?latex=h%28n;%20p%29%20=%20%5Cfrac%7B%5Clog_2d%28n;%20p%29%7D%7B4%7D" target="_blank"><img src="http://latex.codecogs.com/gif.latex?h%28n;%20p%29%20=%20%5Cfrac%7B%5Clog_2d%28n;%20p%29%7D%7B4%7D" title="h(n; p) = \frac{\log_2d(n; p)}{4}" border="0"></a>
+
+따라서 h(2.2E+6; 0.05)를 계산하면 다음과 같다.
+
+
+<div class="source">
+$ echo 'd = 2200000^2 / (2.0 * l(1/0.95)); h = (l(d) / l(2)) / 4; print h, "\n"' | bc -l
+11.35580753560332711028
+</div>
+
+즉, 현재 커널 객체 데이터베이스에서 충돌 확률을 5% 정도로 유지하려면 12개의 문자를 사용해야 한다.
+
+하지만 이는 모든 객체 데이터베이스 내의 모든 객체에 대한 충돌이 발생할 확률이며
+사용자가 실제로 사용하는 객체는 (대부분) commit 객체이므로 다른 종류의 객체에 대해서는 고려하지 않고
+(git 내부적으로 객체를 참조할 때는 항상 40글자의 full name을 사용한다.)
+commit 객체에 대해서만 충돌을 고려하면 된다.
+
+앞서 살펴보았듯이 가장 간단하게 최상위 디렉터리의 파일 하나 만을 수정한 경우라도
+commit 시에 blob, tree, commit의 세 객체가 생성되며,
+하위 디렉터리의 파일이 수정되거나 여러 파일이 수정되었다면 더 많은 (tree &amp; blob) 객체들이 생성될 것이므로
+commit 객체 만을 살펴보았을 때 충돌이 일어날 확률은 앞서 살펴본 (전체) 확률보다 더 낮을 것이다.
+(실제로 객체 데이터베이스 내의 객체를 조사해 본 결과 commit 객체는 전체 객체의 20% 미만에 불과했다.)
+
+다음과 같은 명령을 통해 실제로 커널 트리에서 (commit 객체들의) 해시 충돌이 발생하는지 확인해 볼 수 있다.
+
+
+<div class="source">
+$ git rev-list --abbrev-commit --all | grep '^.\{10\}'
+a686bb7164
+fc0ccfceb8
+6e27388f1b
+0228f5cdb0
+95ba827313
+11a80a9c76
+4be5c34dc4
+f9d07e41f8
+1417ae0869
+62c592edea
+$ git rev-list --abbrev-commit --all | grep '^.\{11\}'
+$
+</div>
+
+git rev-list 명령은 주어진 참조에서부터 도달가능한 모든 commit 객체들의 목록을 보여주며
+(이 경우는 --all 옵션이 지정되었으므로 모든 브랜치의 헤드를 살펴볼 것이다)
+또한 --abbrev-commit 옵션이 지정되었으므로 40글자 대신 적은 수의 글자(abbreviation)를 이용하도록 할 것이다.
+하지만 충돌이 발생한 경우에는 각 객체를 유일하게 구분할 수 있을 만큼 추가적인 글자를 덧붙이게 되므로
+이 중 가장 긴 길이의 객체가 무엇인지를 보면 해시 충돌이 일어나는 길이를 가늠해 볼 수 있다.
+
+위에서 10개의 문자를 필요로하는 객체들은 몇몇 존재하였으나 11개의 문자를 필요로하는 객체는 아직 없었다.
+(이는 9개 길이의 문자에서 충돌이 발생하여 추가적으로 1글자가 덧붙여졌음을 뜻한다.
+blob과 tree 객체를 포함하여 동일한 실험을 해보면 10개 길이의 문자에서 충돌이 발생한다는 것을 찾을 수 있다.
+실제로 a136a11c490 (blob)객체와 a136a11c493 (tree)객체를 구분하기 위해 최소 11개의 문자가 필요하다.)
+
+따라서 Linus님은 커널 개발 시 특정 commit을 지칭할 때 (향후 몇 년 동안 해당 객체의 유일성을 보장하기 위해)
+기존의 7개 대신 12개의 문자를 abbrev로 이용하도록 권고하였다.
+하지만 git에서 사용하는 기본값은 7로 고정되어 있었으며 이를 수정하려면 매 명령마다 --abbrev=12 옵션을
+일일이 지정해야 하므로 이를 위해 git의 옵션에 기본 abbrev 길이를 조정하는 항목을 추가하는 패치도 작성하였다.
+
+하지만 (현재 git 소스의 maintainer 이신) Junio C. Hamano님은
+대신 core.abbrevguard 옵션을 이용하여 이를 우회(?)하는 패치를 적용하였었는데
+여기서 abbrevguard의 개념은 절대적인 객체 ID abbrev의 길이를 지정하는 대신
+현재 각 객체가 유일하게 구분되는 abbrev 길이에 추가적으로 몇 글자를 덧붙일 수 있게 하는 방식이다.
+
+즉, DEFAULT_ABBREV가 7인 상황에서 abbrevguard를 5로 설정하면
+대부분의 객체 (7글자에서 해시 충돌이 발생하지 않은 객체)들의 경우 출력되는 abbrev의 길이가 12가 되며
+현재 7글자에서 충돌이 발생하여 8글자가 필요한 객체라면 출력되는 길이가 13이 될 것이다.
+그러면 저장소의 크기가 16^5 배로 커질때까지 해당 abbrev를 통해 객체를 유일하게 참조할 수 있을 것이다.
+
+하지만 Linus님이 언급한대로 이는 각 객체(의 현재 충돌 상태) 마다 abbrev 길이가 다르게되고
+따라서 같은 abbrevguard 값을 적용한다고 하더라도 적은 abbrev 길이가 적용된 특정 객체의 경우
+이 후에 충돌이 발생할 확률이 더욱 높아짐에따라 현재 abbrevguard를 통해 보장되는 유일한 abbrev가
+나중에는 유일성을 보장받지 못하게 될 가능성이 더 높다는 문제가 있다.
+
+만약 객체 데이터베이스 내에 있는 어떠한 객체는 4글자의 abbrev로 유일하게 참조할 수 있다고 가정할 때
+abbrevguard를 3으로 설정한다면 해당 객체가 출력될 때는 7글자의 abbrev가 이용될 것이다.
+하지만 차츰 많은 객체들이 만들어질수록 해당 객체의 해시 충돌 확률이 다른 객체보다 더 높을 것이므로
+7글자의 abbrev를 이용하더라도 해당 객체를 유일하게 구분하지 못하는 시기가 금방 다가올 수 있다.
+
+따라서 각 개별 객체의 유일성에 따른 abbrevguard의 개념 대신 해당 저장소 내의 모든 객체에 적용되는
+절대적인 core.abbrev 옵션이 필요하다는 것에 결국 동의하게 되었고
+현재는 core.abbrevguard 옵션을 제외한 core.abbrev 옵션 만이 이용 가능한 상태이다.
+
+따라서 리눅스 커널 소스 트리에서 12 글자의 abbrev를 이용하려는 경우에는
+명령행에서 직접 --abbrev 옵션을 매번 입력하는 대신 다음과 같이 옵션을 설정해두면 된다.
+
+
+<div class="source">
+$ git config --add core.abbrev 12
+$ git log --oneline -3
+8e10cd74342c Linux 2.6.39-rc5
+6befe5f69bae init/Kconfig: fix EXPERT menu list
+4175242c0dc1 Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/bp/bp
+</div>
+
+
+=== 참조 문헌 ===
+
+<ul>
+  <li><a target="_blank" href="http://thread.gmane.org/gmane.comp.version-control.git/168859">http://thread.gmane.org/gmane.comp.version-control.git/168859</a></li>
+  <li><a target="_blank" href="http://en.wikipedia.org/wiki/Birthday_problem">http://en.wikipedia.org/wiki/Birthday_problem</a></li>
+  <li><a target="_blank" href="http://lkml.org/lkml/2010/10/28/264">http://lkml.org/lkml/2010/10/28/264</a></li>
+  <li><a target="_blank" href="http://linux.die.net/man/1/bc">http://linux.die.net/man/1/bc</a></li>
+</ul>
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/git" rel="tag">git</a>, <a href="/tag/scm" rel="tag">scm</a>, <a href="/tag/vcs" rel="tag">vcs</a>
+</div>
+

@@ -1,0 +1,47 @@
+	MIPS 아키텍처의 기본이 되는 ISA 체계는 다음과 같다.
+(각 단계의 ISA는 하위 단계의 모든 명령어들을 포함한다.)
+
+<ul>
+  <li>MIPS ISA I : 기본적인 명령어 집합 (수치연산, 메모리 접근, jump, ...)</li>
+  <li>MIPS ISA II : 원자적 연산 (LL/SC), branch likely, sync, ...</li>
+  <li>MIPS ISA III : 64비트 명령어 집합</li>
+  <li>MIPS ISA IV : conditional move, prefetch, ...</li>
+  <li>MIPS ISA V : 부동 소수점 연산 확장</li>
+</ul>하지만 보통은 이들을 통합한 MIPS32 및 MIPS64 아키텍처의 형태로 사용되는데
+MIPS32는 MIPS ISA II를 기반으로 상위 ISA의 일부 명령어들을 포함한 형태이며
+MIPS64는 MIPS ISA V를 기반으로 한다.
+
+이 외에도 응용 분야에 따라 다음과 같은 확장 기능(ASE)들을 추가할 수 있다.
+
+<ul>
+  <li>MIPS16e ASE : 명령어를 16비트 크기로 압축</li>
+  <li>MIPS-DSP ASE : SIMD 연산 지원</li>
+  <li>SmartMIPS ASE : 스마트 카드 등의 보안(암호화) 기능 지원 (MIPS32 전용)</li>
+  <li>MIPS-3D ASE : paired 단정밀도 부동 소수점 연산 (64비트 FPU 필요)</li>
+  <li>MIPS-MT ASE : 멀티스레드 코어 (Intel의 하이퍼스레딩과 유사)</li>
+  <li>MDMX ASE : MIPS Digital Medai eXtension - 정수 벡터 연산 지원 (MIPS64 전용)</li>
+</ul>주로 사용되는 MIPS32 기반 코어들의 계층도는 다음과 같다. 
+(출처: http://www.mips.com/products/processors/32-64-bit-cores/ )
+
+
+<div style="text-align:center">
+<img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds11.egloos.com/pds/200906/02/35/c0098335_4a24f050983a7.jpg" width="500" height="362.3046875" onclick="Control.Modal.openDialog(this, event, 'http://pds11.egloos.com/pds/200906/02/35/c0098335_4a24f050983a7.jpg');" />
+</div>
+
+M4K : FMT MMU only, MIPS16e
+4KE : TLB MMU 지원 (4KEc only)
+4KSd : TLB MMU 지원, SmartMIPS, MIPS16e
+24K : TLB MMU 지원, FPU 포함, MIPS16e
+24KE : TLB MMU 지원, FPU 포함, MIPS-DSP, MIPS16e
+34K : TLB MMU 지원, MIPS-MT, FPU 포함, MIPS-DSP, MIPS16e
+74K : TLB MMU 지원, FPU 포함, MIPS-DSP, MIPS16e
+1004K : TLB MMU 지원, MIPS-MT, FPU 포함, MIPS-DSP, MIPS16e, 일관성 관리 (MESI, IOCU, GIC)
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/mips" rel="tag">mips</a>, <a href="/tag/computer-architecture" rel="tag">computer-architecture</a>
+</div>
+

@@ -1,0 +1,274 @@
+	
+<div class="version">
+autoconf: 2.65
+automake: 1.11.1
+libtool: 2.2.6b
+OS: ubuntu 10.04
+</div>
+
+
+autotools는 GNU 시스템에서 사용하는 빌드 도구로
+기존의 make를 이용하기 위한 Makefile을 쉽고 이식성있게 작성하기 위한 기법이다.
+하지만 그 사용법이 약간 복잡한 면이 있어서 익숙해지기가 쉽지 않은 면이 있다.
+여기서는 C 언어로 작성된 작은 프로젝트에 autotools를 도입하여 사용하는 예제를 보이도록 한다.
+(보다 복잡한 프로젝트에서 사용하기 위해서는 autotools의 설명서를 직접 참고하기 바란다.)
+
+주의: 필자도 아직 autotools에 익숙하지 않기 때문에 의도하지 않게 잘못 설명된 부분이 있을 수 있다.
+만약 그런 부분을 발견했다면 즉시 알려주시면 감사하겠다.
+
+먼저 전체적인 진행 과정을 요약할 겸 나중에 찾아보기 편하도록 사용한 명령들 만을 적어보면 다음과 같다.
+프로젝트의 소스 파일들은 모두 작성되어 있다고 가정한다.
+
+
+<div class="source">
+Makefile.am 작성
+$ autoscan
+$ mv configure.scan configure.ac
+configure.ac 수정
+$ autoreconf -i
+$ ./configure
+$ make
+</div>
+
+실제로 필요한 작업은 Makefile.am 및 configure.ac 파일을 만든 후에 autoreconf를 수행하는 일이다.
+(물론 이 파일들을 작성하는 것이 가장 힘든 일이다..;;)
+지금부터 하나씩 천천히 살펴보도록 하자.
+
+예제로 사용할 프로젝트는 "JUnit Test Inflected" 문서에서 사용한 예제와 비슷한 작업을 하는
+money라는 이름의 프로젝트로 다음과 같은 인터페이스를 제공하는 라이브러리(libmoney)와
+이를 이용하는 실행 파일로 구성되어 있다고 가정한다.
+
+money.h:
+<div class="source">
+#ifndef MONEY_H__
+#define MONEY_H__
+
+struct money {
+  int amount;
+  char *currency;
+};
+
+struct money * create_money(int, char *);
+void destroy_money(struct money *);
+
+int money_amount(struct money *);
+char * money_currency(struct money *);
+
+#endif /* MONEY_H__ */
+</div>
+
+소스 디렉터리의 구조는 다음과 같을 것이다.
+
+
+<div class="source">
+$ tree
+.
+|-- lib
+|   |-- money.c
+|   `-- money.h
+`-- src
+    `-- main.c
+
+2 directories, 3 files
+</div>
+
+이제 Makefile.am 파일을 만들어야 한다.
+이 파일은 automake를 통해서 결국 (make가 이용하는) Makefile로 변경될 것이다.
+최상위 디렉터리에서는 특별한 작업을 수행하지 않을 것이므로
+이를 하위 디렉터리로 넘기기 위해 최상위 디렉터리의 Makefile.am에는 다음과 같은 내용 만을 포함한다.
+
+Makefile.am:
+<div class="source">
+SUBDIRS = lib src
+</div>
+
+이제 lib 디렉터리에도 Makefile.am 파일을 다음과 같이 만든다.
+
+lib/Makefile.am:
+<div class="source">
+lib_LTLIBRARIES = libmoney.la
+libmoney_la_SOURCES = money.c
+</div>
+
+설명하기에 앞서 src 디렉터리의 Makefile.am 파일도 다음과 같이 만들어 준다.
+
+src/Makefile.am:
+<div class="source">
+bin_PROGRAMS = money
+money_SOURCES = main.c
+money_CPPFLAGS = -I$(top_srcdir)/lib
+money_LDADD = $(builddir)/../lib/libmoney.la
+</div>
+
+Makefile.am 파일은 독특한 방식의 이름(uniform naming scheme)을 사용하는데
+이는 각 파일들이 빌드되고 설치되는 방식을 포함하는 것이다.
+첫 줄에 대문자로 표시된 (LT)LIBRARIES, PROGRAMS와 같은 이름을 primary라고 하며
+그 앞에 붙은 bin_, lib_과 같은 prefix는 해당 파일이 설치될 디렉터리를 지정하며
+뒤에 나오는 이름은 해당 파일의 실제 이름이다.
+
+즉, libmoney.la는 ${prefix}/lib 디렉터리에 설치되는 라이브러리이며
+money는 ${prefix}/bin 디렉터리에 설치되는 실행 프로그램이다.
+
+먼저 lib 디렉터리에 있는 파일을 살펴보자.
+위에서 설명했듯이 첫 번째 줄의 primary는 여기서 라이브러리를 빌드할 것임을 알려준다.
+단, 우리는 libtool을 사용하여 라이브러리를 빌드할 것이므로 (따라서 확장자도 'la'이다)
+일반적인 라이브러리를 나타내는 LIBRARIES라는 primary 대신
+(앞에 libtool을 의미하는 'LT'가 붙은) LTLIBRARIES라는 primary를 이용하였다.
+두 번째 줄은 libmoney.la 라이브러리를 구성하는 소스 파일이 어떤 것이 있는지 알려준다.
+이것만으로 automake는 충분히 복잡한 Makefile을 만들어 줄 것이다.. ^^;
+
+이제 src 디렉터리를 살펴보자.
+첫 두 줄의 내용은 실행 파일임을 나타내는 PROGRAMS primary가 사용된 것 이외에는 별다른 차이가 없다.
+그 아래의 내용은 컴파일 (정확히는 전처리) 시에 전달되는 플래그를 설정하는 것과
+링크 시에 함께 링크할 파일(라이브러리)를 지정하는 부분이다.
+여기서는 libmoney 라이브러리가 별도의 디렉터리(lib)에 빌드되어 있으므로
+이런 복잡한(?) 부분이 필요하며 만일 모두 같은 디렉터리에 존재한다면 이 과정은 불필요하다.
+
+여기서 주의할 부분은 lib 디렉터리의 경로를 지정하는 부분인데
+기본적으로 프로그램을 빌드할 때 소스가 존재하는 위치와 빌드를 수행하는 위치가 다를 수 있다는 것을
+염두에 두어야 한다. 이는 각각 $(srcdir) 및 $(builddir) 변수를 이용하여 지정할 수 있다.
+이 변수들은 하위 디렉터리에서 사용하는 경우 자동으로 해당 디렉터리 위치를 추적하고 있기 때문에
+src/Makefile.am에서는 'src'로, lib/Makefile.am에서는 'lib'으로 치환될 것이다.
+이를 피하기 위해서 $(top_srcdir)와 $(top_builddir) 변수를 이용할 수 있으며
+이는 항상 소스 및 빌드 디렉터리의 최상위 디렉터리의 이름으로 치환된다.
+
+여기서 헤더 파일인 money.h는 항상 소스 디렉터리에 존재하므로 $(srcdir) 변수를 이용하였고
+라이브러리 파일은 빌드 시에 동적으로 생성되기 때문에 $(builddir) 변수를 이용하였다.
+또한 Makefile 자체도 빌드 시에 동적으로 생성되므로 $(builddir)은 '.'과 같으므로
+위의 예제에서 다음과 같은 표현들은 결국 모두 같은 결과를 보여줄 것이다.
+
+
+<div class="source">
+money_LDADD = $(top_builddir)/lib/libmoney.la
+money_LDADD = $(builddir)/../lib/libmoney.la
+money_LDADD = ../lib/libmoney.la
+</div>
+
+여기까지 Makefile.am 파일을 모두 작성하였다.
+실질적으로 지금까지의 과정이 가장 복잡한 것이었으므로 희망을 가지고(?) 다음으로 넘어가자.
+이제 필요한 것은 configure.ac 파일이다.
+이 파일은 autoconf를 이용하여 configure 스크립트를 생성하는 것으로
+사실 상 가장 복잡한 설정이 필요한 파일이지만 Makefile.am 파일처럼 처음부터 직접 다 작성하지 않고
+autoscan을 이용하여 뼈대를 구성한 뒤 필요한 부분 만 추가/수정하면 된다.
+
+최상위 디렉터리에서 autoscan 명령을 수행하면 configure.scan 파일이 생성된다.
+이를 configure.ac로 복사하고 다음과 같이 수정하도록 하자.
+
+
+<div class="source">
+$ diff -u configure.{scan,ac}
+--- configure.scan    2010-06-22 22:15:35.981876209 +0900
++++ configure.ac      2010-06-22 22:16:45.320625690 +0900
+@@ -2,12 +2,15 @@
+ # Process this file with autoconf to produce a configure script.
+ 
+ AC_PREREQ([2.65])
+-AC_INIT([FULL-PACKAGE-NAME], [VERSION], [BUG-REPORT-ADDRESS])
++AC_INIT([money], [0.1], [namhyung@gmail.com])
+ AC_CONFIG_SRCDIR([lib/money.h])
+ AC_CONFIG_HEADERS([config.h])
+ 
++AM_INIT_AUTOMAKE([foreign])
++
+ # Checks for programs.
+ AC_PROG_CC
++AC_PROG_LIBTOOL
+ 
+ # Checks for libraries.
+ 
+</div>
+
+이제 필요한 모든 준비가 끝났으므로 필요한 파일들을 생성하기 위해 autoreconf를 실행할 수 있다.
+지금까지의 과정을 잘 따라왔다면 현재 디렉터리에는 다음과 같은 파일들이 존재할 것이다.
+
+
+<div class="source">
+$ tree
+.
+|-- Makefile.am
+|-- autoscan.log
+|-- configure.ac
+|-- configure.scan
+|-- lib
+|   |-- Makefile.am
+|   |-- money.c
+|   `-- money.h
+`-- src
+    |-- Makefile.am
+    `-- main.c
+
+2 directories, 9 files
+</div>
+
+여기서 autoscan.log와 configure.scan 파일은 더 이상 필요하지 않으므로 삭제해도 문제없다.
+이제 autoreconf -i 명령을 수행하면 필요한 파일들을 모두 생성한다.
+autoreconf는 이를 위해 필요한 aclocal, libtoolize, automake, autoconf 등의 명령을
+자동으로 실행해 주기 때문에 예전과 같이 autogen.sh 혹은 bootstrap 스크립트를 작성할 필요가 없다.
+-i (--install) 옵션은 여기서 필요한 부수적인 파일들을 설치하도록 해 준다.
+우리는 configure.ac 파일에서 automake를 초기화할 때 strictness 옵션을 foreign으로 설정했기 때문에
+README, INSTALL, COPYING, ChangeLog 등의 파일을 강제로 만들지 않는다.
+그래도 많은 수의 파일들이 추가되었으며, 특히 Makefile.am에 대응하는 Makefile.in 파일이 생성되었다.
+
+
+<div class="source">
+$ autoreconf -i
+$ ls -F
+Makefile.am  autom4te.cache/  config.h.in  configure.ac    install-sh*  missing*
+Makefile.in  autoscan.log     config.sub*  configure.scan  lib/         src/
+aclocal.m4   config.guess*    configure*   depcomp*        ltmain.sh*
+$
+$ find . -name Makefile.\*
+./Makefile.in
+./Makefile.am
+./lib/Makefile.in
+./lib/Makefile.am
+./src/Makefile.in
+./src/Makefile.am
+</div>
+
+참고로 configure.ac 파일 혹은 Makefile.am 파일이 변경된 후에는 다시 autoreconf를 호출해야 하며
+autoreconf는 변경 사항에 맞추어 필요한 파일들을 새로 생성해 준다.
+이 때는 새로 추가할 파일이 없으므로 -i 옵션은 제거할 수 있다.
+
+이제 프로그램을 빌드하기 위한 모든 준비가 끝이 났다.
+이렇게 준비된 소스는 일반적인 빌드 과정인 ./configure &amp;&amp; make 명령을 수행할 수 있다.
+이를 확인하기 위해 별도의 디렉터리를 만들어 빌드를 수행해 보도록 하자.
+(원래의 디렉터리 이름은 source라고 가정하자.)
+
+
+<div class="source">
+$ mkdir ../build
+$ cd ../build
+$ ../source/configure --prefix=${HOME}/tmp
+$ make
+$ make install
+$ tree ~/tmp
+/home/namhyung/tmp
+|-- bin
+|   `-- money
+`-- lib
+    |-- libmoney.a
+    |-- libmoney.la
+    |-- libmoney.so -&gt; libmoney.so.0.0.0
+    |-- libmoney.so.0 -&gt; libmoney.so.0.0.0
+    `-- libmoney.so.0.0.0
+
+2 directories, 6 files
+</div>
+
+./configure &amp;&amp; make &amp;&amp; make install 명령까지 수행한 후 설치된 디렉터리를 확인해 보면
+Makefile.am에 지정한 대로 bin 디렉터리에 money 프로그램이 설치되었고
+lib 디렉터리에는 libmoney 라이브러리가 설치되었다.
+libtool은 la 파일은 물론 static &amp; shared library도 모두 빌드하므로 이들도 함께 설치되었음을 볼 수 있다.
+
+이 외에도 clean, tags, dist, uninstall 등의 make target도 기본 제공되므로 유용하게 사용할 수 있다.
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/autotools" rel="tag">autotools</a>, <a href="/tag/build" rel="tag">build</a>
+</div>
+

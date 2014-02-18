@@ -1,0 +1,160 @@
+	
+<div class="version">
+gcc: 4.5.0
+</div>
+
+
+gcc 버전이 4.5로 올라가면서 최적화 과정에도 많은 변경이 일어났다.
+lowering pass쪽도 많이 바뀌어서 이전에 살펴본 remove useless stmts는 사라지고 (;;)
+대신 warn unused result pass가 그 자리에 추가되었다.
+
+이 과정은 상당히 단순한데 이름에서 알 수 있듯이
+함수 호출 결과를 이용하지 않는 경우에 경고를 보여주는 역할을 한다.
+단 해당 함수가 "warn_unused_result" attribute를 가지고 있어야 하며
+gcc 호출 시 -Wno-unused-result 플래그가 지정되지 않아야 한다.
+(기본값은 -Wunused-result로 지정되어 있다.)
+
+이 과정을 기술하는 opt_pass 구조체는 다음과 같이 정의된다.
+
+tree-cfg.c:
+<div class="source">
+struct gimple_opt_pass pass_warn_unused_result =
+{
+  {
+    GIMPLE_PASS,
+    "*warn_unused_result",        /* name */
+    gate_warn_unused_result,        /* gate */
+    run_warn_unused_result,        /* execute */
+    NULL,                /* sub */
+    NULL,                /* next */
+    0,                    /* static_pass_number */
+    TV_NONE,                /* tv_id */
+    PROP_gimple_any,            /* properties_required */
+    0,                    /* properties_provided */
+    0,                    /* properties_destroyed */
+    0,                    /* todo_flags_start */
+    0,                    /* todo_flags_finish */
+  }
+};
+</div>
+
+gate_warn_unused_result() 함수는 단순히 플래그 지정 여부를 통해 판단한다.
+
+
+<div class="source">
+static bool
+gate_warn_unused_result (void)
+{
+  return flag_warn_unused_result;
+}
+</div>
+
+실제 실행 과정은 run_warn_unused_result() 함수가 수행하는데
+이는 현재 함수에 대해 do_warn_unused_result() 함수를 호출할 뿐이다.
+이 함수는 gimple_stmt_iterator를 이용하여 함수 내의 모든 statement를 조사하는데
+다음과 같은 함수 호출이 수행되는 부분에 대해서만 검사한다.
+
+
+<div class="source">
+static void
+do_warn_unused_result (gimple_seq seq)
+{
+  tree fdecl, ftype;
+  gimple_stmt_iterator i;
+
+  for (i = gsi_start (seq); !gsi_end_p (i); gsi_next (&amp;i))
+    {
+      gimple g = gsi_stmt (i);
+
+      switch (gimple_code (g))
+    {
+      ...
+      
+    case GIMPLE_CALL:
+      if (gimple_call_lhs (g))
+        break;
+
+      /* This is a naked call, as opposed to a GIMPLE_CALL with an
+         LHS.  All calls whose value is ignored should be
+         represented like this.  Look for the attribute.  */
+      fdecl = gimple_call_fndecl (g);
+      ftype = TREE_TYPE (TREE_TYPE (gimple_call_fn (g)));
+
+      if (lookup_attribute ("warn_unused_result", TYPE_ATTRIBUTES (ftype)))
+        {
+          location_t loc = gimple_location (g);
+
+          if (fdecl)
+            warning_at (loc, OPT_Wunused_result,
+                "ignoring return value of %qD, "
+                "declared with attribute warn_unused_result",
+                fdecl);
+          else
+            warning_at (loc, OPT_Wunused_result,
+                "ignoring return value of function "
+                "declared with attribute warn_unused_result");
+        }
+      break;
+
+    default:
+      /* Not a container, not a call, or a call whose value is used.  */
+      break;
+    }
+  }
+}
+</div>
+
+생략한 부분은 여러 statement를 포함하는 복합문(container)인 경우 실제 statement list에 대해
+재귀적으로 do_warn_unused_result() 함수를 호출하는 코드이다.
+
+함수 호출 (GIMPLE_CALL)인 경우 먼저 LHS 즉, 함수의 반환값을 저장하는지 검사한다.
+저장한다면 함수 호출 결과를 사용하는 것이므로 아무 문제없이 다음으로 넘어간다.
+
+그렇지 않다면 먼저 gimple_call_fndecl()을 통해
+현재 statement에서 호출하려는 함수의 선언 정보를 가져온다. (FUNCTION_DECL)
+만약 어떤 이유에서건 선언 정보를 가져오지 못했다면 fdecl에 NULL이 저장된다. (NULL_TREE)
+
+그리고 해당 함수의 attribute 중에서 "warn_unused_result"가 지정되었는지 확인하여
+warning_at() 함수를 통해 경고 메시지를 출력한다.
+
+다음과 같은 간단한 예제를 통해 확인해 보기로 하자.
+
+wur.c:
+<div class="source">
+int __attribute__((warn_unused_result))
+foo(void)
+{
+  return -1;
+}
+
+int main(void)
+{
+  foo();
+  return 0;
+}
+</div>
+
+컴파일 시에 다음과 같은 메시지가 출력될 것이다.
+
+
+<div class="source">
+$ gcc wur.c
+wur.c: In function ‘main’:
+wur.c:9:6: warning: ignoring return value of 'foo', declared with attribute warn_unused_result
+$
+$ gcc -Wno-unused-result wur.c
+$
+</div>
+
+만약 어떤 함수를 작성할 때 해당 함수의 반환값을 항상 확인해야 하는 경우라면
+함수 선언 시 warn_unused_result attribute를 지정하여 경고를 띄울 수 있을 것이다.
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/gcc" rel="tag">gcc</a>, <a href="/tag/compiler" rel="tag">compiler</a>
+</div>
+

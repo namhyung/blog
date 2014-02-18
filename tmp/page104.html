@@ -1,0 +1,31 @@
+	
+<div class="version">
+Linux: 2.6.32
+</div>
+<br>이전 글 보기:<br>
+<ul>
+  <li><a href="http://studyfoss.egloos.com/5194196">[Linux] priority search tree (1)</a></li>
+  <li><a href="http://studyfoss.egloos.com/5194452">[Linux] priority search tree (2)</a></li>
+  <li><a href="http://studyfoss.egloos.com/5199543">[Linux] priority search tree (3)</a></li>
+</ul><br>이제 마지막으로 PST가 실제로 reverse mapping에서 어떻게 사용되는지를 살펴보기로 하자.<br>reverse mapping을 위해 각 address_space 객체는 PST의 root인 i_mmap 필드를 포함한다.<br>PST에는 해당 페이지 프레임을 포함하는 메모리 구역(vma)이 노드로 사용된다.<br>각 메모리 구역은 시작 주소와 끝 주소에 대응하는 페이지 프레임 인덱스를 가지므로<br>이를 이용하여 일반적인 PST의 노드로 표현할 수 있겠지만<br>실제로는 파일 내의 동일한 구간이 여러 메모리 구역에 매핑되기 때문에 (ex. glibc의 코드 영역)<br>reverse mapping을 위한 PST는 동일한 노드 여러 개를 처리하도록 변경되어야 한다.<br><br>먼저 vm_area_struct 구조체를 살펴보면 중간에 다음과 같은 필드를 포함하고 있음을 볼 수 있다.<br><br>
+<div class="source">
+    union {<br>        struct {<br>            struct list_head list;<br>            void *parent;    /* aligns with prio_tree_node parent */<br>            struct vm_area_struct *head;<br>        } vm_set;<br><br>        struct raw_prio_tree_node prio_tree_node;<br>    } shared;
+</div>
+<br>shared 필드는 union 타입이며 vm_set이나 prio_tree_node 중의 하나로 사용된다.<br>prio_tree_node는 일반 prio_tree_node 구조체가 아닌 raw_prio_tree_node 구조체인데<br>이는 원래의 구조체에서 start와 last 필드를 제외한 것으로<br>트리 구조 자체에서 사용되는 left, right, parent 필드 만으로 구성된다.<br>vm_set 익명 구조체는 동일한 구간을 매핑하는 여러 vma들을 연결하기 위한 list와<br>현재 vma가 tree에 포함된 노드인지를 구분하는 목적으로 사용되는 parent 필드 및<br>PST와 list 사이를 연결해주는 head 필드로 구성된다.<br><br>여기서 parent 필드의 위치(offset)는 prio_tree_node나 vm_set이나 모두 동일하다는 것이 중요한데<br>일반적인 PST 연산에서는 (vm_set 부분을 무시하고 생각해보면) tree 내에 포함된 모든 노드는<br>parent 필드가 적절히 설정된다. 그러면 자동으로 vm_set.parent 필드도 설정되는 효과를 얻을 수 있으므로<br>이후에는 vm_set 구조체의 필드 만 보고도 해당 노드가 속한 위치를 판단할 수 있다.<br><br>이제 동일한 구간을 매핑하는 다른 vma가 PST에 삽입되는 경우를 생각해 보자.<br>처음 글에서 insert() 함수를 살펴보았을 때 반환값을 신경써서 본 사람이 있다면 알 수 있듯이<br>삽입할 노드와 완전히 동일한 구간을 매핑하는 노드가 PST에 이미 있는 경우에는<br>기존의 노드를 반환하며, 그렇지 않으면 삽입된 노드 자체를 반환하도록 구현되어 있다.<br>즉, 해당 구간이 이미 포함되어 있는지 검사하려면 insert()의 반환값이 인자로 주어진 노드와<br>동일한지를 검사하면 된다. 반환된 노드는 parent 필드가 적절히 설정되어 있으므로<br>해당 구간을 나타내는 두 개의 vma 중에서 어느 것이 PST에 속한 것인지를 금방 알 수 있다.<br>이제 PST에 포함된 노드의 shared.vm_set.head 필드에 새로 삽입한 노드의 포인터를 연결한다.<br>또한 새로 삽입한 노드의 shared.vm_set.head 필드에는 PST에 포함된 노드의 포인터를 연결한다.<br><br>이후에 다시 동일한 구간을 매핑하는 vma가 PST에 삽입되면<br>위에서 2번째로 삽입된, 즉 parent 필드가 NULL이고 head 필드는 NULL이 아닌 노드의 list에 계속 연결된다.<br>이렇게 3번째 이후로 삽입되는 노드들은 parent와 head가 모두 NULL로 설정된다.<br><br>정리하면 다음과 같다.<br>
+<ul>
+  <li>parent가 NULL이 아님: PST에 속한 노드 (1번째로 삽입된 노드)</li>
+  <li>parent는 NULL이고 head가 NULL이 아님: 리스트 내의 첫 노드 (2번째로 삽입된 노드)</li>
+  <li>parent도 NULL이고 head도 NULL임: 리스트 내의 나머지 노드 (3번째 이후로 삽입된 노드)</li>
+</ul><br>이러한 작업을 수행하는 vma_prio_tree_insert() 함수는<br>raw_prio_tree_insert() 함수를 호출하여 반환값과 원래 노드의 포인터를 비교하고<br>다른 경우 해당 노드를 list에 추가하도록 아래와 같은 vma_prio_tree_add() 함수를 호출한다.<br><br>
+<div class="source">
+void vma_prio_tree_add(struct vm_area_struct *vma, struct vm_area_struct *old)<br>{<br>    /* Leave these BUG_ONs till prio_tree patch stabilizes */<br>    BUG_ON(RADIX_INDEX(vma) != RADIX_INDEX(old));<br>    BUG_ON(HEAP_INDEX(vma) != HEAP_INDEX(old));<br><br>    vma-&gt;shared.vm_set.head = NULL;<br>    vma-&gt;shared.vm_set.parent = NULL;<br><br>    if (!old-&gt;shared.vm_set.parent)<br>        list_add(&amp;vma-&gt;shared.vm_set.list,<br>                &amp;old-&gt;shared.vm_set.list);<br>    else if (old-&gt;shared.vm_set.head)<br>        list_add_tail(&amp;vma-&gt;shared.vm_set.list,<br>                &amp;old-&gt;shared.vm_set.head-&gt;shared.vm_set.list);<br>    else {<br>        INIT_LIST_HEAD(&amp;vma-&gt;shared.vm_set.list);<br>        vma-&gt;shared.vm_set.head = old;<br>        old-&gt;shared.vm_set.head = vma;<br>    }<br>}
+</div>
+<br>여기서 old는 기존의 (PST 내에 포함된) 노드에 해당하며, vma는 새로 삽입할 노드에 해당한다.<br>첫 번째 if는 old가 parent를 가지지 않는 경우에 대한 검사인데<br>아마 정상적인 호출인 경우라면 old의 parent는 항상 NULL이 아닐 것이므로 실행되지 않을 것이다.<br>그렇다면 shared.vm_set.head 필드를 보고 NULL이 아니면 기존의 리스트가 존재하므로 해당 리스트에 추가하고,<br>head가 NULL이라면 새로 리스트를 생성하고 head를 설정한다.<br><br>마찬가지로 주어진 페이지를 포함하는 모든 vma를 찾는 연산을 수행할 때도 (실제로 reverse mapping이 필요한 경우이다)<br>먼저 PST 내의 노드를 순차적으로 찾아본 뒤 해당 노드의 shared.vm_set.head 필드가 설정되어 있다면<br>그에 대한 리스트를 탐색하는 방법으로 모든 vma를 순회할 수 있게 된다.<br>
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/algorithm" rel="tag">algorithm</a>
+</div>
+

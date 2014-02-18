@@ -1,0 +1,183 @@
+	
+<div class="version">
+glibc: 2.10.1
+arch: x86
+</div>
+
+
+이번에는 GNU C library (이하 glibc)에서 동적 메모리를 관리하는 방식에 대해서 살펴볼 것이다.
+(여기서 설명하는 내용은 32비트 머신 환경에 해당하며 64비트 환경의 경우 차이가 있을 수 있다.)
+
+glibc 내에 포함된 동적 메모리 할당자 (malloc) 모듈은
+Doug Lea가 최초로 작성한 구현(이름의 앞자를 따서 dlmalloc이라고 부른다)을
+Wolfram Gloger가 UNIX multi-thread 환경을 고려하여 수정한 ptmalloc2를 기반으로 작성되었다.
+
+동적 메모리로 할당되는 영역(chunk)은 내부적으로 해당 chunk에 대한 metadata를 저장하기 위한
+공간을 포함하는데 가장 중요한 정보는 해당 chunk의 크기이다.
+malloc() 호출 시에는 원하는 영역의 크기를 지정하지만 free() 호출 시에는 단순히 포인터 만을 넘기는 것에서 알 수 있듯이
+malloc()으로 (물론 calloc/realloc 등도 동일하다) 할당된 영역 어딘가에는 크기 정보가 포함되어 있다.
+
+실제로 malloc() 호출 시에는 실제로 필요한 영역 + 크기를 저장하기 위한 헤더까지 포함한 크기의
+chunk가 할당되며 따라서 (32bit) x86 아키텍처에서는 (최소) 4 바이트 만큼의 공간이 더 필요하다.
+각 chunk는 8바이트 단위로 정렬(align)되기 때문에 실제 크기는 좀 더 커질 수 있다.
+
+또한 free memory에 해당하는 chunk를 관리하기 위한 doubly linked list와
+물리적으로 인접한 이전(prev) chunk를 병합할 때 사용하는 필드까지 포함하면
+할당될 수 있는 최소 chunk의 크기는 16바이트이다.
+(이 경우 user가 사용 가능한 영역의 최대 크기는 12바이트가 된다.)
+
+실제로 사용되는 malloc_chunk 구조체는 다음과 같이 정의되어 있다.
+
+
+<div class="source">
+struct malloc_chunk {
+  INTERNAL_SIZE_T      prev_size;  /* Size of previous chunk (if free).  */
+  INTERNAL_SIZE_T      size;       /* Size in bytes, including overhead. */
+
+  struct malloc_chunk* fd;         /* double links -- used only if free. */
+  struct malloc_chunk* bk;
+
+  /* Only used for large blocks: pointer to next larger size.  */
+  struct malloc_chunk* fd_nextsize; /* double links -- used only if free. */
+  struct malloc_chunk* bk_nextsize;
+};
+</div>
+
+malloc_chunk 자료 구조가 사용되는 방식은 약간 혼동스럽기 때문에 아래의 그림을 참조하면 좋을 것이다.
+malloc_chunk가 사용자에게 할당되면 오직 size 필드 만의 의미있는 값을 가진다. (할당된 chunk의 크기)
+다른 영역은 무시되며 해당 메모리 영역이 free() 되었을 때 의미있는 정보가 기록된다.
+
+
+<div style="text-align:center">
+<img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds16.egloos.com/pds/200912/25/35/c0098335_4b34adcad42cd.png" width="459" height="315" onclick="Control.Modal.openDialog(this, event, 'http://pds16.egloos.com/pds/200912/25/35/c0098335_4b34adcad42cd.png');" />
+</div>
+
+제일 처음에 나오는 prev_size 필드는 해당 chunk 바로 앞에 위치한 이전 chunk의 크기이다.
+(당연한 얘기이지만 여기서 말하는 이전 chunk란 list로 연결된 chunk가 아니라
+물리적으로 연속된 주소에 위치한 chunk를 말한다.)
+이 필드는 이전 chunk가 free() 되었을 때 설정되며
+이를 통해 이전 chunk의 헤더 위치를 손쉽게 찾을 수 있기 때문에
+chunk를 통합하는 경우에 유용하게 사용될 수 있다.
+
+다음은 size 필드로 현재 chunk의 크기를 나타내며 malloc() 시에 설정된다.
+앞서 말한대로 각 chunk는 8바이트 단위로 정렬되므로 하위 3비트는 특별한 용도로 사용한다.
+따라서 실제 chunk의 크기를 구하려면 하위 3비트를 무시해야 한다.
+
+그림에서 P 플래그는 이전 chunk가 사용 중인지 여부를 나타내는 것이다. (PREV_INUSE)
+즉 이 플래그가 지워져 있으면 이전 chunk는 free chunk라는 의미가 된다.
+M 플래그는 해당 필드가 mmap() 시스템 콜을 통해 할당된 것인지를 나타낸다. (IS_MMAPPED)
+나중에 살펴보겠지만 mmap()으로 할당된 chunk는 약간 다른 방식으로 관리된다.
+N 플래그는 multi-thread application에서 각 thread마다 다른 heap 영역을 사용하는 경우
+현재 chunk가 main heap (arena)에 속하는지 여부를 나타낸다. (NON_MAIN_ARENA)
+
+
+<div class="source">
+#define PREV_INUSE       0x1
+#define IS_MMAPPED       0x2
+#define NON_MAIN_ARENA   0x4
+
+#define SIZE_BITS        (PREV_INUSE|IS_MMAPPED|NON_MAIN_ARENA)
+#define chunksize(p)     ((p)-&gt;size &amp; ~(SIZE_BITS))
+</div>
+
+다음에 나오는 필드들은 모두 free chunk에서 사용하는 것이며
+malloc()으로 할당되었을 때는 단순히 무시되고 사용자 데이터를 위한 공간으로 사용된다.
+fd와 bk는 각각 forward, backward pointer를 의미하는 것이며
+fd_nextsize와 bk_nextsize도 동일하지만 상대적으로 큰 크기의 chunk에서만 사용된다.
+
+특이한 것은 다음 chunk의 prev_size 필드도 현재 chunk의 데이터 영역으로 사용된다는 것이다.
+사실 개념적으로는 이 부분도 현재 chunk에 속하며, (그림에서 &lt;actual chunk&gt; 부분)
+free() 시에는 현재 chunk의 크기를 (중복하여) 저장하는 용도로 사용된다. (단 플래그는 제외)
+(이를 boundary tag 기법이라고 한다.)
+또한 free() 시에는 다음 chunk의 PREV_INUSE 비트 (P 플래그)를 지워야 하며
+prev_size 필드는 오직 P 플래그가 지워진 경우에만 사용되어야 한다.
+
+이렇게 할당된 chunk들은 이후에 free()를 통해 해지되면 bin이라는 구조를 통해 관리된다.
+bin은 사실 각 chunk의 fd, bk 필드로 연결된 doubly-linked list일 뿐이며
+chunk의 크기에 따라 총 126개로 분리된다. (첫 번째 bin은 특별한 용도로 사용된다.)
+
+이는 또 small bin과 large bin으로 나누어 지는데
+small bin은 chunk 크기 기준으로 512 바이트 미만인 것들이 8 바이트 단위로 구분되는데
+최소 크기인 16 바이트부터, 24, 32, 48, ..., 504 바이트 까지 총 62개의 bin으로 구성된다.
+
+개념적으로 bin의 구성은 다음과 같다. (코드 내의 주석에서 발췌)
+총 127 개 중에서 제일 처음 bin은 특별한 용도로 사용되므로 126개 만 사용된다.
+또한 small bin에 속하는 8 바이트 단위의 bin이 64개라고 표현되어 있으나
+실제로는 (chunk의 최소 크기 제한으로 인해) 0과 8에 해당하는 첫 2개가 존재하지 않으므로
+위에서 말한대로 62개만 사용된다. 아래의 데이터는 단지 개념적으로 구조를 이해하기 위한 것이다. 
+
+
+<div class="source">
+    64 bins of size       8
+    32 bins of size      64
+    16 bins of size     512
+     8 bins of size    4096
+     4 bins of size   32768
+     2 bins of size  262144
+     1 bin  of size what's left
+</div>
+
+512 바이트 이상의 크기를 가지는 chunk를 위한 large bin은
+small bin처럼 동일한 크기의 chunk만을 포함하는 것이 아니라
+해당 index가 나타내는 크기보다 작은 크기의 chunk들은 모두 포함한다.
+즉, 4KB를 위한 bin이 있다면 이는 정확히 4096 바이트 크기의 chunk 만을 포함하는 것이 아니라
+4088, 4000, 3968 등의 크기를 가지는 chunk들도 포함한다는 것을 뜻한다.
+다만 이들은 할당의 효율성을 위해 해당 bin 내에서 크기 별로 정렬(sort)된다.
+
+이 때 fd_nextsize와 bk_nextsize 필드가 이용되며
+이들은 현재 bin 내에서 크기가 다른 첫 번째 chunk에 대한 포인터를 저장한다.
+
+이러한 bin들은 해당 bin 내에 이용 가능한 free chunk가 있는지 빨리 조사하기 위해
+별도의 bitmap을 유지하여 관리한다. 해당 bin 내에 free chunk가 없다면
+그 보다 큰 bin 내의 가장 작은 chunk를 빨리 찾기 위해 이를 이용할 수 있다.
+
+위에서 말한대로 첫 번째 bin은 unsorted chunk의 list로 사용된다.
+이는 일종의 cache와 같은 것으로 일단 free() 된 chunk는 곧바로 해당 bin으로 들어가지 않고
+먼저 unsorted chunk list에 들어가며 이 후의 메모리 할당 시
+동일한 크기의 영역을 다시 요청하는 경우에는 이를 바로 재사용하도록 한다.
+이는 FIFO (queue)와 같은 방식으로 동작하며, 일단 검색된 chunk는 바로 할당(재사용)되거나
+아니면 원래의 bin으로 돌아가게 된다. 즉, 단 한 번의 재사용 기회 만이 주어진다.
+
+또한 small bin에 속하는 chunk 중에서 (기본값) 72 바이트 이하의 크기를 가지는 chunk는
+fast bin이라고하는 또 다른 cache를 통해 관리되는데,
+이는 malloc() 및 free() 시에 가장 먼저 조사하는 bin으로써
+속도를 높이기 위해 single-linked list로 구성되며 LIFO (stack)와 같은 방식으로 동작한다.
+fast bin 내의 chunk들은 unsorted bin과 달리 (특정한 조건에 의해) 병합(consolidation)이 일어나지 않는 한
+계속 bin 내에 남아서 요청을 수행할 수 있다.
+
+이상의 여러 자료 구조들을 그림을 나타내면 대략 다음과 같다.
+(그림에는 편의를 위해 약간의 오류가 숨어있다. 대강 의미만 파악하자..;;)
+
+
+<div style="text-align:center">
+<img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds16.egloos.com/pds/200912/25/35/c0098335_4b34ae559b633.png" width="424" height="685" onclick="Control.Modal.openDialog(this, event, 'http://pds16.egloos.com/pds/200912/25/35/c0098335_4b34ae559b633.png');" />
+</div>
+
+그 밖에 (기본값) 128KB 이상의 큰 메모리를 요청하는 경우에는
+heap을 이용하지 않고 mmap() 시스템 콜을 통해 별도의 메모리 영역을 할당하여
+chunk를 만들고 이를 사용자에게 반환하며, 이러한 chunk들은 bin 내에 속하지 않는다.
+이러한 chunk들은 IS_MMAPPED 플래그로 쉽게 확인할 수 있기 때문에
+free() 시에 단순히 munmap()을 호출하여 메모리 영역을 해지한다.
+
+또한 모든 chunk의 맨 마지막에는 top chunk가 존재하는데
+top chunk는 어떠한 bin에도 속하지 않으며 heap 영역의 마지막에 위치한다.
+다른 free chunk들이 메모리 할당 요청을 만족하지 못하는 경우에만
+top chunk를 분할하여 요청을 처리하며, 현재 top chunk 크기로도 처리할 수 없는 경우에는
+sbrk() 함수를 통해 heap 영역을 확장하여 top chunk의 크기를 늘린후 요청을 처리한다.
+
+=== 참고 문헌 ===
+
+<ul>
+  <li><a target="_blank" href="http://g.oswego.edu/dl/html/malloc.html">http://g.oswego.edu/dl/html/malloc.html</a></li>
+  <li><a target="_blank" href="ftp://ftp.cs.utexas.edu/pub/garbage/allocsrv.ps">ftp://ftp.cs.utexas.edu/pub/garbage/allocsrv.ps</a></li>
+  <li>glibc-2.10.1/malloc/malloc.c</li>
+</ul>
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/glibc" rel="tag">glibc</a>, <a href="/tag/memory" rel="tag">memory</a>, <a href="/tag/malloc" rel="tag">malloc</a>
+</div>
+

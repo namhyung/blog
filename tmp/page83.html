@@ -1,0 +1,191 @@
+	
+<div class="version">
+gcc: 4.4.3
+</div>
+
+이전 글 보기 :
+
+<ul>
+  <li><a href="http://studyfoss.egloos.com/5273402" title="">[gcc] gcc 실행 과정</a></li>
+</ul>
+앞서 gcc (compiler driver)가 실행되는 과정을 간략히 살펴보았다.
+이제 실제로 컴파일러(cc1)이 동작하는 전체적인 과정을 살펴보도록 하자.
+참고로 여기서 살펴볼 내용은 사용하는 언어에 상관없이 동일하게 동작하며
+각각의 언어는 language hook을 통해 해당 언어에 알맞는 동작을 수행하게 된다.
+
+cc1의 main() 함수는 단순히 gcc/toplev.c에 정의된 toplev_main()을 호출하게 되어 있다.
+
+
+<div class="source">
+/* Entry point of cc1, cc1plus, jc1, f771, etc.
+   Exit code is FATAL_EXIT_CODE if can't open files or if there were
+   any errors, or SUCCESS_EXIT_CODE if compilation succeeded.
+
+   It is not safe to call this function more than once.  */
+
+int
+toplev_main (unsigned int argc, const char **argv)
+{
+  save_argv = argv;
+
+  /* Initialization of GCC's environment, and diagnostics.  */
+  general_init (argv[0]);
+
+  /* Parse the options and do minimal processing; basically just
+     enough to default flags appropriately.  */
+  decode_options (argc, argv);
+
+  init_local_tick ();
+
+  /* Exit early if we can (e.g. -help).  */
+  if (!exit_after_options)
+    do_compile ();
+
+  if (warningcount || errorcount) 
+    print_ignored_options ();
+
+  if (errorcount || sorrycount)
+    return (FATAL_EXIT_CODE);
+
+  return (SUCCESS_EXIT_CODE);
+}
+</div>
+
+먼저 명령행 인자를 저장한 후에 general_init()을 불러 필요한 초기화 과정을 수행한다.
+이것이 끝나면 decode_options()를 불러 명령행 인자로 주어진 옵션을 분석하여
+이후 컴파일 (및 최적화) 과정을 수행하기 위한 정보를 저장해 둔다.
+그리고 init_local_tick()을 호출하여 현재 시간을 기록해 둔 뒤
+do_compile()을 통해 실제 컴파일 과정을 수행한다.
+print_ignored_options()는 잘못된 옵션이 주어진 경우 경고를 출력한 뒤 종료한다.
+
+warningcount, errorcount, sorrycount는 오류나 경고 등의 진단(diagnostic) 메시지를 보여주기 위한 것으로
+옵션 처리나 컴파일 도중 발생한 오류 및 경고 상태의 횟수를 기록해 둔다.
+보다 자세한 목록은 gcc/diagnostic.def 파일에 다음과 같이 정의되어 있다. (일부만 발췌)
+
+
+<div class="source">
+DEFINE_DIAGNOSTIC_KIND (DK_ERROR, "error: ")
+DEFINE_DIAGNOSTIC_KIND (DK_SORRY, "sorry, unimplemented: ")
+DEFINE_DIAGNOSTIC_KIND (DK_WARNING, "warning: ")
+</div>
+
+이러한 def 파일은 용도에 따라 전처리를 하여 소스를 자동으로 구성하기 위한 목적으로 자주 이용된다.
+
+general_init() 함수는 여러 가지 초기화 과정을 수행하는데
+i18n 관련 초기화, signal handler 등록, ggc (gcc garbage collector) 초기화,
+문자열, identifier 등을 위한 string pool 및 tree type의 hash table 등을 구성한 뒤
+컴파일 시 수행할 최적화 과정의 목록을 init_optimization_passes() 함수를 통해 작성한다.
+(여기서 등록된 최적화 과정들은 나중에 자세히 살펴볼 기회가 있을 것이다.)
+
+이제 do_compile() 함수를 살펴보자.
+
+
+<div class="source">
+/* Initialize the compiler, and compile the input file.  */
+static void
+do_compile (void)
+{
+  /* Initialize timing first.  The C front ends read the main file in
+       the post_options hook, and C++ does file timings.  */
+  if (time_report || !quiet_flag  || flag_detailed_statistics)
+    timevar_init ();
+  timevar_start (TV_TOTAL);
+
+  process_options ();
+
+  /* Don't do any more if an error has already occurred.  */
+  if (!errorcount)
+    {
+      /* This must be run always, because it is needed to compute the FP
+         predefined macros, such as __LDBL_MAX__, for targets using non
+         default FP formats.  */
+      init_adjust_machine_modes ();
+
+      /* Set up the back-end if requested.  */
+      if (!no_backend)
+        backend_init ();
+
+      /* Language-dependent initialization.  Returns true on success.  */
+      if (lang_dependent_init (main_input_filename))
+        compile_file ();
+
+      finalize ();
+    }
+
+  /* Stop timing and print the times.  */
+  timevar_stop (TV_TOTAL);
+  timevar_print (stderr);
+}
+</div>
+
+역시나 (이 함수 자체로는) 그리 복잡하지 않다.
+먼저 컴파일 시간을 알려달라는 요청이 있었다면
+timing variable들을 초기화하기 위해 timevar_init()을 호출한다.
+각 단계는 TV_XXX 형태로 나누어져 측정되는데 위에 보이는 것처럼
+timevar_start() 부터 timevar_stop() 까지의 시간을 기록하는 형태이다.
+timevar의 전체 목록은 gcc/timevar.def 파일에 정의되어 있으며
+만일 여기서 timevar_init()가 호출되지 않았다면 이 후의 모든 timevar 관련 함수는 무시된다.
+
+그리고는 process_options()를 호출하는데
+주로 인자로 주어진 옵션들 간의 충돌이 일어나는 경우를 검사하는 일을 수행하며
+주어진 옵션에 따라 디버깅 정보를 기록하기 위해 debug_hooks를 설정하는데
+ELF 파일을 이용하는 경우에는 기본값으로 dwarf2_debug_hooks가 사용된다.
+
+init_adjust_machine_modes() 함수는 부동소수점 처리에 관련된 초기화가 필요한 경우 이를 수행하며
+backend_init() 함수는 실제 컴파일 될 타겟 머신을 위한 backend 관련 초기화를 수행한다.
+(주로 RTL이나 레지스터 정보 등과 관련된 것이다.
+지금 현재로는 이에 대한 더욱 자세한 설명은 힘들다.. ;;)
+
+그리고 lang_dependent_init() 함수가 호출이 되는데
+이 함수는 이름에서 알 수 있듯이 컴파일할 언어 (frontend)에 고유한 초기화를 수행한다.
+이러한 언어에 따른 정보는 lang_hooks라는 구조체를 통해 설정되기 때문에
+공통의 코드를 이용하여 관리할 수 있다. 여기서는 lang_hooks.init 함수가 불린다.
+lang_hooks는 LANG_HOOKS_INITIALIZER라는 매크로를 통해 초기화되기 때문에
+각 frontend에서는 다음과 같은 형식으로 각 필드를 정의해야 한다.
+C 언어의 경우 gcc/c-lang.c와 gcc/c-objc-common.h 파일에 아래와 같이 정의되어 있다.
+
+
+<div class="source">
+#define LANG_HOOKS_NAME "GNU C"
+#define LANG_HOOKS_INIT c_objc_common_init
+...
+#define LANG_HOOKS_FINISH c_common_finish
+#define LANG_HOOKS_PARSE_FILE c_common_parse_file
+#define LANG_HOOKS_WRITE_GLOBALS c_write_global_declarations
+...
+</div>
+
+lang_dependent_init()가 성공적으로 종료되었다면 compile_file()이 호출된다.
+이 함수가 실제 컴파일 과정을 모두 수행하는데 여기서 주의깊게 봐야할 부분은
+lang_hooks.parse_file과 lang_hooks.decls.final_write_globals이다.
+
+위에서 보듯이 C 언어 frontend의 parse_file은 c_common_parse_file()로 구현되어 있으며
+각 소스 파일을 차례로 parsing하여 tree를 구성하고 각 함수 별로 GIMPLE 형식으로 변환한다.
+하나의 소스 파일 (정확히는 translation unit)의 parsing이 완료되면
+여기에 속한 GIMPLE 형식의 함수들을 최적화를 위한 형태로 수정하고 필요한 정보를 구성한다.
+(보다 low-level 형태로 바꾸는 과정이므로 lowering이라고 한다.)
+
+좀 더 구체적으로 말하면 c_common_parse_file()에서 호출하는 pop_file_scope() 함수는
+cgraph_finalize_compilation_unit()을 호출하고 이 함수는 결국 tree_lowering_passes()를 호출한다.
+이 함수는 위의 init_optimization_passes()에서 등록한 all_lowering_passes 내의
+모든 최적화 과정을 수행한다.
+
+lang_hooks.decls.final_write_globals는 c_write_global_declarations()로 구현되며
+여기서 호출하는 cgraph_optimize() 함수는 ipa_passes()와 tree_rest_of_compilation()을 호출하여
+실제 최적화 과정인 all_ipa_passes와 all_passes 내의 모든 과정을 수행한다.
+여기까지 수행하고 나면 컴파일 결과로 어셈블리 파일이 생성된다.
+
+do_compile() 함수의 마지막 과정은 finalize() 함수가 수행하는데
+컴파일 과정의 통계 정보나 최적화 단계의 중간 결과 및 메모리 덤프 요청이 있었다면 이를 수행하고
+마지막으로 lang_hooks의 finish 함수를 호출한다.
+또한 시간 정보가 요청된 경우 측정된 timevar 정보를 표준 에러 스트림으로 출력한다.
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/gcc" rel="tag">gcc</a>
+</div>
+

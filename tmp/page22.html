@@ -1,0 +1,250 @@
+	
+<div class="version">
+git: 1.7.5
+</div>
+
+
+git는 리눅스 커널을 비롯한 여러 (대규모) F/OSS 프로젝트에서 사용 중인 소스 관리 도구이다.
+원래 git는 기존에 리눅스 커널 개발 시 사용되었던 bitkeeper를 대체하기 위해
+Linus Torvalds 님이 개발한 것이며, 대규모 프로젝트에 최적화된 기능/성능을 갖추고 있다.
+
+git는 정보를 저장하기 위해 다음과 같은 4가지 종류의 객체(object)를 이용한다.
+
+<ul>
+  <li>blob: 파일 정보를 저장하는 객체이다. 단순히 (메타데이터를 제외한) 파일의 전체 내용을 포함한다.</li>
+  <li>tree: 디렉터리 정보를 저장하는 객체이다. 현재 디렉터리에 속한 파일(blob 객체)과 하위 디렉터리(tree 객체)들의 접근 권한 (mode), 이름 (path), 객체 ID 정보를 포함한다.</li>
+  <li>commit: 변경 이력(history)을 저장하는 객체이다. 현재 commit된 프로젝트의 상태(최상위 tree 객체), 이전(parent) 상태(commit 객체), author, committer, commit message와 같은 정보를 포함한다.</li>
+  <li>tag: 특정 객체에 대한 별칭을 저장하는 객체이다. 해당 객체의 ID, 객체의 종류, tag name, tagger, tag message 및 PGP 서명 정보 등을 포함한다.</li>
+</ul>
+모든 객체는 객체 헤더와 내용으로 이루어지는데,
+객체 헤더는 객체의 종류 및 (십진수로 표현한) 객체의 크기를 나타내는 ASCII 문자열이며
+객체의 내용은 위에서 언급한 정보들이다. (git cat-file 명령을 이용하면 이러한 정보들을 볼 수 있다.)
+
+또한 각 객체는 zlib의 deflate 알고리즘을 이용하여 압축된 별도의 파일로 저장되며
+압축되기 전의 객체의 헤더 및 내용에 대한 SHA-1 해시값을 계산하여 이를 객체를 가리키는 ID로 사용한다.
+
+이러한 git 객체들이 저장되는 위치 (디렉터리)를 객체 데이터베이스라고 부른다.
+기본적으로 git 저장소 생성 시 최상위 디렉터리에 .git라는 이름의 디렉터리가 생성되며
+그 아래에 objects라는 디렉터리가 객체 데이터베이스로 사용된다.
+(이는 각각 GIT_DIR 및 GIT_OBJECT_DIRECTORY라는 환경 변수를 통해 변경할 수 있다.)
+
+객체 데이터베이스에는 각 객체들이 별도의 파일로 저장되는데
+한 디렉터리 내에 너무 많은 파일들이 생성되지 않도록 (이는 종종 파일 시스템의 성능을 저하시킬 수 있다)
+객체 ID의 첫 두 글자를 이름으로하는 하위 디렉터리를 한 단계 더 만들어서 저장하고 있다.
+즉 객체 ID의 40글자 중 첫 2글자는 디렉터리 이름으로, 나머지 38글자는 파일 이름으로 사용한다.
+
+또한 ALTERNATE_DB_ENVIRONMENT 환경 변수 혹은 .git/info/alternates 파일에
+별도의 (alternate) 객체 데이터베이스를 이루는 디렉터리의 경로를 지정하여 사용할 수도 있다.
+(아마도 여러 프로젝트에서 공통적으로 사용하는 소스가 있는 경우에 유용할 수도 있을 것이다)
+
+다른 scm 도구와는 달리 git는 blob 객체에 파일 내용 전체를 온전히 저장하는 방식을 사용하기 때문에
+(전통적으로 scm 도구들은 디스크 공간을 절약하기 위해 이전 버전(?)과의 차이점 만을 저장하지만
+git는 각 버전 별로 파일 내용 전체를 모두 저장하고 있다.)
+저장하는 객체가 많아질수록 객체 데이터베이스가 차지하는 디스크 공간이 늘어날 수 밖에 없다.
+
+사실 지금껏 얘기했던 git 객체들은 loose object라고 부르는 널널한(?) 형태의 객체로
+디스크 공간을 많이 사용하는 대신 다른 여러 git 연산들의 속도를 높이는 방식으로 설계된 것이다.
+하지만 아주 소규모의 프로젝트가 아닌 이상 디스크 공간의 효율성도 고려해야 하므로
+오래된 객체의 경우 한데로 합쳐서 별도의 pack 파일 형태로 만들어 저장한다.
+
+이러한 형태로 저장된 객체는 packed object라고 부르며
+또한 네트워크를 통해 저장소를 동기화할 때도 (git push/pull 등)
+전송 효율을 높이기 위해 packed object를 이용한다.
+
+pack 파일은 내부적으로 (다른 scm 도구들과 같이) 차이점(delta) 만을 저장할 수 있도록 하였으며
+pack 파일 내의 객체를 빠르게 찾을 수 있도록 별도의 index 파일을 제공한다.
+pack 파일들은 객체 데이터베이스의 pack 하위 디렉터리 내에 저장된다.
+
+이제 간단한 예제를 통해 객체 데이터베이스가 관리되는 과정을 살펴보기로 하자.
+
+
+<div class="source">
+$ git init
+Initialized empty Git repository in /home/namhyung/temp/git-test/.git/
+$ ls -F .git/objects/
+info/  pack/
+</div>
+
+최초로 git init 명령을 실행하면 현재 디렉터리에 git가 메타 정보를 기록할
+.git 디렉터리 (GIT_DIR)를 만들고 이 때 객체 데이터베이스도 함께 생성한다.
+객체 데이터베이스에는 info와 pack이라는 빈 디렉터리가 기본적으로 만들어진다.
+
+이제 파일 하나를 만들어보자.
+
+
+<div class="source">
+$ cat &gt; README &lt;&lt;EOF
+&gt; This is a test directory for investigating the git object database
+&gt; management.
+&gt; EOF
+$ git add README
+$ ls -F .git/objects/
+f4/  info/  pack/
+$ ls .git/objects/f4/
+7071f840fe80bd99dd7c6a64b9e02d18c0f9a1
+</div>
+
+README 파일을 만든 후 git add 명령을 수행하면 객체 데이터베이스에 새로운 객체가 추가되고
+이를 저장하기 위한 디렉터리와 파일이 새로 생성되었음을 확인할 수 있다.
+
+위에서 볼 수 있듯이 새로 생성된 객체의 이름(ID)은 f47071f840fe80bd99dd7c6a64b9e02d18c0f9a1이며
+(디렉터리 + 파일 이름) git show 명령 혹은 git cat-file 명령을 통해 이 내용을 볼 수 있다.
+
+
+<div class="source">
+$ git cat-file -t f47071f840fe80bd99dd7c6a64b9e02d18c0f9a1
+blob
+$ git cat-file -s f47071f840fe80bd99dd7c6a64b9e02d18c0f9a1
+79
+$ git cat-file -p f47071f840fe80bd99dd7c6a64b9e02d18c0f9a1
+This is a test directory for investigating the git object database
+management.
+</div>
+
+이를 실제 파일과 비교해보도록 하자.
+
+
+<div class="source">
+$ ls -lh README
+-rw-r--r-- 1 namhyung namhyung 79 2011-04-30 17:27 README
+$ sha1sum README
+7083721ade5c841c1464dd27a37d6583c8fea04a  README
+</div>
+
+파일 내용은 원본 그대로이니 굳이 비교할 필요가 없을테고 크기는 79 바이트로 동일하지만
+SHA-1 해시값이 다른 결과가 나왔다. 이는 객체 데이터베이스에 저장되는 객체는
+객체의 종류와 크기를 나타내는 헤더 정보가 추가되기 때문인 것으로 추측할 수 있다.
+
+실제로 zlib을 통해 직접 객체 데이터베이스 내의 파일을 압축 해제해보면 이와 같은 사실을 확인할 수 있다.
+(간단히 사용할 수 있는 zlib 압축 해제 도구를 찾지 못했는데 혹시 알고 계신 분이 있으면 공유해 주시길 바란다.
+물론 직접 만들어 쓸 수도 있으며 여기서는 (zcat과 비슷한) zlib-cat이라는 프로그램이 존재한다고 가정하였다.)
+
+
+<div class="source">
+$ zlib-cat .git/objects/f4/7071f840fe80bd99dd7c6a64b9e02d18c0f9a1 | xxd
+0000000: 626c 6f62 2037 3900 5468 6973 2069 7320  blob 79.This is
+0000010: 6120 7465 7374 2064 6972 6563 746f 7279  a test directory
+0000020: 2066 6f72 2069 6e76 6573 7469 6761 7469   for investigati
+0000030: 6e67 2074 6865 2067 6974 206f 626a 6563  ng the git objec
+0000040: 7420 6461 7461 6261 7365 0a6d 616e 6167  t database.manag
+0000050: 656d 656e 742e 0a                        ement..
+$
+$ zlib-cat .git/objects/f4/7071f840fe80bd99dd7c6a64b9e02d18c0f9a1 | sha1sum
+f47071f840fe80bd99dd7c6a64b9e02d18c0f9a1  -
+</div>
+
+이제 이 변경 사항을 커밋하고나면 새로운 객체가 2개 더 생성된다.
+
+
+<div class="source">
+$ git commit -m "add README"
+[master (root-commit) cdd52e6] add README
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+ create mode 100644 README
+</div>
+
+위에서 나온 cdd52e6은 새로 생성된 commit 객체를 나타내는 객체 ID(의 줄임말)이다.
+(혹은 최신 commit 객체의 경우 HEAD라는 심볼을 통해서도 참조할 수 있다)
+다음과 같이 새로 생성된 (commit &amp; tree) 객체들의 내용을 살펴볼 수 있다.
+
+
+<div class="source">
+$ git cat-file -t cdd52e6
+commit
+$ git cat-file -p cdd52e6
+tree 2c5bc1912c1856d5305d67096793582323e955c5
+author Namhyung Kim &lt;namhyung@gmail.com&gt; 1304153738 +0900
+committer Namhyung Kim &lt;namhyung@gmail.com&gt; 1304153738 +0900
+
+add README
+$
+$ git cat-file -p 2c5bc1912c1856d5305d67096793582323e955c5
+100644 blob f47071f840fe80bd99dd7c6a64b9e02d18c0f9a1    README
+$
+$ tree .git/objects/
+.git/objects/
+|-- 2c
+|   `-- 5bc1912c1856d5305d67096793582323e955c5
+|-- cd
+|   `-- d52e6baff04f0f391828212a66b941ed4c13ef
+|-- f4
+|   `-- 7071f840fe80bd99dd7c6a64b9e02d18c0f9a1
+|-- info
+`-- pack
+
+5 directories, 3 files
+</div>
+
+commit 객체는 단순히 객체를 만든 사람들(author + committer)과 메시지 정보를 기록하며
+해당 commit이 생성될 당시의 작업 디렉터리의 상태를 나타내는 tree 객체를 참조할 뿐이다.
+(또한 여기에는 나와있지 않지만 root commit이 아닌 경우 parent commit에 대한 참조도 포함된다.)
+tree 객체는 생성 당시의 directory entry (blob + 하위 tree) 정보를 기록한다.
+
+이제 하위 디렉터리를 하나 추가한 뒤에 그 안에 파일을 하나 생성해 보자.
+
+
+<div class="source">
+$ mkdir src
+$ cat &gt; src/hello.c &lt;&lt;EOF
+#include &lt;stdio.h&gt;
+
+int main(void)
+{
+    printf("hello world\n");
+    return 0;
+}
+EOF
+$ git add src/
+$ git commit -m "add src/hello.c"
+[master 110feff] add src/hello.c
+ 1 files changed, 8 insertions(+), 0 deletions(-)
+ create mode 100644 src/hello.c
+$ git cat-file -p 110feff
+tree 3a45503f5b7b0280e3d6623fa4a98cbf19566763
+parent cdd52e6baff04f0f391828212a66b941ed4c13ef
+author Namhyung Kim &lt;namhyung@gmail.com&gt; 1304154784 +0900
+committer Namhyung Kim &lt;namhyung@gmail.com&gt; 1304154784 +0900
+
+add src/hello.c
+$
+$ git ls-tree 3a45503f5b7b0280e3d6623fa4a98cbf19566763
+100644 blob f47071f840fe80bd99dd7c6a64b9e02d18c0f9a1    README
+040000 tree 8f04ba9cde7eaef3325ffde5cb78284e20e3d61c    src
+</div>
+
+src 디렉터리와 hello.c 파일이 추가되면 이를 위한 tree 및 blob 객체가 하나씩 추가되고
+최상위 디렉터리의 내용도 변경되었으므로 새로운 tree 객체가 생성되며
+이를 가리키는 commit 객체 또한 추가되므로 총 4개의 객체가 새로 만들어져서
+객체 데이터베이스에는 전체 7개의 객체가 존재할 것이다.
+
+
+<div class="source">
+$ git count-objects
+7 objects, 28 kilobytes
+$ ls .git/objects/
+11  2c  3a  75  8f  cd  f4  info  pack
+</div>
+
+현재 객체 데이터베이스의 상태를 그림으로 표현하면 다음과 같다.
+
+
+<div style="text-align:center">
+<img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds19.egloos.com/pds/201105/01/35/c0098335_4dbd26fa412f4.png" width="500" height="231.471535983" onclick="Control.Modal.openDialog(this, event, 'http://pds19.egloos.com/pds/201105/01/35/c0098335_4dbd26fa412f4.png');" />
+</div>
+
+
+=== 참조 문헌 ===
+
+<ul>
+  <li><a target="_blank" href="http://namhyung.springnote.com/pages/3132772">http://namhyung.springnote.com/pages/3132772</a></li>
+  <li><a target="_blank" href="http://www.kernel.org/pub/software/scm/git/docs/v1.7.5/technical/">http://www.kernel.org/pub/software/scm/git/docs/v1.7.5/technical/</a></li>
+</ul>
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/git" rel="tag">git</a>, <a href="/tag/scm" rel="tag">scm</a>, <a href="/tag/vcs" rel="tag">vcs</a>
+</div>
+

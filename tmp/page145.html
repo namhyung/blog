@@ -1,0 +1,94 @@
+	
+<div class="version">
+OS: 우분투 9.04
+ubiquity: 1.12.12
+</div>
+
+우분투 라이브CD 실행 시 혹은 부트 메뉴에서 직접 설치 메뉴를 선택하면
+우분투 설치 프로그램인 ubiquity가 실행되어 설치 작업을 진행한다.
+
+ubiquity는 python으로 작성한 debian installer의 graphical front-end 로
+gtk, kde, mythbuntu 등의 UI를 제공하지만 여기에서는 gtk_ui 만을 설명한다.
+
+먼저 시작하기 전에 우분투 라이브CD의 구성을 간단히 살펴보면 다음과 같다.
+
+<ul>
+  <li>CD 부팅 시 사용되는 isolinux를 위한 디렉터리 (부트 메뉴는 text.cfg 파일에 있다.)</li>
+  <li>혹은 이를 지원하지 않는 오래된 시스템을 위한 플로피 이미지가 있는 install 디렉터리</li>
+  <li>라이브CD용 커널 및 파일 시스템이 들어있는 casper 디렉터리</li>
+  <li>CD를 패키지 저장소로 이용하기 위한 dist 및 pool 디렉터리</li>
+  <li>설치 시의 커스터마이징을 위한 pressed 디렉터리</li>
+  <li>MS Windows에서 직접 설치를 위한 wubi.exe</li>
+  <li>그 밖에 데비안 로고 등이 들어있는 pics 디렉터리</li>
+</ul>
+ubiquity는 casper/filesystem.squashfs 상의
+/usr/bin/ubiquity에 존재하며 이는 ubiquity 소스 트리의 bin/ubiquity에 해당한다.
+(uck를 사용한다면 ~/tmp/remaster-root에서 파일 시스템의 내용을 볼 수 있다.)
+이 파일은 인자에 따라 적절히 환경 변수를 설정한 뒤
+주어진 타입의 프론트엔드를 생성하여 run() 메소드를 호출한다.
+
+프론트엔드는 /usr/lib/ubiquity/ubiquity/frontend/gtk_ui.py에 존재하며
+소스 트리에서는 ubiquity/frontend/gtk_ui.py에서 볼 수 있다.
+이 파일은 각 단계의 설정을 담당하는 페이지들을 차례로 보여준다.
+
+<ul>
+  <li>언어 설정: Language</li>
+  <li>위치 설정: Timezone</li>
+  <li>키보드 설정: ConsoleSetup</li>
+  <li>파티션 설정: Partman</li>
+  <li>사용자 정보: UserSetup</li>
+  <li>이전 도우미: MigrationAssistant (사용 안함)</li>
+  <li>설정 확인: Summary</li>
+</ul>(이전 도우미는 UBIQUITY_MIGRATION_ASSISTANT 환경 변수가 정의된 경우에만 실행된다.)
+
+각 항목에서 뒤에 표시한 것은 이 페이지를 담당하는 클래스 이름이며
+이들은 /usr/lib/ubiquity/ubiquity/components 디렉터리 내에 존재한다.
+(마찬가지로 소스 트리에서는 ubiquity/components에 해당한다.)
+
+이 클래스들은 각 단계 별로 설정값을 저장하기 위한 DB라고 볼 수 있으며
+소스 내에서는 dbfilter라는 필드로 참조된다.
+
+이들은 debconf를 통해 설정을 저장하며
+초기값을 변경하기 위해서는 iso의 preseed 디렉터리에 있는 ubuntu.seed 파일을 편집한다.
+(이에 대한 자세한 사항은 데비안 GNU/리눅스 설치 안내서의 부록 B 및
+debconf 설명서를 읽어보도록 하자.)
+
+모든 설정이 완료되면 실제 설치 과정이 수행된다.
+이는 차례로 파티션 설정을 적용하기 위한 PartmanCommit 클래스와
+실제 설치의 모든 과정을 수행하는 Install 클래스에서 담당한다.
+
+Install 클래스는 /usr/share/ubiquity/install.py 스크립트를 호출하며
+이는 소스 트리의 scripts/install.py에 해당한다.
+
+이 스크립트는 기본적으로 라이브CD 내의 모든 파일을
+타겟 디렉터리로 복사한 후 다음과 같이 차례대로 설정값을 적용한다.
+
+<ul>
+  <li>로캘 설정: LanguageApply</li>
+  <li>사용자 설정: UserSetupApply</li>
+  <li>타겟 설정 훅(hook) 실행 - /usr/lib/ubiquity/target-config 아래의 파일 실행</li>
+  <li>네트워크 설정 - /etc/network/interfaces, /etc/hosts, /etc/resolv.conf 등</li>
+  <li>APT 설정: AptSetup - choose-mirror 실행</li>
+  <li>언어팩 설치</li>
+  <li>시간대 설정: TimezoneApply</li>
+  <li>키보드 설정: ConsoleSetupApply</li>
+  <li>이전 도우미 설정: MigrationAssistantApply</li>
+  <li>사용하지 않는 커널 삭제: CheckKernel</li>
+  <li>하드웨어 설정: HwDetect</li>
+  <li>부트로더 설정: GrubInstaller</li>
+  <li>추가 패키지 설치 - 아마 특별한 것이 없는 듯.. (record_installed()로 등록 가능)</li>
+  <li>불필요한 패키지 제거 - 데스크탑에서 필요없는 패키지 삭제 (/cdrom/casper/filesystem.manifest 파일 비교)</li>
+  <li>DCD (Distribution Channel Discriptor) 복사</li>
+  <li>로그 파일 복사</li>
+</ul>
+이제 reboot하면 새로운 시스템을 이용할 수 있다!
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/ubuntu" rel="tag">ubuntu</a>, <a href="/tag/installer" rel="tag">installer</a>, <a href="/tag/ubiquity" rel="tag">ubiquity</a>, <a href="/tag/debconf" rel="tag">debconf</a>
+</div>
+

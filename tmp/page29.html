@@ -1,0 +1,163 @@
+	
+<div class="version">
+Linux: 2.6.38
+arch: x86
+</div>
+
+
+지난 번 kgdb/kdb 관련 글에서 언급했듯이 panic 발생 시 출력되는 stack trace 정보에
+약간의 문제가 있었다. 그래서 이왕 살펴보는 김에 stack trace가 출력되는 과정에 대해서
+좀 더 자세히 들여다보던 중 이에 관련된 문제를 파악할 수 있었다.
+
+먼저 stack trace 정보가 출력되는 과정에 대해서 살펴 보자.
+기본적으로 CPU에서는 frame pointer라 부르는 레지스터가 있어서
+함수 실행 시 해당 함수에 관련된 정보 (대표적으로 지역 변수 할당 정보)를 가리키는 용도로
+사용되며 함수를 호출하거나 함수에서 리턴될 때 이를 적절히 설정하도록 되어있다.
+
+이러한 하나의 함수에 관련된 정보의 묶음을 (stack) frame이라 부르며
+(당연히도?) frame 내의 필요한 정보들은 스택 내에 저장되게 된다.
+frame 내에는 지역 변수에 대한 정보 외에도 현재 함수가 리턴되었을 때 상위 함수로
+돌아가기 위해 필요한 정보들을 함께 저장하게 된다.
+
+따라서 frame pointer를 읽어 현재 실행되는 frame에 대한 정보를 얻은 후에
+frame 내에서 상위 함수로 돌아가기 위한 리턴 주소를 알아내고
+kallsyms 정보를 통해 이 리턴 주소가 어느 함수에 속하는지 알 수 있으므로
+순차적으로 현재 함수가 호출된 경로를 역추적 (backtrace) 할 수 있게 되는 것이다.
+
+물론 경우에 따라 CPU에 레지스터가 모자라서 frame pointer를 다른 용도로 사용하고 싶다거나
+frame pointer를 이용하지 않고도 다른 방법을 통해 frame 정보를 알아낼 수 있다면
+frame pointer 레지스터를 일반 레지스터와 같이 (다른 용도로) 사용할 수도 있다.
+
+gcc에 최적화 옵션을 주게되면 자동으로 -fomit-frame-pointer 옵션이 활성화되므로
+frame pointer를 다른 용도로 사용하기 때문에 stack trace가 복잡 혹은 불가능해 지므로
+커널 설정 옵션 중에 frame pointer를 (원래 용도로) 사용하도록 강제하는 옵션이 포함되어 있다.
+(x86의 경우 항상 frame pointer를 사용하도록 설정되어 있으며 변경이 불가능하다.)
+
+따라서 stack trace 정보를 frame pointer를 읽어서 손쉽게 알아낼 수 있지만
+stack trace 정보는 커널에 문제가 발생했을 때 그 원인을 파악하기 위해 매우 중요한 정보이므로
+현재 x86의 stack trace 코드는 보다 신중한 방식을 취하고 있다.
+
+그 이유는 frame pointer에 저장된 정보가 잘못되는 경우에 대처하기 위함인데
+일반적으로 컴파일러에 이에 관련된 버그가 없는 이상 frame pointer가 손상될 일은 없지만
+잘못 작성된 inline assembly 루틴이 수행되는 경우 이를 보장할 수 없기 때문이다.
+
+따라서 x86의 stack trace는 지정된 stack pointer 레지스터 값을 시작으로해서
+커널 스택의 바닥 (메모리 주소 상으로는 가장 위)까지 모든 데이터를 읽어나가며
+저장된 값이 함수의 리턴 주소라고 판단되면 (구체적으로는, 저장된 값이 커널의 text 영역 혹은
+로드된 모듈들의 text 영역 내에 포함되면) 이를 출력하도록 작성되어 있다.
+
+하지만 이 경우 필연적으로 noise (false positive?)가 포함될 수 밖에 없기 때문에
+frame pointer를 이용한 backtrace를 병행하며 출력된 정보가 frame pointer와 일치하는지와
+아닌지를 구분하였다. (대부분의 경우 frame pointer에는 올바른 정보가 저장되어 있을 것이다)
+구체적으로는 stack trace 정보 중에서 frame pointer와 일치하지 않는 것은
+출력된 심볼 (함수 이름) 앞에 '?' 기호를 붙이도록 되어 있다.
+
+그렇지만 지난 글에서 살펴보았듯이 현재는 의도한 대로 동작하고 있지 않았다.
+다시 지난 글에서 다루었던 예제의 출력 결과를 살펴보면 아래와 같다.
+
+
+<div class="source">
+ Call Trace:
+  [&lt;ffffffff814f5015&gt;] ? panic+0x91/0x199
+  [&lt;ffffffff814f5185&gt;] ? printk+0x68/0x6a
+  [&lt;ffffffffa0000172&gt;] ? deep01+0x0/0x42 [test_panic]
+  [&lt;ffffffff81152771&gt;] ? proc_file_write+0x78/0x92
+  [&lt;ffffffff811526f9&gt;] ? proc_file_write+0x0/0x92
+  [&lt;ffffffff8114dd92&gt;] ? proc_reg_write+0x92/0xb1
+  [&lt;ffffffff811075d3&gt;] ? vfs_write+0xb1/0x10d
+  [&lt;ffffffff8106cb0a&gt;] ? trace_hardirqs_on_caller+0x10c/0x130
+  [&lt;ffffffff811076f8&gt;] ? sys_write+0x4d/0x77
+  [&lt;ffffffff81002aeb&gt;] ? system_call_fastpath+0x16/0x1b
+</div>
+
+위에서 보듯이 모든 심볼에 '?' 기호가 붙어 있어서 어느 것이 올바른 것인지 구분할 수 없다.
+이에 대한 원인을 찾아보았더니 실제 stack dump를 위한 stack pointer를 세팅하는 frame과
+읽어들인 stack trace 정보가 올바른지 비교하기 위해 frame pointer를 세팅하는 frame이
+일치하지 않기 때문이었다. 물론 처음부터 이러한 문제가 계속 존재했었던 것은 아니고 비교적 최근에
+Soeren Sandmann님이 CONFIG_FRAME_POINTER 설정에 따른 stack trace 코드를 정리하는 도중에
+생겨난 문제였다. (이에 대한 정보와 도움을 주신 Frederic Weisbecker님께 감사한다.)
+
+이에 대한 패치가 반영된 결과 다음과 같은 출력 결과를 얻을 수 있었다.
+
+
+<div class="source">
+ Call Trace:
+  [&lt;ffffffff814f5015&gt;] panic+0x91/0x199
+  [&lt;ffffffff814f5185&gt;] ? printk+0x68/0x6a
+  [&lt;ffffffffa0000172&gt;] deep01+0x0/0x42 [test_panic]
+  [&lt;ffffffff81152771&gt;] proc_file_write+0x78/0x92
+  [&lt;ffffffff811526f9&gt;] ? proc_file_write+0x0/0x92
+  [&lt;ffffffff8114dd92&gt;] proc_reg_write+0x92/0xb1
+  [&lt;ffffffff811075d3&gt;] vfs_write+0xb1/0x10d
+  [&lt;ffffffff8106cb0a&gt;] ? trace_hardirqs_on_caller+0x10c/0x130
+  [&lt;ffffffff811076f8&gt;] sys_write+0x4d/0x77
+  [&lt;ffffffff81002aeb&gt;] system_call_fastpath+0x16/0x1b
+</div>
+
+사실 위 패치를 보내면서 추가적으로, 단순히 frame pointer 정보 만을 이용하여 stack trace를
+출력하도록 하는 패치를 보내보았는데 (만일 frame pointer가 손상되는 경우를 위해
+별도의 커널 부트 옵션을 추가하는 패치도 함께 제안하였다) Ingo Molnar님의 답변은
+현재 stack trace에 포함되지 않은 (즉, ? 기호가 붙은) 정보들은 stack trace가 발생하기
+직전에 실행되던 코드 실행 경로를 저장하는 경우가 많으며 이러한 정보들은 때때로
+디버깅 시에 도움을 줄 수 있기 때문에 그 자체로도 유용하다는 내용이었다.
+
+그리고 또 한 가지 문제가 되었던 부분은 (역시 지난 글에서 언급한) "noreturn" 속성을 가지는
+함수를 호출하는 경우인데, 이 경우에는 panic() 함수에 해당한다.
+이러한 경우 gcc는 해당 함수를 호출한 후 원래 함수로 돌아오지 않을 것을 알기 때문에
+현재 함수에서 해당 함수를 호출하는 코드 (call 명령어) 이후의 부분을 생성하지 않게 된다.
+
+하지만 기본적으로 stack frame에 저장되는 함수 리턴 주소는
+호출한 instruction의 바로 다음 주소를 가리키게 되므로 이러한 경우 리턴 주소가
+실제로 panic() 함수를 호출한 코드 대신 호출한 코드의 바로 다음에 위치하는 함수를 가리키게 된다.
+
+위의 예에서 test_panic 모듈 내의 panic_write() 함수에서 실제로 panic() 함수를 호출했지만
+실제로 stack trace에 저장된 값은 deep01() 이라는 함수이다.
+
+자세히 살펴보면 deep01 함수 내의 offset이 0으로 기록되어 있는데
+이는 사실 stack trace 내에 존재할 수 없는 값이다. 왜냐하면 함수를 호출하는 즉시
+CPU는 PC (instruction pointer) 값을 다음 instruction을 가리키도록 증가시킨 후에
+이 값을 stack에 저장하기 때문에 설사 함수 내의 제일 처음 instruction이 (다른) 함수 호출이더라도
+이 때 저장되는 리턴 주소는 절대 0이 될 수 없으며, 함수의 중간에서도 당연히 0이 될 수 없다.
+
+반대로 생각하면 리턴 주소는 항상 0보다 큰 값을 가지기 때문에
+리턴 주소에서 1을 뺀 값도 항상 동일한 함수 내에 포함된다는 사실을 알 수 있다.
+따라서 (최소한) stack trace 시에는 심볼 검색 시 주어진 (리턴) 주소를 그대로 사용하는 대신
+-1을 더한 값을 사용하면 더욱 정확한 심볼 정보를 얻을 수 있을 것이다.
+
+따라서 이에 대한 패치를 만들어 보내게 되었고 다행히도 다른 커널 개발자들도 만족해 하는 것 같았다.
+특히나 Ingo Molnar님은 다음과 같은 답변을 보내주었다. ^^
+
+  Ok, this looks really useful - we really want 100% perfect backtraces, kernel
+  developers are looking at hundreds of thousands of call traces per year, so
+  every little detail helps in the long run!
+
+실제로 이 패치가 적용되고 나면 위의 stack trace 정보는 다음과 같이 변경된다.
+(panic_write와 __proc_create 부분이 변경되었음을 볼 수 있다.)
+
+
+<div class="source">
+ Call Trace:
+  [&lt;ffffffff814f5015&gt;] panic+0x91/0x199
+  [&lt;ffffffff814f5185&gt;] ? printk+0x68/0x6a
+  [&lt;ffffffffa0000172&gt;] panic_write+0x3a/0x3a [test_panic]
+  [&lt;ffffffff81152771&gt;] proc_file_write+0x78/0x92
+  [&lt;ffffffff811526f9&gt;] ? __proc_create+0x141/0x141
+  [&lt;ffffffff8114dd92&gt;] proc_reg_write+0x92/0xb1
+  [&lt;ffffffff811075d3&gt;] vfs_write+0xb1/0x10d
+  [&lt;ffffffff811076f8&gt;] sys_write+0x4d/0x77
+  [&lt;ffffffff81002aeb&gt;] system_call_fastpath+0x16/0x1b
+</div>
+
+
+이 패치들은 모두 tip 트리를 통해 2.6.39 merge window 내에 포함되었으므로
+2.6.39-rc1 버전부터는 다시 올바른 stack trace 정보를 보게될 것이다.
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/debug" rel="tag">debug</a>, <a href="/tag/patch" rel="tag">patch</a>
+</div>
+

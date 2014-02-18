@@ -1,0 +1,72 @@
+	
+<div class="version">
+Linux kernel: 2.6.11
+arch: x86
+
+</div>
+
+커널 소스를 보다보면 asmlinkage로 선언된 함수들을 볼 수 있다.
+asmlinkage는 어셈블리 코드에서 직접 호출(링크)할 수 있다는 의미이며
+커널 소스의 &lt;include/linux/linkage.h&gt;에 다음과 같이 정의되어 있다.
+
+
+<div class="source">
+#include &lt;linux/config.h&gt;
+#include &lt;asm/linkage.h&gt;
+
+#ifdef __cplusplus
+#define CPP_ASMLINKAGE extern "C"
+#else
+#define CPP_ASMLINKAGE
+#endif
+
+#ifndef asmlinkage
+#define asmlinkage CPP_ASMLINKAGE
+#endif
+
+...
+</div>
+
+그렇다면 어셈블리 코드에서 직접 호출할 수 있다는 것은 무엇을 의미할까?
+일반적으로 C 함수는 어셈블리 코드에서 별 어려움없이 호출할 수 있지만
+함수의 인자를 넘기거나 리턴값을 받는 부분 등의 호출 규약이 필요하다.
+
+레지스터에 여유가 있는 ARM이나 MIPS 등의 아키텍처에서는
+함수의 인자를 넘길 때 특정 레지스터를 사용하도록 호출 규약이 정의되어 있지만,
+그렇지 못한 x86 아키텍처에서는 때에 따라 레지스터, 스택 혹은 별도의 메모리 영역에
+함수의 인자를 저장하여 넘길 수 있도록 지원한다.
+
+당연히 인자를 레지스터에 저장하여 넘기는 방식이 빠르기 때문에 (fastcall)
+최적화 옵션을 켜고 컴파일하는 경우 인자를 레지스터를 통해 전달하도록
+함수의 호출부와 구현부를 변경해 버릴 수 있다. (일반적인 최적화 방법)
+이 경우 GCC를 통해 자동 생성되는 코드는 적절히 변환되므로 문제가 없을테지만
+직접 작성한 어셈블리 코드에서 함수를 호출하는 경우 문제가 발생하게 된다.
+
+이 경우를 방지하기 위해 어셈블리 코드와 링크되는 함수는
+인자를 (레지스터를 이용하지 않고) 스택을 이용해서 전달하도록
+선언하는 데, 이 때 asmlinkage가 사용된다.
+
+위의 코드에서 &lt;asm/linkage.h&gt; 파일을 #include 하고 있는 것에 주의하자.
+대부분의 아키텍처에서 이 파일은 asmlinkage를 정의하지 않지만
+i386에서는 다음과 같이 정의한다.
+
+
+<div class="source">
+#define asmlinkage CPP_ASMLINKAGE __attribute__((regparm(0)))
+#define FASTCALL(x)	x __attribute__((regparm(3)))
+#define fastcall	__attribute__((regparm(3)))
+</div>
+
+regparm 속성은 레지스터를 이용하여 전달한 인자의 수를 지정한다.
+asmlinkage로 선언된 경우 모두 스택을 이용하고 (레지스터로 0개의 인자 전달)
+fastcall로 선언된 경우 최대 3개의 인자를 레지스터로 전달한다.
+(이 경우 EAX, EDX, ECX 레지스터를 이용하며, 인자는 정수형이어야 한다.)
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/gcc" rel="tag">gcc</a>, <a href="/tag/asm" rel="tag">asm</a>, <a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>
+</div>
+

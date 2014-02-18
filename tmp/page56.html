@@ -1,0 +1,232 @@
+	
+<div class="version">
+Linux: 2.6.34
+arch: x86_64
+</div>
+
+이전 글 보기:
+
+<ul>
+  <li><a href="http://studyfoss.egloos.com/5369031" title="">[Linux] kprobes 동작 방식 (1)</a></li>
+</ul>
+
+이번에는 jprobe와 kretprobe에 대해서 살펴보기로 한다.
+이들은 kprobe를 좀 더 간편한 형태로 사용할 수 있도록 특정 목적에 맞게 확장한 것이다.
+
+kprobe는 매우 강력하지만 kprobe의 handler들은 지정한 함수와는 동떨어진
+exception context에서 수행되므로 해당 함수에 대한 직접적인 영향을 미치기가 힘들다.
+즉 kprobe의 pre/post handler에서는 커널의 (EXPORT된) 전역 변수 등에는 자유롭게 접근이 가능하지만
+지역 변수에 접근하기 위해서는 코드를 디스어셈블한 뒤 바이너리 수준에서 분석을 거쳐야만 정확한 위치를
+파악할 수 있으며 설사 그렇다 하더라도 해당 instruction에서 사용된 register나 스택 위치를 통해
+접근할 수 밖에 없기 때문에 사용하기에 간편하다고 볼 수는 없다.
+
+jprobe나 kretprobe도 근본적으로는 이러한 문제를 가지고는 있지만
+exception context가 아닌 해당 함수가 실행되는 context에서 수행되므로
+제한적이나마 해당 함수의 지역적인 데이터 중 일부에 쉽게 접근할 수 있는 방법을 제공한다.
+구체적으로 jprobe는 함수의 시작 위치에서 대신 수행되어 함수의 인자에 직접 접근할 수 있도록 해 주며
+kretprobe는 함수가 리턴되는 시점에서 수행되어 리턴값에 접근할 수 있게 있게 해 준다.
+
+먼저 jprobe에 대해서 살펴보도록 하자.
+다음은 jprobe를 구성하는 자료 구조를 보여준다.
+
+include/linux/kprobes.h:
+<div class="source">
+struct jprobe {
+    struct kprobe kp;
+    void *entry;    /* probe handling code to jump to */
+};
+</div>
+
+간단히 jprobe는 kprobe에 entry 필드가 추가된 것이다.
+entry 필드는 해당 함수의 시작 위치에서 호출될 handler를 가리키는 포인터이며,
+이 handler는 jprobe를 등록한 함수에 따라 prototype이 다르므로 (해당 함수와 동일하다)
+정해진 타입이 없이 void * 형태로 선언된다.
+
+앞서 언급한대로 jprobe는 함수의 시작 위치에만 등록할 수 있다.
+현재 이에 대한 엄격한 검사는 하고 있지 않지만, 만약 함수의 시작 위치가 아닌 곳에 등록된다면
+어떠한 동작을 하게 될 지 보장할 수 없을 것이다.
+
+jprobe를 등록하는 register_jprobe() 함수는 내부적으로 다음과 같이 수행된다.
+(사실은 여러 jprobe를 등록할 수 있는 register_jprobes() 함수를 거쳐 수행되지만
+편의상 하나로 합쳐서 나타내었다.)
+
+kernel/kprobes.c:
+<div class="source">
+int __kprobes register_jprobes(struct jprobe *jp)
+{
+    ...
+    /* Todo: Verify probepoint is a function entry point */
+    jp-&gt;kp.pre_handler = setjmp_pre_handler;
+    jp-&gt;kp.break_handler = longjmp_break_handler;
+    ret = register_kprobe(&amp;jp-&gt;kp);
+
+    ...
+    return ret;
+}
+</div>
+
+위에서 보는 것처럼 setjmp_pre_handler와 longjmp_break_handler를 각각
+pre_handler와 break_handler로 설정한 뒤 register_kprobe()를 호출한다.
+이제 이들 함수 각각을 살펴보기로 하자.
+
+setjmp_pre_handler() 함수는 아키텍처 별로 별도로 정의되며
+x86의 경우 호출되는 당시의 스택 정보 중 일부와 레지스터 정보를 저장해 둔 뒤
+pt_regs 구조체의 ip 필드를 jprobe.entry의 값으로 설정하여 1을 리턴한다.
+앞서 kprobe를 설명할 때 pre_handler가 1을 반환하는 경우에는
+정상적으로 single step으로 진행하지 않고 바로 exception context에서 빠져나와서
+(ip 필드에 지정된 위치에서부터) 실행을 다시 시작한다고 했음을 기억하자.
+
+이제 jprobe 등록 시 지정한 entry 위치에서부터 실행이 재개되는데
+이 시점에서는 원래의 함수를 호출한 상황과 완전히 동일한 상황이기 때문에
+(마치 커널에서 jprobe로 등록한 함수를 직접 호출한 것과 같다.)
+함수의 인자에 (타입 정보를 가진) 그대로 접근할 수 있다.
+
+jprobe의 entry 함수는 한 가지 제약 사항을 가지는데
+함수를 실행한 뒤 원래의 위치로 돌아가기 위해 jprobe_return() 함수를 호출해야 한다는 것이다.
+
+jprobe_return은 인라인 어셈블리로 구현된 함수이며
+setjmp_pre_handler에서 저장한 값으로 스택 포인터를 복원한 뒤
+breakpoint exception을 발생시키는 int3 instruction을 수행한다.
+
+앞서 kprobe를 살펴볼 때 잠깐 언급하기 했지만
+kprobe가 수행되는 도중 kprobe가 등록되지 않은 위치에서 breakpoint (#BP) exception 이 발생하면
+break_handler가 수행된다. 이 경우 longjmp_break_handler() 함수가 수행되는데
+이 함수는 먼저 #BP exception이 jprobe_return() 함수 내에서 발생한 것인지 검사한 후
+setjmp_pre_handler() 함수에서 저장해 둔 값으로 스택과 레지스터 값을 복원하고 1을 리턴한다.
+그러면 kprobe 처리 과정에서 setup_singlestep() 함수를 호출하여 이 후 정상적인 과정을 수행한다.
+
+여기까지의 과정을 그림으로 나타내면 다음과 같다.
+
+
+<div style="text-align:center">
+<img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds19.egloos.com/pds/201008/02/35/c0098335_4c55a764e1689.png" width="500" height="297.570850202" onclick="Control.Modal.openDialog(this, event, 'http://pds19.egloos.com/pds/201008/02/35/c0098335_4c55a764e1689.png');" />
+</div>
+
+이제 kretprobe에 대해서 살펴볼 것이다.
+먼저 kretprobe를 이용하려면 커널 설정 시 CONFIG_KRETPROBES 옵션을 별도로 선택해야 한다.
+kretprobe는 함수가 리턴되는 시점에서 호출되어야 하는데
+이는 원래의 함수가 리턴되는 주소를 변경하는 방식으로 구현한다.
+
+함수가 리턴될 주소는 함수가 호출된 시점에서 스택의 최상위에 저장되는데
+이는 frame pointer를 통해 접근할 수도 있겠지만 구현 상의 편의를 위해서인지
+(frame pointer는 커널 설정 시 사용하지 않도록 할 수도 있기 때문인 듯하다)
+x86 아키텍처에서는 kretprobe도 함수의 시작 위치에만 등록해야 한다.
+
+kretprobe는 kprobe 및 jprobe와는 달리 exception을 통해 실행 환경을 제어할 수 있는 시점이 아닌
+원래 함수가 리턴되는 시점에서 호출되어야 하기 때문에 추가적으로 몇 가지 고려해야 할 사항이 있다.
+
+기본적으로 kprobe 및 jprobe의 handler들은 인터럽트와 선점이 금지된 채로 실행된다.
+하지만 kretprobe의 경우 이러한 설정을 제어할 수 없기 때문에 kretprobe의 handler를 수행 중인 태스크가
+다른 태스크에게 선점될 수 있고, 그 태스크가 동일한 kretprobe의 handler를 수행하게 될 수도 있다.
+(다른 프로세서에서 실행 중인 태스크에서 동일한 handler를 수행할 수 있는 경우도 물론 가능하며
+이러한 경우는 kprobe 및 jprobe에서도 고려해야 할 것이다.)
+
+따라서 kretprobe는 handler를 수행할 때마다 고유한 kretprobe_instance 구조체를 할당하여
+각 태스크에 따른 정보들을 별도로 저장하도록 한다. 다음은 이를 위한 자료 구조이다.
+
+include/linux/kprobes.h:
+<div class="source">
+struct kretprobe {
+    struct kprobe kp;
+    kretprobe_handler_t handler;
+    kretprobe_handler_t entry_handler;
+    int maxactive;
+    int nmissed;
+    size_t data_size;
+    struct hlist_head free_instances;
+    spinlock_t lock;
+};
+
+struct kretprobe_instance {
+    struct hlist_node hlist;
+    struct kretprobe *rp;
+    kprobe_opcode_t *ret_addr;
+    struct task_struct *task;
+    char data[0];
+};
+</div>
+
+kretprobe 구조체도 내부적으로 kprobe 구조체를 포함하고 있으며
+kprobe의 pre_handler 만을 pre_handler_kretprobe() 함수로 등록하고
+나머지 handler들은 모두 NULL로 설정한다.
+handler 필드는 실제로 해당 함수가 리턴될 때 호출될 함수를 설정하며
+entry_handler는 pre_handler_kretprobe() 함수가 실행될 때 수행할 작업이 있다면 설정한다.
+
+maxactive 필드는 이 kretprobe에 대해 할당해 둘 kretprobe_instance 구조체의 개수이다.
+따라서 동시에 maxactive 만큼의 kretprobe가 수행될 수 있으며 (선점된 것을 포함한 수이다)
+이를 넘어가는 수의 kretprobe가 수행되어야 한다면 nmissed 필드의 값이 하나씩 증가된다.
+data_size는 kretprobe를 등록할 때 handler에서 추가적으로 필요한 데이터가 있는 경우
+(일반적으로는 entry_handler에서 어떤 정보를 handler에 넘겨주고 싶은 경우에 해당한다)
+데이터의 크기를 명시해주면 kmalloc 시 그 값 만큼 더한 값으로 할당한다.
+할당된 kretprobe_instance들은 free_instances 리스트로 관리하며 이는 lock을 통해 보호한다.
+(이 경우 hlist는 해시 테이블과는 관련이 없고 단순히 단방향 리스트로만 사용된다.)
+
+kretprobe_instance 구조체의 hlist 필드는 kretprobe의 free_instances에 연결되기 위한 것이며
+rp는 원래의 kretprobe를 가리키는 포인터이고
+ret_addr은 handler를 수행한 후에 원래의 위치로 돌아가기 위한 주소를 저장해 두며
+task는 현재 실행 중인 태스크를 가리키고
+마지막으로 data는 kretprobe 등록 시 추가적으로 할당한 데이터를 가리키기 위한 것으로
+크기가 0인 배열이므로 kretprobe.data_size가 0이라면 아무런 공간도 차지하지 않을 것이다.
+
+이제 kretprobe로 등록된 함수가 실행되는 경우 먼저 breakpoint (#BP) exception이 발생하고
+pre_handler_kretprobe() 함수가 실행되는데 이 함수는 free_instances에서 이용 가능한
+kretprobe_instance 객체를 얻은 후에 entry_handler가 정의되어 있다면 이를 호출하고
+arch_prepare_kretprobe() 함수를 호출하여 kretprobe를 위한 준비 작업을 수행한다.
+그리고 현재 current 값을 해시 키로 하여 kretprobe_inst_table에 현재 객체를 등록해 둔다.
+만약 kretprobe_instance 객체를 얻을 수 없다면 nmissed 값을 하나 증가시키고 바로 종료한다.
+
+아키텍처 별로 정의되는 arch_prepare_kretprobe() 함수는 x86의 경우
+단순히 현재 스택 포인터가 가리키는 위치에 저장된 값을 원래의 리턴 주소로 저장해 두고
+리턴 주소를 kretprobe_trampoline으로 설정하는 것이 전부이다.
+
+이제 exception에서 반환되면 원래의 함수가 실행되고
+원래의 함수가 리턴될 때 kretprobe_trampoline 코드가 수행된다.
+이 코드는 kretprobe_trampoline_holder() 함수 내에 숨어있는(?) 인라인 어셈블리 루틴으로
+(exception handler가 수행하는 것과 같이) 현재 레지스터 상태를 모두 저장하여
+pt_regs 구조체의 형태로 구성하고 trampoline_handler() 함수를 호출한 뒤에
+리턴값을 원래의 리턴 주소로 설정하고 레지스터를 복원한 뒤 리턴한다.
+따라서 이 후에는 원래 함수가 리턴되어야 할 위치로 돌아가서 정상적인 실행이 진행된다.
+
+trampoline_handler() 함수는 kretprobe_inst_table에서
+현재 태스크에 대한 kretprobe_instance 객체를 얻은 후 handler를 수행한다.
+(동일한 위치에 여러 kretprobe가 등록된 경우가 있을 수 있으므로 이를 처리해야 한다)
+그리고 kretprobe_instance 객체는 더 이상 사용되지 않으므로 free_instances 리스트에 다시 추가하고
+미리 저장해 둔 원래의 리턴 주소를 리턴한다.
+
+참고로 kretprobe의 handler에서 리턴값에 접근하는 직접적인 방법은 없지만
+아키텍처에 따라 리턴값이 전달되는 방식을 통해 간접적으로 접근할 수는 있다.
+x86의 경우 (대부분) rax 레지스터를 통해 전달되므로 kretprobe_trampoline에서 저장한
+pt_regs 구조체의 ax 필드의 값을 읽거나 쓰면 원하는 작업을 수행할 수 있다.
+
+이를 위해 많은 아키텍처에서는 regs_return_value라는 매크로/함수를 제공하고 있으며
+x86의 경우 다음과 같이 정의되어 있다.
+
+arch/x86/include/asm/ptrace.h:
+<div class="source">
+static inline unsigned long regs_return_value(struct pt_regs *regs)
+{
+    return regs-&gt;ax;
+}
+</div>
+
+이상의 kretprobe 실행 과정을 간략히 그림으로 그려보면 다음과 같다.
+
+
+<div style="text-align:center">
+<img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds19.egloos.com/pds/201008/02/35/c0098335_4c55a77556688.png" width="500" height="263.83265857" onclick="Control.Modal.openDialog(this, event, 'http://pds19.egloos.com/pds/201008/02/35/c0098335_4c55a77556688.png');" />
+</div>
+
+지금까지 x86(_64) 아키텍처에서의 kprobes 동작 방식을 대략적으로 살펴보았다.
+(다른 아키텍처에서의 동작 방식도 이와는 크게 다르지 않을 것이라 기대한다.. ^^;)
+커널 소스 내에 samples/kprobes 디렉터리에는 kprobes를 사용하는 예제 프로그램들이
+종류 별로 존재하고 있으니 함께 살펴보면 전체적인 구조를 이해하는 데 도움이 될 것이다.
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/debug" rel="tag">debug</a>, <a href="/tag/x86" rel="tag">x86</a>
+</div>
+

@@ -1,0 +1,76 @@
+	
+<div class="version">
+Linux: 2.6.36
+</div>
+
+
+오늘 2.6.36 버전의 커널이 새로 발표되었다.
+(언제나처럼, 이전 버전에서 새로 추가된 기능들은 <a target="_blank" href="http://kernelnewbies.org/Linux_2_6_36">kernelnewbies.org</a>에서 찾아볼 수 있으며
+각 항목들에 대해 자세히 설명할 정도의 지식도 없으므로 생략한다.. ;;)
+
+개인적으로 이번 커널 버전은 처음으로 개발에 참여해 본 것이기 때문에 큰 의미를 가지고 있다.
+2.6.36 버전이 릴리스된 현재 16개의 커밋이 mainline 트리에 포함되었다.
+
+
+<div class="source">
+$ git log --author=namhyung v2.6.35..v2.6.36 | git shortlog
+Namhyung Kim (16):
+      percpu: handle __percpu notations in UP accessors
+      percpu: add __percpu notations to UP allocator
+      workqueue: add missing __percpu markup in kernel/workqueue.c
+      slub: add missing __percpu markup in mm/slub_def.h
+      x86: Document __phys_reloc_hide() usage in __pa_symbol()
+      [CPUFREQ] add missing __percpu markup in pcc-cpufreq.c
+      [CPUFREQ] acpi-cpufreq: add missing __percpu markup
+      kgdb: add missing __percpu markup in arch/x86/kernel/kgdb.c
+      workqueue: annotate lock context change
+      workqueue: mark lock acquisition on worker_maybe_bind_and_lock()
+      percpu: fix a mismatch between code and comment
+      ACPI: add missing __percpu markup in arch/x86/kernel/acpi/cstate.c
+      intel_idle: add missing __percpu markup
+      [CPUFREQ] acpi-cpufreq: add missing __percpu markup
+      MIPS: 32-bit: Fix build failure in asm/fcntl.h
+      MIPS: Enable ISA_DMA_API config to fix build failure
+
+
+</div>
+패치의 대부분은 "__percpu" annotation에 대한 것이다.
+2.6.32 버전에서 허태준님이 percpu allocator를 동적 할당 방식으로 교체한 후에
+__percpu sparse annotation이 추가되었는데 그 이후에 이를 인식하지 못하고 있던
+패치들이 만들어 낸 (sparse) warning들을 제거한 간단한 패치들이다.
+(패치를 잘 받아주시고 여러 조언과 도움을 주신 허태준님께 감사한다.. ^^)
+
+5번째 패치는 x86에서 심볼 주소 계산 시 RELOC_HIDE() 매크로가 불필요하게 사용되었다고 판단하여
+이를 제거한 패치를 무작정(?) 보내보았는데 메일링을 통한 토론을 거쳐 나온 결론은
+캐스트 후에도 포인터가 가리키는 원본 데이터에 대한 정보가 남아있을 수 있어서
+연산 시 overflow로 인한 오동작이 발생할 수 있으며 gcc 4.2 버전 이후에서 제공하는
+-fno-strict-overflow 옵션이 있어야 안전하게 동작한다는 것이다.
+
+사실 여기에 확실하게 동의하지는 못했고 뭔가 핀트가 약간 어긋난 듯한 느낌을 살짝 받았지만
+gcc 개발자인 Richard Henderson까지 동원되어 필요하다고 하니 가뜩이나 영어도 안 되는데
+꼬리를 접을 수 밖에 없었다. 하지만 Ingo Molnar 또한 이 코드를 그리 마음에 들지 않아하던터라
+논의한 내용을 주석으로 남기고 커널이 gcc 3.x 대를 지원하지 않는 시기가 되면
+해당 코드를 없애기로 하자는 결론을 내면서 나에게 주석을 작성한 패치를 보내달라고 하였다.
+무척이나 당황스럽긴 했지만 안되는 영어로 머리 싸매며 몇 줄 작성해서 보내 주었더니
+다행히 큰 수정없이 거의 그대로 반영되었다.
+
+workqueue 관련 패치들은 sparse가 알려준 locking 관련 warning들을 최소화하기 위해
+몇 가지 annotation을 추가한 것으로 허태준님이 작업 중인 cmwq와는 전혀 관련이 없다.. ^^;;
+
+마지막으로 바로 얼마전에 추가된 MIPS쪽 패치들은 Stephen Rothwell이 관리하는
+linux-next 트리의 빌드 결과를 정리해 둔 페이지를 보다가 발견한 것 중
+(참고로 mainline 트리에 대한 결과도 함께 포함되어 있다) mips 아키텍처에 대한 내용도 있길래
+cross toolchain 빌드 테스트를 위해 만들어 둔 mips용 toolchain으로 테스트하여
+재현되는 버그들을 수정하여 보낸 패치들인데 build fix라서 그런지 금새 반영되었다.
+
+다음 버전에는 좀 더 나은 패치들을 포함시킬 수 있길 기대해본다.
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/patch" rel="tag">patch</a>
+</div>
+

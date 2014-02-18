@@ -1,0 +1,199 @@
+	
+<div class="version">
+firefox: 3.6
+gcc: 4.4.1
+ubuntu: 9.10
+</div>
+
+
+평소에 잘 사용하던 opera가 오랫동안 실행시켜 둔 경우 가끔씩 오동작을 해서
+이 참에 firefox를 다시 사용해 보기로 마음먹고 PGO 빌드를 시도해 보았다.
+gcc 버전과 관련하여 약간의 삽질이 필요했으므로 기록을 남겨둔다.
+
+빌드에 필요한 프로그램들은 이미 설치되어 있다고 가정하고
+(우분투에서는 sudo apt-get build-dep firefox 명령을 수행하면 될 것이다.)
+일단 firefox의 소스를 내려받고 압축을 푼다.
+
+
+<div class="source">
+$ wget ftp://ftp.mozilla.org/pub/mozilla.org/firefox/releases/3.6/source/firefox-3.6.source.tar.bz2
+$ tar xf firefox-3.6.source.tar.bz2
+$ cd mozilla-1.9.2
+</div>
+
+기본적으로 firefox를 빌드하기 위해서는 .mozconfig 파일을 만들어야 한다. [1]
+다음과 같은 정도면 무난하게 동작할 것이다.
+
+
+<div class="source">
+ac_add_options --enable-application=browser
+ac_add_options --disable-debug --disable-tests
+ac_add_options --disable-necko-wifi
+mk_add_options MOZ_CO_PROJECT=browser
+mk_add_options MOZ_MAKE_FLAGS=-j4
+mk_add_options PROFILE_GEN_SCRIPT=/home/namhyung/bin/run-firefox.sh
+</div>
+
+맨 마지막 줄의 PROFILE_GEN_SCRIPT는 PGO 빌드를 위해 필요하며 [2]
+각자 자신에 맞는 경로로 변경해야 한다.
+
+run-firefox.sh 파일은 아래와 같이 작성한다.
+
+
+<div class="source">
+#!/bin/sh
+export NO_EM_RESTART=1
+mkdir $OBJDIR/_profileprofile
+$OBJDIR/dist/bin/firefox -no-remote -profile $OBJDIR/_profileprofile
+</div>
+
+이 파일에 실행 권한을 주는 것을 잊지 말도록 하자.
+
+
+<div class="source">
+$ chmod +x ~/bin/run-firefox.sh
+</div>
+
+이제 빌드를 시작하면 된다.
+그 전에 build/automationutils.py 파일을 어딘가에 복사해 두도록 하자.
+(아래와 같은 에러가 발생 시 필요하다.)
+
+
+<div class="source">
+$ make -f client.mk profiledbuild
+</div>
+
+한참을 빌드가 진행되고 나서 다음과 같은 에러가 발생하였다.
+(원인을 잘 모르겠지만 빌드 도중에 build/automationutils.py 파일이 삭제된 것 같다.)
+
+
+<div class="source">
+make[4]: Entering directory `/home/namhyung/temp/mozilla-1.9.2/build'
+make[4]: *** `/home/namhyung/temp/mozilla-1.9.2/build/automationutils.py'에서 필요로 하는  타겟 `../build/automationutils.py'를 만들 규칙이 없습니다.  멈춤.
+make[4]: *** 끝나지 않은 작업을 기다리고 있습니다....
+make[4]: *** [libs] 오류 2
+make[4]: Leaving directory `/home/namhyung/temp/mozilla-1.9.2/build'
+make[3]: *** [libs_tier_base] 오류 2
+make[3]: Leaving directory `/home/namhyung/temp/mozilla-1.9.2'
+make[2]: *** [tier_base] 오류 2
+make[2]: Leaving directory `/home/namhyung/temp/mozilla-1.9.2'
+make[1]: *** [default] 오류 2
+make[1]: Leaving directory `/home/namhyung/temp/mozilla-1.9.2'
+make: *** [build] 오류 2
+</div>
+
+아까 복사해 둔 파일을 다시 원래 위치로 옮겨준 후에 다시 빌드하면 된다.
+(아니면 다시 소스 파일의 압축을 푼 뒤 복사해도 된다.)
+
+
+<div class="source">
+$ cp ../mozilla-1.9.2-orig/build/automationutils.py build
+$ make -f client.mk profiledbuild
+</div>
+
+하지만 위와 같이 하면 한참 후에 동일한 문제가 다시 발생한다.. ;;
+몇 번을 시도해 보다가 이상해서 Makefile을 열어봤더니 다음과 같은 부분을 찾을 수 있었다.
+
+
+<div class="source">
+profiledbuild::
+    $(MAKE) -f $(TOPSRCDIR)/client.mk build MOZ_PROFILE_GENERATE=1
+    OBJDIR=${PGO_OBJDIR} $(PROFILE_GEN_SCRIPT)
+    $(MAKE) -f $(TOPSRCDIR)/client.mk maybe_clobber_profiledbuild
+    $(MAKE) -f $(TOPSRCDIR)/client.mk build MOZ_PROFILE_USE=1
+</div>
+
+profiledbuild는 총 2번을 컴파일하는 데
+한 번은 profile 정보를 생성하기 위한 것이고
+다른 한 번은 생성된 profile 정보를 통해 최적화를 수행하는 과정이다.
+
+위의 에러는 두 번째 빌드(MOZ_PROFILE_USE=1)에서 발생한 것이었는데
+다시 profiledbuild 명령을 주었으니 첫 번째 빌드부터 다시 시작하여 동일한 과정을 반복했던 것이다.
+따라서 다음과 같이 직접 두 번째 과정을 실행해 주면 된다.
+
+
+<div class="source">
+$ make -f client.mk build MOZ_PROFILE_USE=1
+</div>
+
+그런데 이 번엔 다른 문제가 발생하였다.
+
+
+<div class="source">
+nsSubstring.cpp
+c++ -o nsSubstring.o -c -I../../../dist/system_wrappers -include ../../../config/gcc_hidden.h -DMOZILLA_INTERNAL_API -DOSTYPE=\"Linux2.6\" -DOSARCH=Linux -D_IMPL_NS_COM  -I. -I. -I../../../dist/include -I../../../dist/include/nsprpub  -I/home/namhyung/temp/mozilla-1.9.2/dist/include/nspr -I/home/namhyung/temp/mozilla-1.9.2/dist/include/nss         -fPIC   -fno-rtti -fno-exceptions -Wall -Wpointer-arith -Woverloaded-virtual -Wsynth -Wno-ctor-dtor-privacy -Wno-non-virtual-dtor -Wcast-align -Wno-invalid-offsetof -Wno-long-long -pedantic -fno-strict-aliasing -fshort-wchar -pthread -pipe  -DNDEBUG -DTRIMMED -fprofile-use -Os -freorder-blocks -fno-reorder-functions    -DMOZILLA_CLIENT -include ../../../mozilla-config.h -Wp,-MD,.deps/nsSubstring.pp nsSubstring.cpp
+nsSubstring.cpp: In member function 'void nsACString_internal::Assign(const nsACString_internal&amp;)':
+nsSubstring.cpp:315: error: corrupted profile info: profile data is not flow-consistent
+nsSubstring.cpp:315: error: corrupted profile info: number of executions for edge 2-10 thought to be -3
+nsSubstring.cpp:315: error: corrupted profile info: number of executions for edge 2-3 thought to be 86266
+nsSubstring.cpp: In member function 'void nsACString_internal::Assign(const char*, PRUint32)':
+nsSubstring.cpp:315: error: corrupted profile info: profile data is not flow-consistent
+nsSubstring.cpp:315: error: corrupted profile info: number of executions for edge 16-17 thought to be 76237
+nsSubstring.cpp:315: error: corrupted profile info: number of executions for edge 16-18 thought to be -1
+make[6]: *** [nsSubstring.o] 오류 1
+make[6]: *** 끝나지 않은 작업을 기다리고 있습니다....
+make[6]: Leaving directory `/home/namhyung/temp/mozilla-1.9.2/xpcom/string/src'
+make[5]: *** [libs] 오류 2
+make[5]: Leaving directory `/home/namhyung/temp/mozilla-1.9.2/xpcom/string'
+make[4]: *** [libs] 오류 2
+make[4]: Leaving directory `/home/namhyung/temp/mozilla-1.9.2/xpcom'
+make[3]: *** [libs_tier_xpcom] 오류 2
+make[3]: Leaving directory `/home/namhyung/temp/mozilla-1.9.2'
+make[2]: *** [tier_xpcom] 오류 2
+make[2]: Leaving directory `/home/namhyung/temp/mozilla-1.9.2'
+make[1]: *** [default] 오류 2
+make[1]: Leaving directory `/home/namhyung/temp/mozilla-1.9.2'
+make: *** [build] 오류 2
+</div>
+
+무언가 profile 정보가 올바르지 않다는 내용인 것 같다.
+googling을 해보니 다음과 같은 정보를 찾을 수 있어서 [3] 시도해 보았지만 결과는 마찬가지였다.
+
+
+<div class="source">
+$ make -f client.mk clobber_all
+$ make -f client.mk build MOZ_PROFILE_USE=1
+</div>
+
+다시 googling을 해보니 gcc-4.4에서 profiling 동작이 좀 더 까탈스러워진 것 같다. [4]
+그래서 -fprofile-correction 옵션이 추가되었다고 하는데 이 옵션은 기본적으로 꺼져있다.
+이제 config/autoconf.mk 파일에 해당 옵션을 추가해 준다.
+
+
+<div class="source">
+--- config/autoconf.mk.orig    2010-02-04 16:36:56.000000000 +0900
++++ config/autoconf.mk    2010-02-04 16:37:02.000000000 +0900
+@@ -308,7 +308,7 @@
+ MOZ_PROFILE_GUIDED_OPTIMIZE_DISABLE = 
+ PROFILE_GEN_CFLAGS = -fprofile-generate
+ PROFILE_GEN_LDFLAGS = -fprofile-generate
+-PROFILE_USE_CFLAGS = -fprofile-use
++PROFILE_USE_CFLAGS = -fprofile-use -fprofile-correction
+ PROFILE_USE_LDFLAGS = -fprofile-use
+ 
+ XCFLAGS        = 
+</div>
+
+최종적으로 다음을 실행하면 빌드가 성공할 것이다.
+
+
+<div class="source">
+$ make -f client.mk build MOZ_PROFILE_USE=1
+</div>
+
+
+
+=== 참고 문헌 ===
+<ol>
+  <li> <a target="_blank" href="https://developer.mozilla.org/en/Build_and_Install">https://developer.mozilla.org/en/Build_and_Install</a></li>
+  <li> <a target="_blank" href="https://developer.mozilla.org/en/Building_with_Profile-Guided_Optimization">https://developer.mozilla.org/en/Building_with_Profile-Guided_Optimization</a></li>
+  <li> <a href="http://aur.archlinux.org/packages.php?ID=22919">http://aur.archlinux.org/packages.php?ID=22919</a></li>
+  <li> <a target="_blank" href="http://www.mail-archive.com/gcc-bugs@gcc.gnu.org/msg245113.html">http://www.mail-archive.com/gcc-bugs@gcc.gnu.org/msg245113.html</a></li></ol> 
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/firefox" rel="tag">firefox</a>, <a href="/tag/build" rel="tag">build</a>, <a href="/tag/gcc" rel="tag">gcc</a>
+</div>
+

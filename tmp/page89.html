@@ -1,0 +1,256 @@
+	
+<div class="version">
+arch: x86
+linux: 2.6.32
+gcc: 4.4.1
+glibc: 2.10.1
+</div>
+
+이전 글 보기:
+
+<ul>
+  <li><a href="http://studyfoss.egloos.com/5259841" title="">[ELF] TLS (Thread Local Storage) (1)</a></li>
+</ul>
+이제 libdl을 이용하여 라이브러리를 동적으로 로드하는 경우를 살펴보자.
+이 경우에는 프로그램 시작 시 동적 링커가 알지 못하는 전혀 새로운 TLS 영역이 추가되어야 한다.
+따라서 이러한 영역은 정적 할당이 불가능해지므로 동적 할당 기법이 사용된다.
+또한 동적 링커는 실제 TLS 영역의 메모리 할당 시점을 최대한 늦추기 위해 노력한다.
+
+역시 예제를 통해 살펴보기로 한다.
+동적으로 로드할 라이브러리는 다음과 같이 그저 TLS 변수 1개만 포함하는 단순한 모듈이다.
+
+libtls.c:
+<div class="source">
+__thread int libtls_i;
+</div>
+
+
+실행 파일은 불필요한 출력문을 제외하고 다음과 같이 단순하게 수정한다.
+
+main.c:
+<div class="source">
+#define _GNU_SOURCE
+#include &lt;stdio.h&gt;
+#include &lt;errno.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;asm/ldt.h&gt;
+#include &lt;sys/syscall.h&gt;
+#include &lt;pthread.h&gt;
+#include &lt;dlfcn.h&gt;
+#include "tls.h"
+
+void print_tls(void)
+{
+  int i = 0;
+  dtv_t *dtv;
+  tcbhead_t *tcb;
+  struct user_desc u_info = { .entry_number = 6 };
+
+  syscall(SYS_get_thread_area, &amp;u_info);
+  tcb = (tcbhead_t *) u_info.base_addr;
+  dtv = tcb-&gt;dtv;
+
+  printf("DTV: generation number = %d\n", dtv[0].counter);
+  for (i = 1; dtv[i].pointer.val; i++)
+    printf("DTV: [%d] = %p (%s)\n", i, dtv[i].pointer.val,
+       dtv[i].pointer.is_static ? "static" : "dynamic");
+}
+
+int main(void)
+{
+  int *pi;
+  void *hdl;
+
+  print_tls();
+  
+  puts("dlopen");
+  hdl = dlopen("./libtls.so", RTLD_LAZY);
+  
+  print_tls();
+  
+  puts("dlsym");
+  pi = (int *) dlsym(hdl, "libtls_i");
+  printf("libtls_i : %p, %d\n", pi, *pi);
+  
+  print_tls();
+  
+  dlclose(hdl);
+  return 0;
+}
+</div>
+
+main() 함수에서는 print_tls() 함수를 총 3번 호출하는데
+초기 상태, dlopen() 함수를 통해 라이브러리를 로드한 후, dlsym() 함수를 통해 TLS 심볼에 접근한 후이다.
+각각의 결과는 다음과 같다.
+
+
+<div class="source">
+$ gcc -o libtls.so -shared -fPIC libtls.c
+$ gcc main.c -pthread -ldl
+$ ./a.out
+DTV: generation number = 1
+DTV: [1] = 0xb76596c8 (static)
+DTV: [2] = 0xb7659688 (static)
+dlopen
+DTV: generation number = 1
+DTV: [1] = 0xb76596c8 (static)
+DTV: [2] = 0xb7659688 (static)
+dlsym
+libtls_i : 0x96933a0, 0
+DTV: generation number = 2
+DTV: [1] = 0xb76596c8 (static)
+DTV: [2] = 0xb7659688 (static)
+DTV: [3] = 0x96933a0 (dynamic)
+</div>
+
+결과에서 볼 수 있듯이 dlsym() 함수를 통해서 실제 TLS 변수에 대한 접근이 이루어진 후에야
+실제로 해당 메모리 영역이 할당되고 DTV에 시작 위치(module offset)가 기록된다.
+DTV의 항목이 추가되면서 generation number가 증가한 것을 확인할 수가 있을 것이다.
+
+이번에는 추가적인 스레드 동작 시 동적 로딩에 의한 효과를 살펴보기로 하자.
+우선은 기존의 print_tls 부분을 스레드에 의한 출력으로 대체한다.
+
+main.c:
+<div class="source">
+void *thread_print_tls(void *arg)
+{
+  print_tls();
+  return arg;
+}
+
+int main(void)
+{
+  int *pi;
+  pthread_t pth;
+  void *hdl, *result;
+
+  pthread_create(&amp;pth, NULL, thread_print_tls, 0);
+  pthread_join(pth, &amp;result);
+  
+  puts("dlopen");
+  hdl = dlopen("./libtls.so", RTLD_LAZY);
+  
+  pthread_create(&amp;pth, NULL, thread_print_tls, 0);
+  pthread_join(pth, &amp;result);
+  
+  puts("dlsym");
+  pi = (int *) dlsym(hdl, "libtls_i");
+  printf("libtls_i : %p, %d\n", pi, *pi);
+  
+  pthread_create(&amp;pth, NULL, thread_print_tls, 0);
+  pthread_join(pth, &amp;result);
+  
+  dlclose(hdl);
+  return 0;
+}
+</div>
+
+동일하게 빌드하고 실행해보면 결과가 아까와는 약간 다른 것을 볼 수 있다.
+
+
+<div class="source">
+$ gcc main.c -pthread -ldl
+$ ./a.out
+DTV: generation number = 1
+DTV: [1] = 0xb76d0b68 (static)
+DTV: [2] = 0xb76d0b28 (static)
+dlopen
+DTV: generation number = 2
+DTV: [1] = 0xb76d0b68 (static)
+DTV: [2] = 0xb76d0b28 (static)
+DTV: [3] = 0xffffffff (dynamic)
+dlsym
+libtls_i2: 0x86ae438, 0
+DTV: generation number = 2
+DTV: [1] = 0xb76d0b68 (static)
+DTV: [2] = 0xb76d0b28 (static)
+DTV: [3] = 0xffffffff (dynamic)
+</div>
+
+아까는 dlsym() 호출 후에 DTV가 변경되었는데 이번에는 dlopen() 호출 후에 바로 변경되었다.
+하지만 차이점은 DTV 항목이 늘어나긴 했지만 실제로 그에 대한 TLS 영역이 할당되지는 않았다는 것이다.
+비록 메인 스레드에서 dlsym()을 통해 해당 변수에 접근하였지만 별개의 TLS 영역이므로
+새로 만들어진 스레드에는 영향을 주지 않기 때문에 해당 스레드의 TLS는 접근되지 않았고
+따라서 마지막까지 할당되지 않은 채로 남은 것이다.
+
+이제 해당 스레드에서 TLS 변수에 접근하도록 조금 더 고쳐보자.
+
+main.c:
+<div class="source">
+void *thread_print_tls(void *arg)
+{
+  if (arg)
+    dlsym(arg, "libtls_i");
+  print_tls();
+  return arg;
+}
+
+int main(void)
+{
+  pthread_t pth;
+  void *hdl, *result;
+
+  pthread_create(&amp;pth, NULL, thread_print_tls, 0);
+  pthread_join(pth, &amp;result);
+  
+  puts("dlopen");
+  hdl = dlopen("./libtls.so", RTLD_LAZY);
+  
+  pthread_create(&amp;pth, NULL, thread_print_tls, 0);
+  pthread_join(pth, &amp;result);
+  
+  puts("dlsym");
+  
+  pthread_create(&amp;pth, NULL, thread_print_tls, hdl);
+  pthread_join(pth, &amp;result);
+  
+  dlclose(hdl);
+  return 0;
+}
+</div>
+
+마지막 pthread_create 호출 시 인자로 hdl 변수를 넘긴 것에 주의하자.
+즉, 마지막 호출 시에만 실제 dlsym()을 통한 TLS 변수 접근이 일어날 것이다.
+결과는 예측할 수 있듯이 다음과 같다.
+
+
+<div class="source">
+$ gcc main.c -pthread -ldl
+$ ./a.out
+DTV: generation number = 1
+DTV: [1] = 0xb76d5b68 (static)
+DTV: [2] = 0xb76d5b28 (static)
+dlopen
+DTV: generation number = 2
+DTV: [1] = 0xb76d5b68 (static)
+DTV: [2] = 0xb76d5b28 (static)
+DTV: [3] = 0xffffffff (dynamic)
+dlsym
+DTV: generation number = 2
+DTV: [1] = 0xb76d5b68 (static)
+DTV: [2] = 0xb76d5b28 (static)
+DTV: [3] = 0x855d460 (dynamic)
+</div>
+
+실제로 접근이 일어난 후에 해당 모듈의 TLS 영역이 할당되었다.
+이 때 DTV의 내용이 변경되긴 하였지만 전체 구조가 변경된 것은 아니므로
+generation number는 그대로 2로 남아있게 된다.
+
+스레드 내에서 동적 라이브러리를 로드하는 실험도 진행해 본 결과 다음과 같은 결과를 얻을 수 있었다.
+프로세스 혹은 스레드가 생성될 때 최초 할당된 DTV는
+이후에 dlopen()을 통해 다른 라이브러리가 동적으로 로드되더라도 즉시 변경되지는 않는다.
+실제로 dlsym()을 통해 TLS 영역이 접근되면 그 때 DTV의 generation number가 증가하며 TLS도 할당된다.
+
+하지만 dlopen() 호출 후에 생성된 스레드의 경우에는 TLS 영역이 추가될 것이라는 정보를 알기 때문에
+처음부터 DTV의 generation number가 증가된 채로 생성된다.
+하지만 역시 TLS 영역이 할당된 것은 아니며 해당 스레드에서 실제 접근이 일어날 후에 할당된다.
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/elf" rel="tag">elf</a>, <a href="/tag/glibc" rel="tag">glibc</a>, <a href="/tag/ld" rel="tag">ld</a>, <a href="/tag/thread" rel="tag">thread</a>, <a href="/tag/memory" rel="tag">memory</a>, <a href="/tag/x86" rel="tag">x86</a>
+</div>
+

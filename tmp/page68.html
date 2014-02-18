@@ -1,0 +1,239 @@
+	
+<div class="version">
+Linux : 2.6.34
+</div>
+
+
+lockdep는 커널이 사용하는 여러 lock, mutex, semaphore 등의 의존성을 검사하여
+잘못된 사용으로 인한 버그 혹은 dead-lock 등을 잡아내기 위한 디버깅 루틴이다.
+커널 설정 시 'kernel hacking -&gt; Lock debugging: prove locking correctness' 항목
+(CONFIG_PROVE_LOCKING)을 선택하면) 이를 이용할 수 있으며
+(이 경우 CONFIG_LOCKDEP 및 CONFIG_DEBUG_LOCK_ALLOC 항목도 선택된다)
+다음과 같은 버그를 자동으로 찾아내어 경고 메시지를 보여준다.
+
+<ul>
+  <li>lock inversion : 두 개의 lock이 있을 때 두 프로세스가 서로 다른 순서로 동시에 lock에 접근하여 서로 상대방을 기다리며 dead-lock에 빠지는 현상</li>
+  <li>circular lock dependency : 하나의 (non-recursive) lock을 두 번 (이상) 접근하는 경우 dead-lock에 빠지는 현상</li>
+  <li>interrupt safety : hardirq/softirq에서 접근 가능한 lock을 보호하지 않아서 interrupt context에서 lock을 기다리며 dead-lock에 빠지는 현상</li>
+</ul>
+lockdep에는 lock에 관련된 많은 자료 구조들이 존재하므로 먼저 이들 간의 관계를 살펴보기로 한다.
+또한 이 후에 나오는 lock이라는 표현은 별도의 설명이 없는 한
+spinlock 및 mutex, semaphore 등을 함께 포함하는 것으로 알아두기 바란다.
+
+먼저 spinlock 구조체는 공용체 안에 raw_spinlock과 lockdep_map 구조체를 포함하는데
+(사실은 raw_spinlock 내에 lockdep_map이 들어있지만 일관성있는 접근을 위해 밖으로 꺼내놓은 듯 하다..)
+이 lockdep_map 구조체가 현재 접근 중인 lock (instance)과 이 lock에 해당하는 lock_class를 연결해 준다.
+
+커널 내의 각 lock은 같은 종류끼리 lock_class로 묶이며 lockdep의 검사는 class 단위로 수행된다.
+따라서 lock이 동적으로 생성되면 (대부분 동적으로 할당된 구조체 내에 lock이 포함되어 있는 상황이 될 것이다)
+이 lock이 어떠한 class에 속하는지 lockdep_set_class() 매크로를 통해 지정해 주어야 한다.
+
+혼동스럽게도 여기서 인자로 주어지는 값은 실제 lock_class 구조체가 아닌 lock_class_key 구조체의 포인터이다.
+key는 해당 class를 유일하게 나타낼 수 있는 값으로 이를 hash 값으로 이용하여 class를 찾아낼 수 있다.
+lock_class_key는 값의 유일성을 보장하기 위한 방법으로 정적으로 할당된 구조체의 주소를 사용한다.
+따라서 동적으로 할당된 lock이라고 하더라도 그 key는 정적으로 할당된 것이어야 하므로
+lock 초기화 시에 다음과 같은 매크로를 이용하여 key를 부여한다.
+
+include/linux/spinlock.h:
+<div class="source">
+# define raw_spin_lock_init(lock)                  \
+do {                                               \
+    static struct lock_class_key __key;            \
+                                                   \
+    __raw_spin_lock_init((lock), #lock, &amp;__key);   \
+} while (0)
+</div>
+
+반면에 DEFINE_SPINLOCK() 등의 매크로를 이용하여 정적으로 할당된 lock의 경우에는
+lock 자체로 유일한 주소값을 부여받기 때문에 별도의 key를 사용하지 않으며
+lock 구조체 주소를 직접 key로 이용하므로 위와 같은 작업이 필요하지 않다.
+
+이렇게 초기화된 lock은 실제로 해당 lock에 접근 시 lock_class 구조체를 할당하여 등록하며
+이 구조체에는 해당 lock이 (한 번이라도) 사용되었던 interrupt context 정보 및 그에 대한 stack trace 정보와
+해당 lock보다 먼저 혹은 이후에 접근되는 lock (class)의 리스트 정보 등이 기록된다.
+/proc/lockdep 파일에는 등록된 전체 lock class에 대한 정보가 들어있으며 이러한 내용을 간략히 보여준다.
+
+
+<div class="source">
+$ sudo head -3 /proc/lockdep
+all lock classes:
+ffffffff8164ff40 OPS:    2635 FD:    2 BD:   14 -.-...: &amp;input_pool.lock
+ -&gt; [ffffffff81650178] random_read_wait.lock
+</div>
+
+위의 내용은 현재 시스템 내의 첫번째 lock class에 대한 정보를 출력해 본 것이다.
+먼저 가장 처음에 나오는 숫자는 해당 lock의 key이며, OPS는 lock에 접근한 횟수이다.
+FD와 BD는 각각 forward &amp; backward dependency를 나타내는 것으로
+해당 lock의 앞뒤로 함께 접근되는 lock (class)의 개수를 나타낸다.
+(물론 이들이 모두 한 번에 다 접근된다는 것은 아니고 모든 경우의 수를 합친 것이다.)
+그 뒤에 나오는 기호들은 interrupt 및 page reclaim에 대한 정보를 나타내며 (뒤에서 설명한다)
+마지막으로 해당 lock (class)의 이름이 나온다.
+그 아래 줄에 화살표로 표시되는 부분은 direct forward dependency에 해당하는 lock이다.
+(간단히 말하면 이 lock을 획득한 상태에서 바로 다음에 다시 접근하는 lock들의 목록이다)
+
+위의 예에 해당하는 경로는 다음과 같은 IRQF_SAMPLE_RANDOM 플래그가 설정된 어떤 인터럽트 핸들러일 것이다.
+이 경우 인터럽트 발생에 따른 entropy를 생성하여 input_pool에 넣은 후
+충분한 양의 entropy가 보유되었다면 이를 기다리는 프로세스를 깨우는 과정이 된다.
+
+
+<div class="source">
+handle_IRQ_event();
+add_interrupt_randomness();
+add_timer_randomness();
+credit_entropy_bits();
+spin_lock_irqsave(&amp;input_pool.lock);
+wake_up_interruptible();
+spin_lock_irqsave(&amp;random_read_wait.lock);
+</div>
+
+위에서 나온 기호 (-.-...) 부분은 마치 이모티콘처럼 보이는데
+각각의 문자는 위치에 따라 HARDIRQ / SOFTIRQ / RECLAIM_FS의 세 부분으로 나누어지며
+각 부분은 write / read lock의 두 문자로 이루어진다. (참고로 일반적인 lock은 write lock으로 간주한다)
+위의 경우 hardirq &amp; softirq write lock에서만 '-' 기호이며, 나머지는 '.' 기호에 해당한다.
+각 기호에 대한 설명은 다음과 같다.
+
+<ul>
+  <li>'.' : 해당 이벤트를 disable한 상태에서 lock에 접근하였으며, 해당 이벤트 발생 시 lock에 접근하지 않았다.</li>
+  <li>'-' : 해당 이벤트 발생 시 lock에 접근하였다.</li>
+  <li>'+' : 해당 이벤트를 enable한 상태에서 lock에 접근하였다.</li>
+  <li>'?' : 해당 이벤트를 enable한 상태에서 lock에 접근하였으며, 해당 이벤트 발생 시 lock에 접근한 적이 있다.</li>
+</ul>
+위의 예제의 경우 interrupt handler에서 수행되었으며 lock 접근 시 _irqsave를 사용하여
+interrupt를 disable하였으므로 '-' 기호로 표시되었음을 볼 수 있다.
+write lock의 경우 '?' 기호로 표시된 것이 있다면 이는 버그에 해당할 것이다.
+
+그러면 이러한 정보들은 어떻게 수집되는 것일까?
+spin_lock()의 구현의 경우를 살펴보면 다음과 같이 정의되어 있는 것을 볼 수 있다.
+
+include/linux/spinlock_api_smp.h:
+<div class="source">
+static inline void __raw_spin_lock(raw_spinlock_t *lock)
+{
+    preempt_disable();
+    spin_acquire(&amp;lock-&gt;dep_map, 0, 0, _RET_IP_);
+    LOCK_CONTENDED(lock, do_raw_spin_trylock, do_raw_spin_lock);
+}
+</div>
+
+먼저 커널 선점을 비활성화 시킨 후에 spin_acquire()와 LOCK_CONTENDED()를 호출하는데
+이는 각각 다음과 같이 정의되어 있다.
+
+include/linux/lockdep.h:
+<div class="source">
+#define spin_acquire(l, s, t, i)        lock_acquire(l, s, t, 0, 2, NULL, i)
+
+#define LOCK_CONTENDED(_lock, try, lock)               \
+do {                                                   \
+    if (!try(_lock)) {                                 \
+        lock_contended(&amp;(_lock)-&gt;dep_map, _RET_IP_);   \
+        lock(_lock);                                   \
+    }                                                  \
+    lock_acquired(&amp;(_lock)-&gt;dep_map, _RET_IP_);        \
+} while (0)
+</div>
+
+즉, lockdep의 입장에서 보면 lock에 접근하기 전에 먼저 lock_acquire()를 호출하여 정보를 수집하고
+trylock 루틴을 실행하여 바로 lock을 얻을 수 있는지 점검한 후
+lock을 얻었다면 바로 lock_acquired()를 호출하여 lock을 얻었음을 표시한 후 진행하고
+그렇지 않다면 lock_contended()를 호출하여 동시에 lock에 접근하고 있는 프로세스가 있음을 기록한 뒤
+실제 lock 루틴을 실행하여 lock을 얻을 때까지 기다린 후 lock_acquired()를 호출하고 진행한다.
+
+사실 lock_contended()와 lock_acquired()는 stat에 관련된 정보들을 기록하는 목적이며
+실제로 중요한 정보는 lock_acquire()에서 기록한다. (마지막에 'd'가 없음에 주의하자)
+이 함수가 하는 일을 간략히 정리하면 다음과 같다.
+<ol>
+  <li>해당 lock에 대한 class가 등록되지 않았다면 이를 등록</li>
+  <li>lock class의 ops 필드 값 증가</li>
+  <li>현재 프로세스(current)의 lockdep_depth 필드 값 증가</li>
+  <li>해당 lockdep_depth 위치에 held_lock 구조체 정보 기록</li>
+  <li>lock class에 interrupt context에 따른 접근 정보 갱신</li>
+  <li>현재 접근한 lock을 이용하여 lock_chain 구성 (추가 갱신)</li>
+  <li>새로 생성된 chain인 경우 현재 접근한 lock에 대한 dead-lock 조건 검사</li>
+  <li>문제가 없다면 lock class의 의존성 목록에 추가</li></ol>
+먼저 살펴볼 것은 새로 언급된 자료 구조이다.
+lockdep를 이용하도록 설정된 경우 모든 프로세스는 현재 프로세스가 접근하고 있는 lock 정보를 기록하는
+held_lock 구조체의 배열을 유지한다. 이 때 lockdep_depth 필드는 현재 소유한 lock의 개수이다.
+held_lock 구조체는 lock_class 구조체와는 달리 현재 접근하는 lock instance에 대한 정보를 포함하며
+구체적으로 lockdep_map 구조체의 포인터, lock에 접근한 위치 (ip 혹은 pc), 현재 interrup context,
+trylock 및 readlock 여부 및 lock_class에 대한 내용을 기록한다.
+
+프로세스가 lock에 접근할 때마다 이는 held_lock의 배열에 기록되므로
+held_lock 배열에 기록된 순차적인 lock 정보는 lock들이 접근하는 모든 경로를 나타내게 되므로
+이러한 순차 접근 정보 또한 저장되며 이러한 접근 정보가 바로 lock chain이다.
+단 chain을 구성하는 중 held_lock의 interrupt context가 달라진다면
+이는 정상 실행 경로가 아닌 interrupt에 의한 경로이므로 별도의 chain으로 관리한다.
+각각의 lock chain은 접근한 lock_class의 정보를 기록하게 된다.
+lock chain은 64비트의 고유한 chain key로 구분하며, 동일한 chain의 경우에는 한 번만 검사를 수행한다.
+/proc/lockdep_chains 파일을 읽어보면 현재 시스템 내의 모든 lock chain의 목록을 확인할 수 있다.
+
+이제 lockdep가 dead-lock을 검사하는 과정을 간단히 살펴보자.
+먼저 held_lock 정보를 기록할 때 현재 interrupt context 정보도 함께 기록하는데
+write lock의 경우 lock_class에 저장된 정보를 비교하여 해당 interrupt가 enable된 상태에서
+interrupt context 내에서 접근된 적이 있는지 검사한다.
+그렇다는 것은 해당 lock이 process context와 interrupt context에서 모두 접근되는데
+lock 접근 시 interrupt를 disable하지 않은 것이므로, lock이 잠겨있는 도중 해당 interrupt가 발생하고
+interrupt handler가 해당 lock을 무한히 기다리게 될 수 있다는 것을 말한다.
+따라서 이러한 상황이 발생하면 경고를 보여준다.
+
+또한 lock이 interrupt context에서 접근되었다면 이에 대한 의존성을 가지는 lock들도
+모두 interrupt-safe한지 (즉, interrupt를 disable하고 있는지) 검사하여 그렇지 않다면 경고를 보여준다.
+이것은 잠재적인 lock inversion dead-lock을 찾아주기도 하는데 다음과 같은 상황을 고려해 보자.
+lock A, B, C가 있으며 한 chain은 A -&gt; B가 있고, 다른 chain으로 B -&gt; C가 있다.
+만약 A는 (hardirq에서 호출된적이 있으며 lock 접근 시 irq를 disable하여) hardirq-safe하지만
+B는 이를 고려하지 않는 hardirq-unsafe lock이라고 하자.
+한 프로세스가 B -&gt; C chain을 수행하기 위해 lock B를 얻었고 C에 접근하기 전에 interrupt가 발생하였다.
+이 때 interrupt handler가 A -&gt; B chain을 수행한다고 하면
+A를 얻고난 후에 B에 접근 시 dead-lock이 발생할 것이다.
+
+circular lock dependency를 검사하는 것은 다음과 같다.
+가장 단순한 경우는 프로세스마다 유지하고 있는 head_lock 배열을 탐색하여 현재 접근하고 있는 lock과
+동일한 class의 lock을 이미 소유하고 있는지 확인하는 것이다.
+그렇지 않다면 (새로 chain에 추가되는) 현재 lock으로부터 이미 chain 내에 존재하는 lock에 이르는
+간접적인 역방향 chain이 있는지 검사한다.
+
+하지만 여기에는 두 가지 예외 상황이 존재한다.
+먼저 read lock의 경우에는 동일한 (class의) lock에 여러번 접근해도 무방하기 때문에
+recursive locking을 허용한다. 물론 read와 write lock이 섞여있는 경우는 허용하지 않는다.
+또한 자료 구조 자체가 중복되는 경우 같은 class의 다른 instance에 접근할 때가 있는데
+이를 위해서는 해당 lock을 subclass로 등록하여 끝에 '_nested'가 붙은 이름의 함수들을 이용하면
+이 lock은 명시적으로 동일한 (sub)class의 lock에 접근하는 것을 허용한다는 것을 보장한다.
+
+예를 들어 파일 이름 변경 시 호출되는 d_move_locked() 함수의 경우
+원래의 이름을 가리키는 dentry와 변경될 이름을 가리키는 dentry에 대한 lock이 모두 필요하므로
+다음과 같이 spin_lock_nested() 함수를 이용하여 같은 class의 lock을 두 번 접근한다.
+이 때 서로 다른 instance 간의 접근 순서를 보장하기 위해 lock 객체의 주소를 비교한다.
+
+
+<div class="source">
+enum dentry_d_lock_class
+{
+    DENTRY_D_LOCK_NORMAL, /* implicitly used by plain spin_lock() APIs. */
+    DENTRY_D_LOCK_NESTED
+};
+
+static void d_move_locked(struct dentry * dentry, struct dentry * target)
+{
+    ...
+
+    if (target &lt; dentry) {
+        spin_lock(&amp;target-&gt;d_lock);
+        spin_lock_nested(&amp;dentry-&gt;d_lock, DENTRY_D_LOCK_NESTED);
+    } else {
+        spin_lock(&amp;dentry-&gt;d_lock);
+        spin_lock_nested(&amp;target-&gt;d_lock, DENTRY_D_LOCK_NESTED);
+    }
+
+    ...
+}
+</div>
+
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/synchronization" rel="tag">synchronization</a>
+</div>
+

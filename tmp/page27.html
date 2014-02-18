@@ -1,0 +1,100 @@
+	
+<div class="version">
+Linux: 2.6.39-rc1
+</div>
+
+
+이전 글 보기:
+
+<ul>
+  <li><a href="http://studyfoss.egloos.com/5505982" title="">[Linux] cgroup - (task) control group (1)</a></li>
+</ul>
+앞서 cgroup에 대한 기본적인 사용법을 살펴보았으나 subsystem에 대한 설명이 빠져있었다.
+말했듯이 cgroup 자체로는 태스크를 그룹지을 수 있는 방법 만을 제공하는 것이고
+해당 그룹에 의미/역할을 부여하는 것은 각 subsystem이 담당한다.
+
+이 글을 쓰고있는 현재 최신 버전인 2.6.39-rc1의 경우 다음과 같은 subsystem을 포함하고 있으며
+실제 적용 여부는 커널 설정 시 적절한 옵션을 선택하여 활성화할 수 있다.
+
+  cpuset, debug, ns, cpu, cpuacct, memory, devices, freezer, net_cls, blkio, perf
+
+현재 시스템 내에 실제로 포함된 subsystem의 목록은 /proc/cgroups 파일을 통해 볼 수 있다.
+
+
+<div class="source">
+# cat /proc/cgroups
+#subsys_name    hierarchy    num_cgroups    enabled
+cpuset    0    1    1
+debug     0    1    1
+cpu       0    1    1
+memory    0    1    1
+freezer   0    1    1
+...
+</div>
+
+cgroup 파일 시스템 마운트 시에 -o 옵션으로 각 subsystem의 이름을 쓰게 되면
+해당 cgroup 파일 시스템을 통해 주어진 subsystem에 대한 제어를 할 수 있게 된다.
+즉, 특정 cgroup과 subsystem이 연결되는 것인데
+이 때 한 cgroup 파일 시스템에 임의의 여러 subsystem이 동시에 연결될 수 있다.
+
+예를 들면 다음과 같다.
+
+
+<div class="source">
+# mount -t cgroup -o cpuset,cpu nodev /opt/cpu-group
+# mount -t cgroup -o memory nodev /opt/mem-group
+# mount -t cgroup nodev /opt/oth-group
+</div>
+
+/opt/cpu-group 파일 시스템에는 cpuset과 cpu라는 2개의 subsystem이 연결되고
+/opt/mem-group 파일 시스템에는 memory subsystem이 연결되고
+/opt/oth-group 파일 시스템에는 나머지 모든 subsystem이 연결되게 된다.
+
+이 때 주의할 점은 하나의 subsystem은 오직 하나의 cgroup 파일 시스템에만 연결될 수 있다는 점이다.
+즉, 만약 cpuset이라는 subsystem을 /opt/cpu-group에 연결한 상태라면
+다시 다른 cgroup을 마운트할 때 중복해서 cpuset을 지정할 수 없다는 의미이다.
+
+subsystem이 cgroup 파일 시스템과 연결되고 나면 파일 시스템 내의 각 cgroup (즉, 디렉터리)마다
+subsystem과 관련된 설정을 별도로 적용할 수 있게 된다.
+커널은 이렇게 각 cgroup 마다 지정된 subsystem의 상태를 별도로 유지하기 위해
+cgroup_subsys_state (css)라는 구조체를 사용한다.
+
+하지만 위에서 보듯이 시스템 전체적으로는 하나 이상의 cgroup 파일 시스템이 존재할 수 있으므로
+태스크 입장에서보면 하나의 태스크는 여러 cgroup에 동시에 속할 수가 있게 된다.
+이러한 복잡한(?) 관계를 잘 추적하기 위해 태스크가 속한 모든 cgroup의 css를 쉽게 찾아낼 수 있도록
+css_set이라는 구조체를 도입하여 해시 테이블을 통해 간단히 접근하도록 하였다.
+
+이와 같은 구조를 그림으로 나타내면 대략 다음과 같다.
+(귀차니즘으로 인해 2개의 cgroup 파일 시스템에 대해서만 나타내었다..;;)
+
+
+<div style="text-align:center">
+<img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds20.egloos.com/pds/201104/02/35/c0098335_4d95f23e61256.png" width="500" height="329.738933031" onclick="Control.Modal.openDialog(this, event, 'http://pds20.egloos.com/pds/201104/02/35/c0098335_4d95f23e61256.png');" />
+</div>
+
+위의 그림에서는 /opt/cpu-group 아래에 fast와 slow라는 디렉터리를 생성하였고
+/opt/mem-group 아래에 large와 small이라는 디렉터리를 생성하였다.
+
+쿼드코어 시스템을 가정하면 0부터 3까지의 총 4개 CPU가 존재할 것이고
+cpuset subsystem을 통해 이를 각 그룹에 분배하였다. (cpuset.cpus)
+또한 cpu.share 파일은 스케줄링 시 각 cgroup이 상대적으로 차지하는 비중을 나타낸 것으로
+fast cgroup에 속한 태스크들은 root (/) cgroup에 비해 2배, slow group의 거의 3배에 가까운
+cpu 시간을 할당받아 실행될 것이다.
+메모리도 마찬가지로 루트 cgroup에 속한 태스크들은 아무런 제한이 없지만
+large cgroup과 small cgroup에 속한 태스크들은 각각 총 1GB, 512MB의 메모리 만을 사용할 수 있게 된다.
+
+위의 예에서 1690번 태스크와 1691번 태스크는 모든 CPU (0-3)에서 실행될 수 있으며
+정상적인 (1024) 양의 cpu 시간을 할당받을 것이며 사용할 수 있는 메모리에는 제한이 없다 (nolimit).
+하지만 4000번 태스크와 5200번 태스크의 경우 2번과 3번 CPU에서만 실행될 수 있으며
+다른 태스크의 75% (768)에 해당하는 cpu 시간 만을 할당받고,
+두 태스크의 메모리 사용량을 합산하여 512MB 이상을 사용할 수 없게 된다.
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>
+</div>
+

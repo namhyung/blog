@@ -1,0 +1,69 @@
+	재미있는 영어 공부 시간이다..;;
+
+quirk [미] [kwəˊːrk]
+* 명사
+ 1. 변덕, 기상 (奇想) ;버릇, 기벽 (奇癖)
+ 2. 어물거리는 말, 어물쩍하는 말 (quibble)
+ 3. 재치 있는 말, 경구 (警句)
+ 4. (운명 등의) 급변, 급전
+ ...
+
+리눅스의 x86 소스를 살펴보다보니 quirk라는 단어가 자꾸 눈에 들어오는데
+사전의 정의 만으로는 딱히 감이 잡히지 않아서 한 번 정리해보려고 한다.
+
+arch/x86/kernel/quirks.c 파일의 맨 위에는 다음과 같은 한 줄의 주석이 있다.
+(세 줄이라고 딴지걸지 말자.. ;;)
+
+
+<div class="source">
+/*
+ * This file contains work-arounds for x86 and x86_64 platform bugs.
+ */
+</div>
+
+내용을 살펴보면 x86 계열의 CPU 중에서도
+H/W IRQ balancing이나 HPET (High-Precision Event Timer) 등의 설정이
+기종마다 조금씩 달라지기 때문에 이를 맞춰주기 위한 fixup routine들이 들어있다.
+
+또한 web browser에서도 quirk mode라는 동작 모드가 존재하는데
+이는 웹 표준을 준수하지 않고 만들어진 웹 페이지를 보여주기 위해
+표준을 무시하고 browser마다의 독자적인 방식으로 페이지를 rendering하는 것을 뜻한다.
+따라서 같은 페이지라도 browser에 따라 다르게 보일 수 있다.
+
+결정적으로 오늘 CA:AQA를 읽는 도중에 quirk란 용어가 나와서 이 글을 쓰게되었으니
+해당 원문을 살짝 옮겨보기로 한다.
+
+
+<div class="source">
+Architects of these computers (DSPs and media processors) also have a tradition of
+identifying a small number of important kernels that are critical to success,
+and hence are often supplied by the manufacturer.
+As a result of this heritage, these instruction set architectures include <span style="font-weight: bold;">quirks</span>
+that can improve performance for the targeted kernels but that no compiiler will ever generate.
+</div>
+
+위에서 kernel은 OS 커널을 의미하는 것이 아니라 benchmark용 software를 의미하는데,
+실제 application의 source 중에서 benchmark를 위해 필요한 일부분 만을 추려낸 것을 뜻한다.
+
+내용인 즉슨, 자기네 머신이 좋다고 광고하기 위해 benchmark 결과를 높이려고
+특정 kernel에 대한 성능을 높이기 위한 꼼수(?)가 instruction에 포함되었다는 것이다.
+(그리고 문서화하지 않으니 컴파일러가 해당 instruction을 생성하지 못한다는..;;)
+
+
+정리하면, 뭔가 기준에 안맞게 튀는(?) 놈들을 가리키는 용도로 쓰이는 단어인 듯 싶다.
+
+
+=== 참조 ===
+
+<ul>
+  <li><a target="_blank" href="http://ko.wikipedia.org/wiki/Quirks_mode">http://ko.wikipedia.org/wiki/Quirks_mode</a></li>
+  <li>Computer Architecture: A Quantitative Approach, Chap 2.1, p91</li>
+</ul>
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/glossary" rel="tag">glossary</a>
+</div>
+

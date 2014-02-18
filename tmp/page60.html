@@ -1,0 +1,123 @@
+	
+<div class="version">
+graphviz: 2.20.2
+</div>
+
+
+graphviz는 graph visualization software로
+간단한 문법의 텍스트 언어를 분석하여 자동으로 그에 맞는 그래프를 만들어 주는 도구이다.
+
+graphviz가 제공하는 도구 중에서 가장 유용하게 쓰이는 것은 dot과 neato이며,
+dot은 DAG(directed acyclic graph 혹은 digraph)를 생성할 때 사용하고
+neato는 일반적인 (undirected) graph를 생성할 때 사용한다.
+생성된 그래프는 bmp, gif, png, svg, ps, pdf 등의 다양한 형식으로 출력할 수 있다.
+
+기본적인 문법은 매우 간단하며 dot과 neato에서 거의 동일하다.
+
+hello.dot:
+<div class="source">
+graph G {
+  hello -- world;
+}
+</div>
+
+이를 다음과 같이 실행하면 아래의 그래프를 얻을 수 있다.
+
+
+<div class="source">
+$ neato -Tpng hello.dot -o world.png
+</div>
+
+
+<div style="text-align:center">
+<img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds18.egloos.com/pds/201007/15/35/c0098335_4c3dde6237026.png" width="195" height="75" onclick="Control.Modal.openDialog(this, event, 'http://pds18.egloos.com/pds/201007/15/35/c0098335_4c3dde6237026.png');" />
+</div>
+
+graph 키워드는 생성할 그래프가 undirected graph라는 것을 말해준다.
+내부의 identifier는 기본적으로 노드로 해석되며, 해당 노드의 label로 사용된다.
+'--' 기호는 (undirected) 그래프의 두 노드가 연결되었음을 뜻한다.
+
+기본적으로 방향 그래프(DAG)는 top-down 방향으로 생성되며
+각 노드는 연결된 순서에 따라 rank가 부여된다.
+(정확한 rank의 값은 공개되어 있지만 않지만 아래로 내려갈 수록 rank가 커진다)
+그래프의 방향을 바꾸고 싶다면 rankdir 키워드를 통해 지정할 수 있다.
+
+좀 더 복잡한 그래프도 비교적 간단하게 그릴 수 있다.
+앞서 살펴보았던 zlib의 처리 과정을 간략히 나타내면 다음과 같다.
+(복잡하니 먼저 그림을 보자..;;)
+
+
+<div style="text-align:center">
+<img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds20.egloos.com/pds/201007/15/35/c0098335_4c3dde80a86b3.png" width="500" height="159.027777778" onclick="Control.Modal.openDialog(this, event, 'http://pds20.egloos.com/pds/201007/15/35/c0098335_4c3dde80a86b3.png');" />
+</div>
+
+zlib.dot:
+<div class="source">
+digraph zlib {
+  size = "7.5, 10";
+  rankdir = LR;
+  
+  node [shape=box]
+  next_in window;
+
+  {
+    rankdir = TB;
+    ranksep = 0.1;
+
+    int_buf [label="internal\nbuffer"];
+    huffman [label="Huffman\ncoding", fontcolor=blue, shape=ellipse];
+    pend_buf [label="pending\nbuffer"];
+  }
+
+  next_out [peripheries=2];
+
+  subgraph cluster0 {
+    label = "LZ77";    
+    color = red;
+    fontcolor = red;
+    rank = same;
+
+    node [shape=ellipse];
+    rle [label="dist == 1"];
+    default [label="normal"];
+    filter [label="len &gt; 5"];
+  };
+
+  /* edges */
+  next_in -&gt; window;
+  window -&gt; rle [label="Z_RLE"];
+  window -&gt; default [label="Z_DEFAULT_STRATEGY"];
+  window -&gt; filter [label="Z_FILTERED"];
+  window -&gt; huffman [label="Z_HUFFMAN_ONLY", labelfloat=true];
+  window -&gt; pend_buf [label="level=0 (stored block)"]
+  rle -&gt; int_buf;
+  default -&gt; int_buf;
+  filter -&gt; int_buf;
+  int_buf -&gt; huffman;
+  huffman -&gt; pend_buf;
+  pend_buf -&gt; next_out;
+}
+</div>
+
+graphviz의 단점은 자동 생성된 그래프다보니 layout을 입맛에 맞게 지정하기가 힘들다는 것이다.
+이를 위해서 lefty 등의 프로그램을 추가적으로 익힐 수도 있겠지만
+그보다는 생성한 그래프를 SVG 형식으로 출력한 뒤
+이를 inkscape 등으로 세부 수정 하는 것도 한 방법이 될 것이다.
+
+
+== 참고 문서 ==
+
+<ul>
+  <li><a target="_blank" href="http://okjungsoo.tistory.com/entry/Graphviz">http://okjungsoo.tistory.com/entry/Graphviz</a></li>
+  <li><a href="http://cadcam.yonsei.ac.kr/bbs/zboard.php?id=resource&amp;page=1&amp;sn1=&amp;divpage=1&amp;sn=off&amp;ss=on&amp;sc=on&amp;select_arrange=vote&amp;desc=desc&amp;no=10">http://cadcam.yonsei.ac.kr/bbs/zboard.php?id=resource&amp;page=1</a></li>
+  <li><a target="_blank" href="http://graphviz.org/Documentation.php">http://graphviz.org/Documentation.php</a></li>
+</ul>
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/graph" rel="tag">graph</a>
+</div>
+

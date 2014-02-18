@@ -1,0 +1,612 @@
+<html>
+<head>	<meta http-equiv='pragma' content='no-cache' />
+	<meta http-equiv='cache-control' content='no-cache' />
+	<meta http-equiv='Content-type' content='text/html; charset=utf-8' />
+	<meta name="author" content="namhyung" />
+	<meta name="keywords" content="F/OSS study" />
+	<meta http-equiv="X-XRDS-Location" content="http://namhyung.myid.net/xrds" />
+	<link rel="openid.server" href="http://www.myid.net/server" />
+	<link rel="openid.delegate" href="http://namhyung.myid.net" />
+	<link rel="shortcut icon" href="http://md.egloos.com/img/favicon.ico" />
+	<link rel="pingback" href="https://rpc.egloos.com/rpc1" />
+	<link rel="alternate" type="application/rss+xml" title="F/OSS study" href="http://rss.egloos.com/blog/studyfoss" />
+	<title>F/OSS study</title>
+	<script type="text/javascript" src="http://md.egloos.com/js/ap.js?ver=1.043"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/gd.js?ver=1.002"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/eg.js?ver=1.012"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/cr.js?ver=1.002"></script>
+    <script type="text/javascript" src="http://md.egloos.com/js/page/ins.js?ver=1.4"></script>
+		
+	<script type="text/javascript" src="http://md.egloos.com/js/lib/prototype_v1511.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.ImgModal.js?ver=1.004"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/page/blog/compatible.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/player.js"></script>
+	
+	<script type="text/javascript" src="http://md.egloos.com/js/lazyload.js"></script>
+	
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloos_template.css?ver=1.002" media="screen" />
+<style type="text/css">
+/* jiinny text-only skin
+ */
+
+
+BODY
+{
+	BACKGROUND : #FCFEFF;
+	MARGIN : 0PX;
+	PADDING : 0PX;
+}
+
+BODY,TD,DIV,LI
+{
+	FONT : 9PT/160% Tahoma, SANS-SERIF, Verdana, monaco,굴림,돋움,SANS-SERIF;
+	COLOR : #33455E;
+}
+
+A:LINK		{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:VISITED	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:ACTIVE	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:HOVER		{ COLOR: #C00000; TEXT-DECORATION: UNDERLINE; }
+
+/* filter의 shadow보다 품질을 좋게 하기 위해서*/
+DIV.HEADER
+{
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+	filter:progid:DXImageTransform.Microsoft.Blur;
+}
+
+#HEADER_SHADOW
+{
+	POSITION : relative;
+	top :-50px; right:0px;
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+}
+
+#HEADER_SHADOW A:LINK		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:VISITED		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:HOVER		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+
+DIV.HEADER A:LINK		{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:VISITED	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:HOVER	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+
+DIV.URL			{ FONT : 8PT/100% VERDANA,TAHOMA; }
+DIV.USERMENU
+{
+	POSITION:absolute:
+	left:0px;
+	top:0px;
+	COLOR : #FFFFFF;
+	FONT : bold 7pt;
+	TEXT-ALIGN : RIGHT;
+	MARGIN-BOTTOM : 50px;
+	BACKGROUND : #000060;
+	PADDING : 4px;
+	BORDER-BOTTOM : 2px #336699 SOLID;
+}
+DIV.USERMENU A:LINK {COLOR:#FFF}
+DIV.USERMENU A:VISITED {COLOR:#FFF}
+DIV.USERMENU A:HOVER {COLOR:#FFF}
+
+DIV.PROFILE
+{
+	WIDTH : 200PX;
+	PADDING : 0PX 0PX 10PX;
+	LINE-HEIGHT : 150%;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.MNTTL
+{
+	FONT:BOLD 10pt;
+	WIDTH : 200PX;
+	BORDER-BOTTOM :	1PX #888 DASHED;
+	PADDING : 2PX 0PX 0PX;
+	MARGIN : 25PX 0PX 10PX;
+	TEXT-ALIGN:CENTER;
+}
+
+DIV.MNBODY
+{
+	font:9pt/135%;
+	WIDTH :200PX;
+}
+
+DIV.POST { MARGIN-BOTTOM : 50PX;}
+
+DIV.POST_HEAD
+{
+	MARGIN-BOTTOM : 15PX;
+	PADDING-BOTTOM : 3PX;
+}
+
+DIV.POST_TTL
+{
+	TEXT-DECORATION: UNDERLINE;
+	FONT: BOLD 10pt Georgia ;
+	COLOR: #000;
+}
+
+DIV.POST_BODY
+{
+	FONT:10pt/150%;
+	WIDTH : 100%;
+	MARGIN-BOTTOM : 30PX;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.POST_BODY A:LINK
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION:none;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:VISITED
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:HOVER
+{
+	COLOR: #CF4040;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #CF4040
+}
+
+
+DIV.POST_TAIL {
+	FONT : 11PX/150% VERDANA, TAHOMA, 돋움;
+	MARGIN-TOP : 10PX;
+	TEXT-ALIGN : RIGHT;
+}
+
+DIV.POST_TAIL A:LINK {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:VISITED {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:HOVER {COLOR: #006699; TEXT-DECORATION: NONE; border-bottom:1px dotted #cc0000}
+
+DIV.COMMENT
+{
+	BORDER : 1PX #D3D3D3 SOLID;
+	BACKGROUND : #F7F7F7;
+	PADDING : 15PX;
+	MARGIN : 20PX 0PX;
+}
+
+DIV.COMMENT_BODY
+{
+	MARGIN-BOTTOM : 20PX;
+}
+
+DIV.COMMENT_TAIL
+{
+	MARGIN : 8PX 0PX 5PX;
+	FONT : 8PT/150% VERDANA, TAHOMA, 돋움;
+	COLOR : #777;
+}
+
+DIV.COMMENT_INPUT
+{
+	MARGIN-TOP : 20PX;
+	BORDER-TOP : 1PX #AAA DOTTED;
+	PADDING-TOP : 20PX;
+}
+
+DIV.COMMENT_LINE
+{
+	BORDER-TOP : 1PX #AAA DOTTED;
+	MARGIN : 10PX 0PX 15PX;
+}
+DIV.POST_BODY IMG
+{
+	filter:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	border:1px #000 solid;
+}
+
+DIV.VERSION
+{
+  font-weight: bold;
+  color: white;
+  background: #525d76;
+  border: 1px solid silver;
+#  margin: 0.5em 10% 0.5em 1em;
+  padding: 0.5em;
+}
+
+DIV.SOURCE
+{
+  font-family: monospace, Courier New, Seoul;
+#  margin: 0.5em 10% 0.5em 1em;
+  margin: 1em;
+  color: navy;
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+BLOCKQUOTE
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD dotted;
+	padding:5px;
+	color:#000;
+	margin:20px;
+}
+
+/* begin style of emphasis */
+.BOX1
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#00FF00;
+	background:#000;
+	margin:20px;
+}
+
+.BOX2
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#FFC000;
+	background:#000;
+	margin:20px;
+}
+
+.EM1
+{
+	background : #FFFF80;
+}
+
+.EM2
+{
+	background : #F0C0FF;
+}
+/* end style of emphasis */
+
+#RIGHTMAIN{ POSITION: ABSOLUTE; RIGHT:300px; LEFT:40px;}
+
+#LEFTSIDE
+{
+	POSITION: ABSOLUTE;
+	TOP:60PX;
+	RIGHT: 20PX;
+	FONT: 9PT;
+	WIDTH:200PX;
+	BORDER-LEFT: 2PX #BCBDC4 DASHED;
+	PADDING: 20PX;
+}
+
+#LEFTSHOW
+{
+	TOP:60PX;
+	RIGHT: 0PX;
+	FONT: 7PT/150%;
+	WIDTH:7px;
+	HEIGHT:200px;
+	BACKGROUND:#DDDDDD;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	BORDER-TOP: 3PX #7598A3 SOLID;
+	BORDER-LEFT: 2PX #7598A3 DASHED;
+	BORDER-BOTTOM: 3PX #7598A3 SOLID;
+}
+
+#LEFTHIDE
+{
+	TOP:63PX;
+	RIGHT: 23PX;
+	FONT: 7PT/150%;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	WIDTH:18px;
+	HEIGHT:18px;
+	TEXT-ALIGN:CENTER;
+}
+#BOTTOMBANNER
+{
+	TEXT-ALIGN=CENTER;
+	WIDTH=100%;
+}
+
+IMG.IMG_DECO
+{
+	TEXT-ALIGN:CENTER;BORDER:1px #000 SOLID;
+	filter:progid:DXImageTransform.Microsoft.DropShadow(color=#AAAAAA,offX=3, offY=3)
+}
+
+#LOGO
+{
+	WIDTH=200;
+	TEXT-ALIGN=CENTER;
+	FILTER:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	progid:DXImageTransform.Microsoft.Glow(Color=#AAAAAA, strength=5)
+}
+
+/* 여기서 부터는 시스템에관한 클래스 이므로 변경하지 않으시는 것이 좋습니다. */
+
+DIV.TRACK_TOP { LINE-HEIGHT : 170%; }
+DIV.ARCHIVE_HEAD { FONT-WEIGHT : BOLD; MARGIN-BOTTOM : 10PX; }
+DIV.ARCHIVE_BODY { MARGIN : 20PX 0PX; LINE-HEIGHT : 160%; PADDING-BOTTOM : 100PX; }
+
+IMG.IMAGE_TOP	{ MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_LEFT	{ MARGIN-RIGHT : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_MID	{ MARGIN-TOP : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.BOOKMK		{ MARGIN : 10PX; BORDER : 0PX; }
+IMG.USERMENU	{ MARGIN-LEFT : 8PX; }
+IMG.LOGO
+{
+BORDER: 1PX #000 SOLID;
+}
+
+DIV.BANNER	{ MARGIN-TOP : 30PX; }
+
+.SMALL		{ FONT-SIZE : 11PX; }
+.DATE		{ FONT : BOLD 8PT/150% VERDANA, TAHOMA, 돋움; }
+.TIME		{ FONT : 8PT/150% VERDANA, TAHOMA, 돋움; TEXT-ALIGN : LEFT; }
+.AUTHOR		{ FONT : BOLD 9PT; }
+.TXTFLD		{ FONT-SIZE:9PT;COLOR:#000; BORDER:1PX SOLID #666678; BACKGROUND:#FFF; }
+
+
+
+/* 여기서 부터는 달력 및 XML에 관련된 클래스입니다. */
+
+
+DIV.CAL_TOP { }
+DIV.CAL { MARGIN : 20PX 0PX 20PX; WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_HEAD { WIDTH : 150PX; FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; PADDING : 4PX 0PX; MARGIN-BOTTOM : 10PX;}
+DIV.CAL_BODY { WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_BOTTOM { }
+
+.CAL
+{
+	FONT : 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+}
+
+.CAL_DAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SUN
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #D36654;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SAT
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #3572A1;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_TODAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	BACKGROUND : #E3E3E3;
+	COLOR : #3D5586;
+	TEXT-ALIGN : CENTER;
+	BORDER : 1px #AAA SOLID;
+}
+
+.CAL_TR
+{
+	BACKGROUND:#EFEFEF;
+}
+
+DIV.XML { FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; }
+   div.memobody {
+       width : 200px;
+       overflow : hidden;
+       }
+   </style>
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloo_navibar.css?ver=1.2" media="screen" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/popup.css?ver=2.00" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/button.css" />
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.Center.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/page/blog/Modal.BookmarkDlg.js?ver=1.002"></script>
+<script type="text/javascript">
+//<![CDATA[
+Event.observe(window, 'load', function() {
+    new Modal.BookmarkDlg('egloo_bookmark', {overlay: true,
+                'groupURL'     : "/exec/egloo_bookmark_group.php",
+                'remoteURL'    : "/exec/egloo_insbookmark_exec.php"});
+    if(''==''){
+	    	copy_contents('studyfoss.egloos.com','namhyung','0');
+    }
+});
+//]]>
+</script></head>
+<body>
+<iframe name="cmtviewfrm" id="cmtviewfrm" src="about:blank" width="0" height="0" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" style="display:block;border:0px;"></iframe>
+<DIV CLASS=USERMENU>  
+<a href="http://www.egloos.com">Egloos</a> | <a href="http://sec.egloos.com/login.php?returnurl=http%3A%2F%2Fstudyfoss.egloos.com%2Fpage%2F57">Log-in</a> </DIV>
+
+<DIV ID=RIGHTMAIN>
+<DIV CLASS=HEADER><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<DIV ID=HEADER_SHADOW><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<!--		<DIV CLASS=URL><a href="http://studyfoss.egloos.com" name="egloo_url">studyfoss.egloos.com</a></DIV>-->
+		<!-- egloos content start -->
+<div class='hentry'><span class='copyright_entry' style='display:none;' title='[Linux] kprobes 동작 방식 (1)@@**@@http://studyfoss.egloos.com/5369031'></span><DIV CLASS=POST>
+	<DIV CLASS=POST_HEAD>
+	<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=100%>
+	<TR><TD WIDTH=80%><DIV CLASS=POST_TTL><img src=http://md.egloos.com/img/vl/ico_star_o.gif> <a name="5369031" title="[Linux] kprobes 동작 방식 (1)">[Linux] kprobes 동작 방식 (1)</a></DIV></TD>
+		<TD WIDTH=20% ALIGN=RIGHT></TD></TR>
+	</TABLE>
+	</DIV>
+	<DIV CLASS=POST_BODY>
+	<div class="version">Linux: 2.6.34<br/>arch: x86_64</div><br/><br/>kprobes는 커널 코드에 원하는 작업을 동적으로 추가할 수 있는 강력한 기법이다.<br/>kprobes는 커널 설정 시 CONFIG_KPROBES 옵션을 선택하면 사용할 수 있으며<br/>이를 이용하면 원하는 위치의 코드를 디버깅 하거나 패치하는 작업도 가능해 진다.<br/><br/>kprobes는 기능에 따라 kprobe, jprobe, kretprobe로 나누어지는데<br/>뒤의 두 가지는 kprobe의 기능을 기반으로 하여 추가적인 기능을 제공하는 것이므로<br/>먼저 kprobe에 대해서 살펴본 후 jprobe와 kretprobe를 알아보기로 한다.<br/><br/>kprobe는 기본적으로 코드 상의 특정 위치를 지정한 후<br/>해당 위치의 앞/뒤에서 호출될 pre/post handler를 등록할 수 있다.<br/>특정 위치를 지정할 때는 kallsyms를 통해 심볼의 이름 + 오프셋을 이용하거나<br/>해당 메모리 주소(+ 오프셋)를 바로 지정할 수 있으며<br/>반드시 이 둘 중 한 가지 방법만 사용해야 한다.<br/><br/>다음은 이러한 정보들을 저장하는 kprobe 구조체를 보여준다.<br/>(각 필드에 대한 주석은 생략하였다.)<br/><br/>include/linux/kprobes.h:<div class="source">struct kprobe {<br/>&nbsp;&nbsp; &nbsp;struct hlist_node hlist;<br/>&nbsp;&nbsp; &nbsp;struct list_head list;<br/>&nbsp;&nbsp; &nbsp;unsigned long nmissed;<br/>&nbsp;&nbsp; &nbsp;<br/>&nbsp;&nbsp; &nbsp;kprobe_opcode_t *addr;<br/>&nbsp;&nbsp; &nbsp;const char *symbol_name;<br/>&nbsp;&nbsp; &nbsp;unsigned int offset;<br/>&nbsp;&nbsp; &nbsp;<br/>&nbsp;&nbsp; &nbsp;kprobe_pre_handler_t pre_handler;<br/>&nbsp;&nbsp; &nbsp;kprobe_post_handler_t post_handler;<br/>&nbsp;&nbsp; &nbsp;kprobe_fault_handler_t fault_handler;<br/>&nbsp;&nbsp; &nbsp;kprobe_break_handler_t break_handler;<br/>&nbsp;&nbsp; &nbsp;<br/>&nbsp;&nbsp; &nbsp;kprobe_opcode_t opcode;<br/>&nbsp;&nbsp; &nbsp;struct arch_specific_insn ainsn;<br/>&nbsp;&nbsp; &nbsp;u32 flags;<br/>};</div><br/>kprobe 등록 시에 사용자(?)가 반드시 설정해야 하는 필드는<br/>kprobe를 설치할 위치를 가리키는 addr 혹은 symbol_name과 offset 필드이며<br/>필요에 따라 pre/post/fault/break handler 중 원하는 함수를 등록하면 된다.<br/>pre_handler는 지정한 위치의 instruction이 실행되기 직전에 호출되며<br/>post_handler는 실행된 직후에 호출된다.<br/>fault_handler는 kprobe가 실행되는 도중 exception(#GP)이 발생한 경우에 호출되며<br/>break_handler는 kprobe가 실행되는 도중 또 다른 곳에서 breakpoint exception(#BP)이<br/>발생한 경우에 호출된다. (이 기능은 나중에 볼 jprobe의 구현 시에 이용한다.)<br/><br/>kprobes는 모듈로 로드된 코드를 포함하여 대부분의 코드에 적용될 수 있지만<br/>특별한 용도로 사용되는 함수들은 kprobes를 적용할 수 없기 때문에<br/>__kprobes라는 태그(?)를 붙여 별도로 관리한다.<br/><br/><div class="source">/* Attach to insert probes on any functions which should be ignored*/<br/>#define __kprobes&nbsp;&nbsp; &nbsp;__attribute__((__section__(".kprobes.text")))</div><br/>하지만 비슷한 용도로 __sched 등의 다른 태그가 적용된 일부 함수들에도 kprobes를 적용할 수 없으므로<br/>이러한 함수들을 위한 별도의 blacklist를 유지하기도 한다.<br/><br/>kernel/kprobes.c:<div class="source">static struct kprobe_blackpoint kprobe_blacklist[] = {<br/>&nbsp;&nbsp;&nbsp; {"preempt_schedule",},<br/>&nbsp;&nbsp;&nbsp; {"native_get_debugreg",},<br/>&nbsp;&nbsp;&nbsp; {"irq_entries_start",},<br/>&nbsp;&nbsp;&nbsp; {"common_interrupt",},<br/>&nbsp;&nbsp;&nbsp; {"mcount",},&nbsp;&nbsp;&nbsp; /* mcount can be called from everywhere */<br/>&nbsp;&nbsp;&nbsp; {NULL}&nbsp;&nbsp;&nbsp; /* Terminator */<br/>};</div><br/>kprobe를 등록하면 지정한 위치에 breakpoint exception을 발생시키는 instruction을 삽입하여<br/>해당 위치의 코드가 실행될 때 exception이 발생되도록 하고 이 exception handler에서<br/>등록된 kprobe의 handler들을 호출하는 방식으로 동작한다.<br/>이 과정은 각 아키텍처에 의존적인 부분이므로 이 후에는 x86 아키텍처에 대해서만 살펴볼 것이다.<br/><br/>kprobe를 등록하는 작업은 register_kprobe() 함수가 수행하는데<br/>이 함수는 기본적인 검사를 수행한 후 arch_prepare_kprobe() 함수를 호출한다.<br/>이름에서 알 수 있듯이 이 함수는 각 아키텍처 별로 다르게 정의되어 있으며<br/>몇 가지 검사를 수행한 뒤 지정된 위치의 코드를 별도의 버퍼에 복사해 둔다.<br/><br/>x86 아키텍처의 경우에는 지정된 위치가<br/>alternative instruction을 위해 예약된 영역에 속하는지 검사하고<br/>instruction의 시작 위치에 맞아 떨어지는지 검사하여 아닌 경우 등록이 실패한다.<br/>x86과 같은 CISC 머신의 경우 instruction의 길이가 동일하지 않으므로 이 검사는 간단하지 않은데,<br/>kallsyms를 통해 지정된 위치를 포함하는 함수의 시작 instruction 위치를 알아낸 후<br/>instruction들을 분석하여 길이를 알아내고, 그 다음 instruction으로 이동하여 이를 반복하는 식으로<br/>지정된 위치까지 진행하면 instruction의 시작 위치에 맞아 떨어지는지 알 수 있다.<br/><br/>검사를 통과했다면 지정된 위치에 존재하는 instruction을<br/>미리 할당된 (실행 가능한! 페이지 내의) 버퍼 (insn_slot)에 복사한다.<br/>그리고 원래 코드의 opcode에 해당하는 첫 번째 바이트는 따로 저장해 둔다.<br/><br/>이렇게 모든 준비가 완료되었다면 현재의 kprobe 구조체를 해시 테이블에 추가하고<br/>__arm_kprobe() 함수를 호출하여 원래의 opcode를 breakpoint instruction (int3)으로 교체한다.<br/>이 함수는 다시 arch_arm_kprobe() 함수를 호출하여 아키텍처 의존적인 방법으로 이를 수행한다.<br/><br/>그런데 커널 코드 영역은 당연히(!) read-only로 설정되어 있으므로<br/>단순히 memcpy()로는 코드를 수정할 수 없기 때문에 text_poke() 함수가 사용된다.<br/>이 함수는 전용 fixmap 주소를 이용하여 코드가 속한 페이지를 다시 (write가 가능하도록) 매핑하고<br/>매핑된 페이지에 대해 memcpy()를 수행한 후 매핑을 해제하므로 이를 처리할 수 있다.<br/>x86의 경우 해당 위치의 opcode를 int3에 해당하는 0xcc로 바꾸면 되기 때문에<br/>단지 1 바이트의 업데이트 만이 필요하다.<br/><br/>이제 getpid 시스템 콜에 kprobe를 추가하는 상황을 생각해 보자.<br/>먼저 커널 이미지(vmlinux)를 disassemble 해 보면 다음과 같은 부분을 찾을 수 있을 것이다.<br/><br/><div class="source">$ fdas.py vmlinux sys_getpid<br/><br/>vmlinux:     file format elf64-x86-64<br/><br/><br/>Disassembly of section .text:<br/><br/>ffffffff8108c140 &lt;sys_getpid&gt;:<br/>ffffffff8108c140:&nbsp;&nbsp; &nbsp;55&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;push&nbsp;&nbsp; %rbp<br/>ffffffff8108c141:&nbsp;&nbsp; &nbsp;48 89 e5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;mov&nbsp;&nbsp;&nbsp; %rsp,%rbp<br/>ffffffff8108c144:&nbsp;&nbsp; &nbsp;65 48 8b 04 25 c0 b6 &nbsp;&nbsp; &nbsp;mov&nbsp;&nbsp;&nbsp; %gs:0xb6c0,%rax<br/>ffffffff8108c14b:&nbsp;&nbsp; &nbsp;00 00 <br/>ffffffff8108c14d:&nbsp;&nbsp; &nbsp;48 8b 80 d8 02 00 00 &nbsp;&nbsp; &nbsp;mov&nbsp;&nbsp;&nbsp; 0x2d8(%rax),%rax<br/>ffffffff8108c154:&nbsp;&nbsp; &nbsp;48 8b b8 18 03 00 00 &nbsp;&nbsp; &nbsp;mov&nbsp;&nbsp;&nbsp; 0x318(%rax),%rdi<br/>ffffffff8108c15b:&nbsp;&nbsp; &nbsp;e8 7b e5 00 00&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;callq&nbsp; ffffffff8109a6e0 &lt;pid_vnr&gt;<br/>ffffffff8108c160:&nbsp;&nbsp; &nbsp;c9&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;leaveq <br/>ffffffff8108c161:&nbsp;&nbsp; &nbsp;48 98&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;cltq&nbsp; &nbsp;<br/>ffffffff8108c163:&nbsp;&nbsp; &nbsp;c3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;retq&nbsp; &nbsp;</div><br/>구체적으로 8108c144 위치에 있는 mov instruction에 kprobe를 등록한다고 가정해 보자.<br/>우리는 구체적인 주소를 알고 있으므로 kprobe 구조체의 addr 필드에 곧바로 해당 주소를 입력할 수도 있겠지만<br/>만약 그렇지 못한 경우라더라도 symbol_name에 "sys_getpid"를 저장하고 offset을 4로 지정하면<br/>동일한 효과를 얻을 수 있다. 만약 offset을 모른다면 그냥 0으로 두고 함수의 첫 부분에 등록하는 것이 좋다.<br/>말했듯이 지정한 위치가 각 instruction의 시작 위치가 아니라면 kprobe 등록이 실패할 것이다.<br/><br/>적절한 handler 필드를 설정하고 register_kprobe() 함수를 호출하면<br/>해당 위치의 opcode (0x65)가 int3에 해당하는 0xcc로 바뀌고, 0x65는 kprobe.opcode에 저장된다.<br/>또한 instruction 전체(65 48 8b 04 25 c0 b6 00 00)는 kprobe.ainsn.insn[] 버퍼에 저장될 것이다.<br/><br/>이제 해당 코드가 실행되는 경우 breakpoint exception (#BP)이 발생하게 되는데<br/>kprobes의 초기화 과정에서 (die) notify 메커니즘을 통해 이 exception에 대한 handler를 등록해 두기 때문에<br/>kprobe 루틴이 호출될 수 있으며 여기서 exception 발생 시의 PC 값을 통해<br/>등록된 kprobe들의 목록 중 주소가 일치하는 것이 있는지 검사하여 적절한 kprobe를 찾아낼 수 있다.<br/><br/>exception 발생 시 커널은 해당 interrupt vector에 등록된 handler를 실행시키기 전에<br/>현재 hardware context 정보를 저장하므로 여기에 저장된 rip 레지스터(PC)의 값을 검사하면 된다.<br/>이 때 PC 값은 이미 증가된 후이므로 (#BP의 exception class는 trap이다)<br/>int3 instruction 크기(1) 만큼을 빼 주어야 원래의 주소를 복원할 수 있다.<br/><br/>또한 exception handler가 종료되면 저장된 레지스터들을 다시 원상 복귀하면서 반환하므로<br/>저장해 둔 rip 레지스터의 값을 적절히 조작하면 원래의 함수 대신 다른 코드를 실행하도록 변경할 수 있게 된다.<br/><br/>이 (die) notify 함수는 debug exception (#DB) 및 general protection exception (#GP)도<br/>함께 처리하므로 single step 및 기타 예외 사항을 동일하게 처리할 수 있다.<br/>x86의 경우 이 함수는 다음과 같이 정의되어 있다.<br/><br/>arch/x86/kernel/kprobes.c:<div class="source">/*<br/>&nbsp;* Wrapper routine for handling exceptions.<br/>&nbsp;*/<br/>int __kprobes kprobe_exceptions_notify(struct notifier_block *self,<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; unsigned long val, void *data)<br/>{<br/>&nbsp;&nbsp; &nbsp;struct die_args *args = data;<br/>&nbsp;&nbsp; &nbsp;int ret = NOTIFY_DONE;<br/><br/>&nbsp;&nbsp; &nbsp;if (args-&gt;regs &amp;&amp; user_mode_vm(args-&gt;regs))<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;return ret;<br/><br/>&nbsp;&nbsp; &nbsp;switch (val) {<br/>&nbsp;&nbsp; &nbsp;case DIE_INT3:<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;if (kprobe_handler(args-&gt;regs))<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;ret = NOTIFY_STOP;<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;break;<br/>&nbsp;&nbsp; &nbsp;case DIE_DEBUG:<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;if (post_kprobe_handler(args-&gt;regs)) {<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;(*(unsigned long *)ERR_PTR(args-&gt;err)) &amp;= ~DR_STEP;<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;ret = NOTIFY_STOP;<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;}<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;break;<br/>&nbsp;&nbsp; &nbsp;case DIE_GPF:<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;if (!preemptible() &amp;&amp; kprobe_running() &amp;&amp;<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; kprobe_fault_handler(args-&gt;regs, args-&gt;trapnr))<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;ret = NOTIFY_STOP;<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;break;<br/>&nbsp;&nbsp; &nbsp;default:<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;break;<br/>&nbsp;&nbsp; &nbsp;}<br/>&nbsp;&nbsp; &nbsp;return ret;<br/>}</div><br/>breakpoint exception이 발생하면 DIE_INT3 부분이 실행되는데<br/>kprobe_handler() 함수는 저장된 레지스터로부터 주소를 복원하여 이에 해당하는 kprobe를 찾은 뒤<br/>pre_handler가 지정되어 있는지 검사한 후 지정되어 있다면 이를 실행한다.<br/>pre_handler는 등록한 kprobe 구조체 자신과<br/>exception 발생 시의 레지스터 값인 pt_regs 구조체의 포인터를 인자로 받는다.<br/><br/>pre_handler가 실행된 후에는 원래의 instruction을 실행해 주어야 하는데,<br/>이는 별도의 버퍼에 따로 저장되어 있으므로 정상적인 방식으로는 실행을 할 수가 없다.<br/>따라서 디버거의 single step 명령과 같이 하나의 instruction 만 실행한 후에 멈추도록 하고<br/>다시 원래 위치로 돌아가서 이후의 instruction들을 계속 실행할 수 있도록 처리해 주어야 한다.<br/>(단, pre_handler가 1을 리턴한 경우는 예외이다.<br/>이 경우는 원래의 코드 대신 사용자가 지정한 다른 코드를 수행하고자 하는 경우로<br/>pre_handler 내에서 pt_regs 구조체의 ip 필드를 적절히 설정해 주어야 한다.<br/>나중에 볼 jprobe의 구현에서 이 방법을 이용한다.)<br/><br/>이를 위해서 setup_singlestep() 함수가 이용되는데<br/>이 함수는 다음 instruction 실행 후에 debug exception (#DB)이 발생하도록<br/>flags 필드에 TF 비트를 설정하고 ip 필드를 저장해 둔 버퍼의 시작 위치로 설정한다.<br/><br/>이제 breakpoint exception handler에서 리턴되면 버퍼에 저장된 instruction이 실행되고<br/>곧바로 debug exception이 다시 발생한다. 이도 마찬가지로 kprobe에 notify되도록 설정되어 있으므로<br/>다시 해당 kprobe를 찾을 수 있고 이를 통해 원래의 돌아갈 위치를 알아낼 수 있다.<br/>또한 post_handler가 등록되어 있다면 이 과정에서 호출한다.<br/><br/>돌아갈 위치를 설정하는 것은 resume_execution() 함수가 수행하는데<br/>이는 단순히 ip 레지스터 만을 설정하는 일 이외에도 다음과 같은 상황을 고려해야 한다.<br/><ul><li>single step으로 실행한 instruction이 flags 레지스터의 값을 변경하는 경우 해당 값을 설정해 주어야 한다.</li><li>single step으로 실행한 instruction이 call인 경우 return address를 적절히 설정해 주어야 한다.</li></ul><br/>이러한 실행 과정을 그림으로 간략히 나타내보면 다음과 같다.<br/><br/><div style="text-align:center"><img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds19.egloos.com/pds/201007/30/35/c0098335_4c5253e43958e.png" width="500" height="319.277108434" onclick="Control.Modal.openDialog(this, event, 'http://pds19.egloos.com/pds/201007/30/35/c0098335_4c5253e43958e.png');" /></div><br/>그림에서 kp는 kprobe 구조체를 의미하며<br/>실행 과정에서 두 번의 exception (#BP, #DB)이 발생한다는 것을 알 수 있다.<br/><br/><div style="clear:both; _display: none;"></div><div class="posttaglist"><a href="/tag/linux" rel="tag">linux</a>,&nbsp;<a href="/tag/kernel" rel="tag">kernel</a>,&nbsp;<a href="/tag/debug" rel="tag">debug</a>,&nbsp;<a href="/tag/x86" rel="tag">x86</a></div>
+       <!--
+       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+		    xmlns:dc="http://purl.org/dc/elements/1.1/"
+		    xmlns:trackback="http://madskills.com/public/xml/rss/module/trackback/">
+       <rdf:Description
+	        rdf:about="http://studyfoss.egloos.com/5369031"
+	        dc:identifier="http://studyfoss.egloos.com/5369031"
+	        dc:title="[Linux] kprobes 동작 방식 (1)"
+	        trackback:ping="http://studyfoss.egloos.com/tb/5369031"/>
+       </rdf:RDF>
+       -->
+
+	</DIV>
+	<DIV CLASS=POST_TAIL ALIGN=RIGHT><span class="TIME"> <a href="/5369031" class="permalink" title="[Linux] kprobes 동작 방식 (1)" rel="bookmark">#</a> by <span class="AUTHOR">namhyung</span> | <a href="/5369031" class="time"  title="[Linux] kprobes 동작 방식 (1)" rel="bookmark">2010/07/30 13:42</a></span> | <a href="/category/Kernel" class="category">Kernel</a> | <span class="linkback"><a href="#trb" onclick="trbview('5369031','c0098335','0'); return false;" class="tail_trb">트랙백(<span id="trbcnt5369031">1</span>)</a></span> | <span class="linkback"><a href="#cmt" onclick="cmtview('5369031','c0098335','0'); return false;" class="tail_cmt">덧글(<span id="cmtcnt5369031">2</span>)</a></span></DIV>
+		<span id="cmt5369031"></span>
+</DIV>
+</div><!-- egloos content end -->
+<span style="float: left"><a href="/page/56">◀ 이전 페이지</a></a></span>
+<span style="float: right"><a href="/page/58">다음 페이지 ▶</a></span>
+<BR><BR>
+<DIV ID='BOTTOMBANNER' style="display:none;">	<div class="BANNER"><a href="http://www.egloos.com"><img src="http://md.egloos.com/img/edt/banner_ffffff_1.gif" width="150" height="50" border="0" alt="Powered by egloos" /></a></div>
+<BR><BR></DIV>
+</DIV>
+<DIV ID=LEFTSIDE style="display:block;">
+	<DIV ID=LOGO></DIV>
+	     <script language="javascript" type="text/javascript">
+     <!--
+     var s_calendar = new Array();
+     s_calendar = [];
+	  calendar("","");
+     -->
+     </script>
+
+	
+<DIV CLASS=MNTTL>카테고리</DIV>
+<DIV CLASS=MNBODY>
+<a href="/category/General">General</a><br/><a href="/category/Application">Application</a><br/><a href="/category/System">System</a><br/><a href="/category/Kernel">Kernel</a><br/><a href="/category/Book">Book</a><br/><a href="/category/Tips">Tips</a><br/>
+</DIV>
+
+<DIV CLASS=MNTTL>태그</DIV>
+<DIV CLASS=MNBODY><a href="/tag/awk" class="tlevel1"> awk</a>
+<a href="/tag/kernel" class="tlevel3"> kernel</a>
+<a href="/tag/memory" class="tlevel3"> memory</a>
+<a href="/tag/build" class="tlevel3"> build</a>
+<a href="/tag/documentation" class="tlevel1"> documentation</a>
+<a href="/tag/perf" class="tlevel1"> perf</a>
+<a href="/tag/gcc" class="tlevel3"> gcc</a>
+<a href="/tag/patch" class="tlevel3"> patch</a>
+<a href="/tag/SMP" class="tlevel2"> SMP</a>
+<a href="/tag/vcs" class="tlevel1"> vcs</a>
+<a href="/tag/git" class="tlevel2"> git</a>
+<a href="/tag/compiler" class="tlevel3"> compiler</a>
+<a href="/tag/scm" class="tlevel1"> scm</a>
+<a href="/tag/C" class="tlevel3"> C</a>
+<a href="/tag/binutils" class="tlevel2"> binutils</a>
+<a href="/tag/linux" class="tlevel3"> linux</a>
+<a href="/tag/CARM" class="tlevel1"> CARM</a>
+<a href="/tag/blktrace" class="tlevel1"> blktrace</a>
+<a href="/tag/script" class="tlevel1"> script</a>
+<a href="/tag/elf" class="tlevel3"> elf</a>
+<a href="/tag/computer-architecture" class="tlevel3"> computer-architecture</a>
+<a href="/tag/bash" class="tlevel2"> bash</a>
+<a href="/tag/block-layer" class="tlevel2"> block-layer</a>
+<a href="/tag/sed" class="tlevel1"> sed</a>
+<a href="/tag/emacs" class="tlevel3"> emacs</a>
+<a href="/tag/CAaQA3" class="tlevel3"> CAaQA3</a>
+<a href="/tag/synchronization" class="tlevel3"> synchronization</a>
+<a href="/tag/glibc" class="tlevel3"> glibc</a>
+<a href="/tag/x86" class="tlevel3"> x86</a>
+<a href="/tag/algorithm" class="tlevel3"> algorithm</a>
+<div style="text-align:right;margin-top:5px;"><a href="/tag">전체보기</a></div>
+</DIV>
+
+<DIV CLASS=MNTTL>이글루 파인더</DIV>
+<DIV CLASS=MNBODY><form id="finder" style="margin:0;" name="finder" method="post" action="http://studyfoss.egloos.com/" onsubmit="return go_search(document.finder);"><input type="text" id="srch_kwd" name="srch_kwd" size="10" style="vertical-align: middle;width: 100px;font-size:12px;" maxlength="30"/><input type="image" style="vertical-align: middle;margin-left:3px;" src="http://md.egloos.com/img/fnd/searchb.gif" /><p style="margin:3px 0 0 13px;text-align:left"><a href="http://www.zum.com" target="_blank"><img src="http://md.egloos.com/img/search/txt_power.png"></a></p></form>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 덧글</DIV>
+<DIV CLASS=MNBODY>
+<style type="text/css"> 
+.reply_write {margin:10px 0;}
+.reply_write fieldset {border:none;margin:0;padding:0;}
+.reply_write legend {display:none;}
+.reply_write .comment_info {width:95%;}
+.reply_write .comment_info span.comment_name,
+.reply_write .comment_info span.comment_passwd,
+.reply_write .comment_info span.comment_blog {display:block;padding:0 0 2px 0;clear:both;}
+.reply_write .comment_info span.comment_blog {float:left;}
+.reply_write .comment_info span.comment_name label,
+.reply_write .comment_info span.comment_passwd label,
+.reply_write .comment_info span.comment_blog label {display:block;float:left;width:55px;}
+.reply_write .comment_info input {padding:1px 0 0 1px;vertical-align:middle;}
+.reply_write .comment_info input.name {width:100px;}
+.reply_write .comment_info input.passwd {width:60px;}
+.reply_write .comment_info input.blog {width:200px;font-family:tahoma,sans-serif;font-size:11px;}
+.reply_write .comment_info span.comment_now {display:none;}
+.reply_write .comment_info span.comment_login {float:right;}
+.reply_write textarea {margin:2px 0;padding:0;width:95%;height:100px;margin-left:0 !important;font:normal 12px '돋움',sans-serif;}
+.reply_write .comment_btn {width:95%;height:23px;position:relative;*position:static;*text-align:right;}
+.reply_write .comment_btn .comment_submit {position:absolute;top:0;right:0;*position:static;*text-align:right;}
+</style>     
+
+<a href="http://studyfoss.egloos.com/5129119#12438993">이렇게 좋은 글이 한글로 있다는 것..</a><br/><span class="SMALL">by 프로그라머 at 02/17</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5512112#12419757">흐름을 이해할 수 있는글이라 좋..</a><br/><span class="SMALL">by morenice at 11/26</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#12401092">좋은 글 감사합니다~퍼갑니다~</a><br/><span class="SMALL">by 김석범 at 09/10</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 트랙백</DIV>
+<DIV CLASS=MNBODY>
+<a href="http://studyfoss.egloos.com/5350643#515727">이맥스의 파일 변수 사용하기</a><br/><span class="SMALL">by 개똥이야기</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#512679">asmlinkage modifier in Linux..</a><br/><span class="SMALL">by novum의 공유창고</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5409933#511713">구조체의 패킹에 대한 이야기</a><br/><span class="SMALL">by 김재호의 디지털보단 아날로그</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+
+
+
+
+
+
+
+<DIV style="TEXT-ALIGN:center; width:200px;">
+<div class="XML"><a href="http://rss.egloos.com/blog/studyfoss" target="_new"><img src="http://md.egloos.com/img/skn/rss.gif" alt="rss" border="0" /></a><br /><br /> skin by <a href="http://jiinny.egloos.com">jiinny</a></div>
+<BR /><BR />
+<DIV ID=OHLOH><a href='https://www.ohloh.net/accounts/115130?ref=Detailed'>
+  <img alt='Ohloh profile for Namhyung Kim' height='35' src='https://www.ohloh.net/accounts/115130/widgets/account_detailed.gif' width='191' border='0' />
+</a></DIV>
+</DIV>
+</DIV>
+<DIV ID='LEFTSHOW'  onclick=document.all['RIGHTMAIN'].style.right='300px';document.all['BOTTOMBANNER'].style.display='none';document.all['LEFTSIDE'].style.display='block';document.all['LEFTSHOW'].style.display='none';document.all['LEFTHIDE'].style.display='block';  style='color:red;display:none;'>
+</DIV>
+
+<DIV id='LEFTHIDE' onclick=document.all['RIGHTMAIN'].style.right='20px';document.all['BOTTOMBANNER'].style.display='block';document.all['LEFTSIDE'].style.display='none';document.all['LEFTHIDE'].style.display='none';document.all['LEFTSHOW'].style.display='block';  style='color:red'>X</DIV><iframe src="http://www.egloos.com/estat/stat_logger.php?bid=c0098335&ref=&openflag=" style="width: 0px; height: 0px; border: 0px solid #fff;"></iframe>
+<img width="0" height="0" border="0" src="http://studyfoss.egloos.com/egloo_pds.php?eid=c0098335" alt="" />
+<form id="trackfrom" name="trackfrom" method="post" action="">
+<input type="hidden" name="url" value="" />
+<input type="hidden" name="title" value="" />
+<input type="hidden" name="trburl" value="" />
+</form>
+<div style="z-index:9901;top:764px;left:169px;display:none;" id="egloo_bookmark" class="popupWrap">
+    <div class="popupTitle">이글루링크 추가하기</div>
+    <dl class="popupBody">
+        <dt class="no-arrow" style="background:none;font-size:12px;text-align:center;">
+            <span id="egloo-bookmark-url" style="color:#0F71A1;"></span>
+            (<span id="egloo-bookmark-name"></span>)을(를)</dt>
+        <dd class="notice" style="margin:0;padding:0 0 0 8px;line-height:1.8em;color:#000;font-size:12px;text-align:center;">이글루링크로 추가하시겠습니까? 추가하시려면 그룹선택을 하세요.</dd>
+        <dd class="notice weak" style="margin:0;padding:0 0 0 8px;line-height:1.8em;font-size:11px;color:#666666;text-align:center;">(그룹선택 하지 않는 경우, 최상단 목록에 추가됩니다.)</dd>
+        <dd class="egloo-bookmark-group" style="margin:0;padding:10px 0 8px;line-height:1.8em;text-align:center;color:#333;font-size:12px;text-align:center;">그룹선택 :
+            <select name="groupID" id="egloo-bookmark-groupID" style="font-family:'돋움','dotum','Trebuchet MS',Sans-serif;margin-left:10px;"><option value="000">그룹선택없음</option></select></dd>
+        <dd class="buttons">
+            <input type="button" value="지금 확인" onfocus="blur();" onclick="Modal.insertBookmark(true);" class="button btn24 btn_bold"/>
+            <input type="button" value="나중에 확인" onfocus="blur();" onclick="Modal.insertBookmark(false);" class="button btn24 btn_weak"/>
+        </dd>
+        <dd class="close" onclick="Modal.close();"><img src="http://md.egloos.com/img/www/btn/button_popup_close.gif" alt="이글루링크 취소" title="이글루링크 취소" /></dd>
+    </dl>
+</div>
+</body>
+</html>

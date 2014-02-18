@@ -1,0 +1,251 @@
+	
+<div class="version">
+glibc: 2.10.1
+gcc: 4.4.1
+
+</div>
+
+
+ELF의 symbol visibility 속성은 dynamic linker의 symbol resolution을 도와주는 역할을 한다.
+간단히 말하면, 외부로 공개된 전역 심볼들을 찾을 때 특정 심볼을 제외시키거나 먼저 찾도록 지정할 수 있다.
+공유 라이브러리 구현 시 이러한 기능을 잘 활용하면 좀 더 좋은 성능을 얻을 수 있다.
+
+실행 파일이나 라이브러리 파일의 dynamic symbol table을 보면 Vis 항목을 볼 수 있는데
+이것이 바로 지금 설명하는 ELF visibility 속성에 해당하는 값이다.
+
+
+<div class="source">
+$ readelf -s a.out | head
+
+Symbol table '.dynsym' contains 10 entries:
+   Num:    Value  Size Type    Bind   Vis      Ndx Name
+     0: 00000000     0 NOTYPE  LOCAL  DEFAULT  UND 
+     1: 00000000     0 NOTYPE  WEAK   DEFAULT  UND __gmon_start__
+     2: 00000000     0 NOTYPE  WEAK   DEFAULT  UND _Jv_RegisterClasses
+     3: 00000000     0 FUNC    GLOBAL DEFAULT  UND __libc_start_main@GLIBC_2.0 (2)
+     4: 0804a020     0 NOTYPE  GLOBAL DEFAULT  ABS _end
+     5: 0804a018     0 NOTYPE  GLOBAL DEFAULT  ABS _edata
+     6: 080485ec     4 OBJECT  GLOBAL DEFAULT   16 _IO_stdin_used
+</div>
+
+visibility 속성은 다음과 같은 4가지 중의 하나로 설정할 수 있다. [1]
+
+<ul>
+  <li>default: 기본값이다. visibility는 고려하지 않고 해당 심볼(의 바인딩)이 global인지 static(local)인지 만을 이용한다.</li>
+  <li>hidden: 주로 사용되는 속성이다. 해당 심볼을 외부로 공개하지 않게 만든다.</li>
+  <li>protected: 잘 사용되지 않는다. 해당 심볼은 공개하지만 다른 모듈에 의해 대체되지 않는다.</li>
+  <li>internal: 잘 사용되지 않는다. 해당 심볼을 공개하지 않으며 각 아키텍처 별로 약간씩 다른 효과를 가질 수 있다.
+</li>
+</ul>하나씩 살펴보자면 (C 언어를 기준으로 설명한다.)
+먼저 default에 대해서는 특별한 설명이 필요없을 것이다.
+외부로 공개할 심볼은 그냥 전역 변수/함수로, 내부에서만 사용할 심볼은 static으로 선언하면 된다.
+참고로 static으로 선언한 심볼은 항상 해당 파일 내의 심볼을 접근하는 것이므로
+(PIC 코드에서) GOT 등을 이용한 간접 접근이 필요없이 offset 계산을 통해 직접 접근이 가능하므로
+컴파일러가 더 빠른 코드를 만들어 낼 수 있다는 장점을 가진다.
+또한 심볼이 외부로 공개되지 않으므로 relocation 및 symbol resolution 시에도 고려해야 할 요소가 적어지므로
+추가적인 성능 향상을 얻을 수 있다.
+
+hidden 속성은 전역 심볼도 static과 비슷한 효과를 얻을 수 있게 해 준다.
+가급적 공개하지 않을 심볼들은 static으로 선언해서 사용하는 것이 좋지만
+프로그램을 작성하다보면 다른 파일에서 사용하는 심볼에 접근해야 할 경우가 반드시 생긴다.
+즉, 라이브러리를 작성할 때 해당 라이브러리를 구성하는 여러 파일들 사이에서는 공개되어야 하지만
+라이브러리 밖으로는 공개하고 싶지 않은 경우가 있을 것이다.
+이 경우 해당 심볼을 전역으로 선언해야 하기 때문에
+(hidden 속성이 없다면) 어쩔 수 없이 라이브러리 외부로도 공개되어 버리고 만다.
+
+이 경우 hidden을 사용하면 해당 심볼을 라이브러리 외부로 공개하지 않도록 지정할 수 있다.
+추가적으로 위의 static의 경우와 같이 컴파일러가 코드를 최적화할 수 있는 여지를 제공한다.
+그래서 라이브러리 구현 시 hidden 속성의 적용은 상당히 권장되는 방식이다.
+
+protected 옵션은 해당 모듈 내의 전역 심볼을 우선적으로 이용하도록 해 준다.
+이것이 무슨 의미인지는 dynamic linker의 심볼 해석 방식을 이해해야 알 수 있다.
+
+다음과 같은 상황을 가정해 보자.
+a라는 라이브러리는 다음과 같이 구현되어 있다.
+
+a.c:
+<div class="source">
+#include &lt;stdio.h&gt;
+
+void somefunc(void)
+{
+  printf("%s in %s\n", __func__, __FILE__);
+}
+
+void somefunc_a(void)
+{
+  somefunc();
+}
+</div>
+
+application은 somefunc_a()를 호출해서 사용한다.
+결과는 다음과 같은 형태가 될 것이다.
+
+
+<div class="source">
+$ gcc -shared -fPIC -o liba.so a.c
+$ gcc main.c -L. -la -Wl,-rpath,.
+$ ./a.out 
+somefunc in a.c
+</div>
+
+그러다가 b라는 다른 라이브러리를 사용하게 되었다.
+구현은 a 라이브러리와 거의 동일하다.
+여기서 중요한 것은 a 와 b 모두 동일한 이름의 somefunc()을 구현하고 있다는 점이다.
+
+b.c:
+<div class="source">
+#include &lt;stdio.h&gt;
+
+void somefunc(void)
+{
+  printf("%s in %s\n", __func__, __FILE__);
+}
+
+void somefunc_b(void)
+{
+  somefunc();
+}
+</div>
+
+이제 main.c가 아래와 같이 아주 단순하게 구현되어 있다고 할 때
+실행 결과는 예상과는 약간 다르게 나타날 것이다.
+
+main.c:
+<div class="source">
+extern void somefunc_a(void);
+extern void somefunc_b(void);
+
+int main(void)
+{
+  somefunc_a();
+  somefunc_b();
+  return 0;
+}
+</div>
+
+빌드 후 실행한 결과는 다음과 같다.
+
+
+<div class="source">
+$ gcc -shared -fPIC -o liba.so a.c
+$ gcc -shared -fPIC -o libb.so b.c
+$ gcc main.c -L. -la -lb -Wl,-rpath,.
+$ ./a.out
+somefunc in a.c
+somefunc in a.c
+</div>
+
+main에서는 분명히 a와 b를 한 번씩 호출했는데 출력은 두 번 다 a에서 수행되었다.
+이는 사실 라이브러리가 링크된 순서에 따른 것이다. (-la -lb)
+이를 -lb -la로 바꾸면 두 번 다 b에서 수행된다.
+
+
+<div class="source">
+$ gcc main.c -L. -lb -la -Wl,-rpath,.
+$ ./a.out
+somefunc in b.c
+somefunc in b.c
+</div>
+
+즉, 동일한 이름의 심볼이 중복 정의된 경우에는
+dynamic linker가 먼저 로드한 모듈(즉, 라이브러리)의 심볼이 우선권을 가진다.
+이러한 경우를 symbol interposing 혹은 symbol preemption이라고 부른다.
+
+위와 같은 경우로 인해 이러한 심볼 해석 과정이 좀 이상하게 여기질 수도 있겠지만
+LD_PRELOAD와 같은 기능은 바로 이러한 symbol preemption을 통해서만 적용될 수 있는 것이다.
+
+이를 방지하는 방법은 사용하는 심벌을 static이나 hidden으로 만드는 것이다.
+즉 해당 심벌을 외부로 공개하지 않으면 항상 로컬의 심벌을 참조하도록 코드가 생성된다.
+하지만 어떤 이유에서건 이것이 불가능한 상황이 있을 수 있는데 그럴 경우에 protected 속성을 사용할 수 있다.
+protected 속성이 사용되면 해당 심볼이 공개되지만 동일한 모듈에서는 자신의 구현을 먼저 참조하게 된다.
+
+이제 a와 b에서 somefunc() 함수의 선언에 protected visibility 속성을 주면 예상대로 동작하는 것을 볼 수 있다.
+
+
+<div class="source">
+void __attribute__((visibility("protected"))) somefunc(void)
+{
+  printf("%s in %s\n", __func__, __FILE__);
+}
+</div>
+
+빌드 후 실행한 결과는 아래와 같다.
+
+
+<div class="source">
+$ gcc -shared -fPIC -o liba.so a.c
+$ gcc -shared -fPIC -o libb.so b.c
+$ gcc main.c -L. -la -lb -Wl,-rpath,.
+$ ./a.out
+somefunc in a.c
+somefunc in b.c
+</div>
+
+언뜻 보기에 protected 속성은 굉장히 유용해 보인다.
+하지만 C 언어 표준에서 요구하는 함수 포인터에 대한 조건을 만족시키기 위해서
+실제 구현은 굉장히 복잡해 질 수 있다고 한다. (실제로 어떤 효과가 있는지는 정확히 모르겠지만..;;)
+
+즉, somefunc()에 대한 포인터를 취할 때 라이브러리 안에서 해당 함수의 주소를 얻는 것과
+main 프로그램에서 해당 함수의 주소를 얻는 것이 같은 결과가 나와야 하는데,
+main에서는 (당연히) 해당 함수에 대한 PLT 항목의 주소를 얻을테고
+라이브러리에서는 실제 함수 주소를 리턴하게 된다면
+동일한 함수의 주소를 얻어서 서로 비교했을 때 달라질 수 있는 것이다.
+
+glibc의 dynamic linker는 이러한 상황을 피하기 위해 복잡한 과정을 거쳐 심볼을 해석하다고 한다.
+따라서 protected 속성은 사용하지 말 것을 권한다. [2]
+
+마지막으로 internal 속성은 아키텍처 별로
+hidden보다 더 강력한 방식으로 심볼을 보호하는 역할을 수행할 수 있게 한다고 한다.
+인텔 컴파일러의 경우 (gcc에 대해서는 정확히 모르겠다.. ;;)
+internal 속성을 가진 심볼은 외부에서 직접 혹은 간접적인 접근이 전혀 불가능하고,
+hidden 속성의 경우 포인터를 넘겨서 간접적인 접근이 가능하도록 구분했다고 한다. [3]
+
+따라서 각 visibility 속성이 적용되는 엄격성의 순서는 다음과 같이 볼 수 있다.
+
+   default &lt; protected &lt; hidden &lt; internal
+
+default가 아닌 경우에는 (즉 protected부터는) 항상 동일한 모듈의 심볼을 참조하게 된다.
+hidden부터는 외부에서 해당 심볼을 참조하는 것이 불가능해진다.
+
+이제 마지막으로 이러한 속성을 지정하는 방법을 살펴보자.
+가장 간단하고 직접적인 방법은
+위의 예제에서처럼 심볼의 선언부에 __attribute__((visibility))를 추가하는 방식이다.
+이외에도 #pragma를 이용하면 여러 심볼에 공통적으로 visibility 속성을 간단히 적용할 수 있다.
+
+
+<div class="source">
+#pragma GCC visibility push(hidden)
+void somefunc(void)
+{
+  printf("%s in %s\n", __func__, __FILE__);
+}
+#pragma GCC visibility pop
+</div>
+
+push/pop은 이전 속성값을 복원하기 위한 목적으로 사용된다.
+끝으로 gcc 실행 시 명령행 옵션으로 -fvisibility를 사용하면 특별히 속성이 지정되지 않은 심볼들의
+기본 속성을 변경할 수 있다. (기본값은 당연히 default이다.)
+
+
+<div class="source">
+gcc -fvisibility=hidden -shared -fPIC -o liba.so a.c
+</div>
+
+위와 같이 컴파일하는 경우 공개할 심볼들은 명시적으로 default 속성을 부여해야 한다.
+
+
+=== 참고 문헌 ===
+<ol>
+  <li><a target="_blank" href="http://www.sco.com/developers/gabi/2003-12-17/ch4.symtab.html#visibility">http://www.sco.com/developers/gabi/2003-12-17/ch4.symtab.html#visibility</a></li>
+  <li><a href="#%20http://people.redhat.com/drepper/dsohowto.pdf">http://people.redhat.com/drepper/dsohowto.pdf</a></li>
+  <li><a href="#%20http://www.ncsa.illinois.edu/UserInfo/Resources/Software/Intel/Compilers/8.1/f_ug2/cmp_visib.htm">http://www.ncsa.illinois.edu/UserInfo/Resources/Software/Intel/Compilers/8.1/f_ug2/cmp_visib.htm</a></li></ol>
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/glibc" rel="tag">glibc</a>, <a href="/tag/gcc" rel="tag">gcc</a>, <a href="/tag/elf" rel="tag">elf</a>, <a href="/tag/ld" rel="tag">ld</a>
+</div>
+

@@ -1,0 +1,147 @@
+	
+<div class="version">
+Linux: 2.6.37
+</div>
+
+
+2.6.37 버전의 커널이 새로이 발표되었다. (<a target="_blank" href="http://kernelnewbies.org/Linux_2_6_37">변경 사항 보기</a>)
+이번 버전에서는 운 좋게도(?) 제법 많은 수의 패치를 반영시킬 수 있었다. (질보다 양으로!!)
+
+
+<div class="source">
+$ git log --author=namhyung v2.6.36..v2.6.37 | git shortlog
+Namhyung Kim (100):
+      fix a typo on comments in mm/percpu.c
+      perf, tracing: add missing __percpu markups
+      padata: add missing __percpu markup in include/linux/padata.h
+      net: remove address space warnings in net/socket.c
+      net/core: remove address space warnings on verify_iovec()
+      net/core: add lock context change annotations in net/core/sock.c
+      kprobes: Remove redundant address check
+      kprobes: Verify jprobe entry point
+      kprobes: Make functions static
+      kprobes: Remove __dummy_buf
+      kprobes: Add sparse context annotations
+      block: fix an address space warning in blk-map.c
+      sg: fix a warning in blk_rq_aligned() call
+      futex: Change 3rd arg of fetch_robust_entry() to unsigned int*
+      futex: Mark restart_block.futex.uaddr[2] __user
+      futex: Add lock context annotations
+      ext2: fix a typo on comment in ext2/inode.c
+      ida: document IDA_BITMAP_LONGS calculation
+      slub: Fix signedness warnings
+      slub: Add lock release annotation
+      slub: Move NUMA-related functions under CONFIG_NUMA
+      x86-32: Fix sparse warning for the __PHYSICAL_MASK calculation
+      init/main.c: remove BKL notations
+      fs/buffer.c: remove duplicated assignment on b_private
+      lockdep: fixup checking of dir inode annotation
+      fs/buffer.c: call __block_write_begin() if we have page
+      sparc: don't #include asm/system.h in asm/jump_label.h
+      sparc32: remove CONFIG_HAVE_PERF_EVENTS option
+      sparc32: fix build failure on CONFIG_SPARC_LEON
+      kbuild: add ARCH=sparc32 target
+      mm: remove temporary variable on generic_file_direct_write()
+      mm: add casts to/from gfp_t in gfp_to_alloc_flags()
+      mm: wrap get_locked_pte() using __cond_lock()
+      mm: add lock release annotation on do_wp_page()
+      mm: wrap follow_pte() using __cond_lock()
+      rmap: annotate lock context change on page_[un]lock_anon_vma()
+      rmap: wrap page_check_address() using __cond_lock()
+      rmap: make anon_vma_chain_free() static
+      vmalloc: rename temporary variable in __insert_vmap_area()
+      vmalloc: annotate lock context change on s_start/stop()
+      mm: declare some external symbols
+      vmstat: include compaction.h when CONFIG_COMPACTION
+      mm: fix sparse warnings on GFP_ZONE_TABLE/BAD
+      fs/buffer.c: remove duplicated assignment to b_private
+      lkdtm: prefix enum constants
+      init: mark __user address space on string literals
+      kernel/user.c: add lock release annotation on free_user()
+      printk: fixup declaration of kmsg_reasons
+      printk: add lock context annotation
+      printk: change type of 'boot_delay' to int *
+      printk: declare printk_ratelimit_state in ratelimit.h
+      lib/parser: cleanup match_number()
+      kbuild: check return value of asprintf()
+      ext2: fix comment on ext2_try_to_allocate()
+      jbd: Move debug message into #ifdef area
+      jbd: Use printk_ratelimited() in journal_alloc_journal_head()
+      jbd: Remove unnecessary goto statement
+      jbd: Use offset_in_page() instead of manual calculation
+      jbd: Convert bitops to buffer fns
+      ext3: Cleanup ext3_setup_super()
+      ext3: Remove unnecessary casts on bh-&gt;b_data
+      ext3: Return proper error code on ext3_fill_super()
+      ext3: Use DIV_ROUND_UP() on group desc block counting
+      jbd: Check return value of __getblk()
+      jbd: Fix debug message in do_get_write_access()
+      ext3: Remove misplaced BUFFER_TRACE() in ext3_truncate()
+      jbd: Convert atomic_inc() to get_bh()
+      ext3: Fix debug messages in ext3_group_extend()
+      ext3: Update kernel-doc comments
+      ptrace: annotate lock context change on exit_ptrace()
+      ptrace: change signature of sys_ptrace() and friends
+      ptrace: cleanup ptrace_request()
+      ptrace: change signature of arch_ptrace()
+      ptrace: cleanup arch_ptrace() on x86
+      ptrace: cleanup arch_ptrace() on ARM
+      ptrace: cleanup arch_ptrace() on avr32
+      ptrace: cleanup arch_ptrace() and friends on Blackfin
+      ptrace: cleanup arch_ptrace() on cris
+      ptrace: cleanup arch_ptrace() on frv
+      ptrace: cleanup arch_ptrace() on h8300
+      ptrace: cleanup arch_ptrace() on m32r
+      ptrace: cleanup arch_ptrace() on m68k
+      ptrace: cleanup arch_ptrace() on m68knommu
+      ptrace: cleanup arch_ptrace() on microblaze
+      ptrace: cleanup arch_ptrace() on MIPS
+      ptrace: cleanup arch_ptrace() on mn10300
+      ptrace: cleanup arch_ptrace() on parisc
+      ptrace: cleanup arch_ptrace() on powerpc
+      ptrace: cleanup arch_ptrace() on score
+      ptrace: cleanup arch_ptrace() on sh
+      ptrace: cleanup arch_ptrace() on sparc
+      ptrace: cleanup arch_ptrace() on tile
+      ptrace: cleanup arch_ptrace() on um
+      ptrace: cleanup arch_ptrace() on xtensa
+      signals: annotate lock_task_sighand()
+      signals: annotate lock context change on ptrace_stop()
+      exit: add lock context annotation on find_new_reaper()
+      ext4: Check return value of sb_getblk() and friends
+      3c59x: fix build failure on !CONFIG_PCI
+      Input: turbografx - fix reference counting
+</div>
+
+
+앞서와 마찬가지로 (하지만 2.6.36에는 포함되지 않고 미뤄진) percpu annotation 패치들과
+제일 처음으로 작업했었지만 패치를 처리하는 과정 상의 미숙함으로 인해 늦어진 kprobes 패치들이 포함되었고
+(패치를 잘 받아주었고 tip 트리에 반영시키는 과정에도 신경써준 Masami Hiramatsu님에게 감사한다.
+그런데 왜 외국 사람 이름 뒤에 '님'을 붙이면 이리 어색하게 보일까... ;;)
+그 다음으로는 sparse를 통해 찾아낸 (address space 및 lock context에 관련된) warning들을
+수정한 패치들이 많은 부분을 차지하고 있다. 특히나 ptrace 관련 패치는 각 아키텍처 별로 따로 적용되느라
+상상하지 못했던 큰 시리즈가 되었는데 역시나 출발은 sparse가 찾아낸 경고 메시지에서부터였다.
+
+ptrace(2) man 페이지의 함수 원형과 커널 상의 시스템 콜 루틴의 함수 원형에 약간 차이가 있어서
+이를 처리하는 패치를 작성하려고 보니 모든 아키텍처에서 ptrace를 실제로 처리하는 arch_ptrace의 함수 원형도
+함께 수정해야 하는 상황이 발생했다. 이 과정에서 arch_ptrace() 함수들을 살펴보니 많은 아키텍처 코드가
+처음에 작성된 몇몇 아키텍처의 코드를 거의 그대로 복사해서 사용하고 있는 상황이었고
+공통적으로 적용할 수 있는 개선의 여지가 있어서 이를 반영한 cleanup 패치 시리즈를 만들게 되어
+Arnd Bergmann님과 Roland McGrath님의 도움으로 무사히(?) mainline에 포함시킬 수 있었다.
+
+그리고는 코드도 이해하면서 뭔가 좀 실제적인 도움이 될 만한 패치를 만들어 볼 요량으로
+ext3 (+ jbd) 코드를 쭉 읽어내려가면서 찾아낸 개선 사항/문제점들을 수정한 패치들이 포함되었고
+(역시나 패치를 잘 받아준 Jan Kara님에게 감사한다) 그 외의 몇몇 build fix와 드라이버 쪽 패치도 반영되었다.
+
+이 버전에서는 sparse의 많은 도움을 받기도 했지만 운도 함께 따라서 적지 않은 수의 패치를 포함시킬 수 있었는데
+앞으로는 양보다는 질적으로 좀더 내실(?)있는 패치를 많이 반영시킬 수 있기를 다짐해 본다.
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/patch" rel="tag">patch</a>
+</div>
+

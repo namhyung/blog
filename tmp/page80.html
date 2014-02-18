@@ -1,0 +1,191 @@
+	
+<div class="version">
+gcc: 4.4.3
+</div>
+
+
+이 과정은 lowering pass의 제일 처음에 실행되는 것으로
+불필요한 문장을 제거하여 이후 최적화 과정에서 고려하지 않도록 하는 것이다.
+보다 구체적으로는 다음과 같은 문장들을 제거하게 될 것이다.
+
+<ul>
+  <li>비어 있는 (nop) 문장</li>
+  <li>불필요한 conditional expression</li>
+  <li>불필요한 블록</li>
+  <li>바로 다음 문장으로 이동하는 goto</li>
+</ul>
+얼핏 보기에는 (프로그래머가 정상적으로 프로그램을 작성했다면)
+이런 문장들이 실제로 존재하지 않을 것처럼 보이지만
+최적화 과정을 수행하는 과정에서 이러한 문장들이 중간중간 자동 생성될 수 있다.
+
+이 과정을 기술하는 opt_pass 구조체는 다음과 같이 정의된다.
+
+
+<div class="source">
+struct gimple_opt_pass pass_remove_useless_stmts =
+{
+ {
+  GIMPLE_PASS,
+  "useless",               /* name */
+  NULL,                    /* gate */
+  remove_useless_stmts,    /* execute */
+  NULL,                    /* sub */
+  NULL,                    /* next */
+  0,                       /* static_pass_number */
+  0,                       /* tv_id */
+  PROP_gimple_any,         /* properties_required */
+  0,                       /* properties_provided */
+  0,                       /* properties_destroyed */
+  0,                       /* todo_flags_start */
+  TODO_dump_func           /* todo_flags_finish */
+ }
+};
+</div>
+
+가장 중요한 필드는 gate와 execute이다.
+gate는 NULL로 설정되어 있으니 이 과정은 무조건 실행될 것이고
+실제 수행은 remove_useless_stmts() 함수가 처리한다.
+이 함수는 아래와 같은 remove_useless_stmts_1() 함수를 (반복적으로) 호출한다.
+
+
+<div class="source">
+/* Remove useless statements from a statement sequence, and perform
+   some preliminary simplifications.  */
+
+static void
+remove_useless_stmts_1 (gimple_stmt_iterator *gsi, struct rus_data *data)
+{
+  while (!gsi_end_p (*gsi))
+    {
+      gimple stmt = gsi_stmt (*gsi);
+
+      switch (gimple_code (stmt))
+        {
+          ...
+      
+        default:
+          data-&gt;last_was_goto = false;
+          gsi_next (gsi);
+          break;
+        }
+    }
+}
+</div>
+
+인자로 주어진 gsi는 현재 함수 내의 모든 (GIMPLE 형태의) 문장들을 순차적으로 탐색하기 위한 iterator이고,
+rus_data는 함수 전반에 걸친 정보를 저장하기 위한 구조체이다.
+(rus는 remove useless statements의 머리글자이다.)
+
+특정한 처리가 필요없는 문장의 경우 이전 문장이 goto 문이 아니었음을 표시하고 다음으로 넘어간다.
+
+이제 이 함수가 처리하는 각각의 경우에 대해서 살펴보자.
+가장 단순한 경우는 다음과 같을 것이다.
+
+
+<div class="source">
+        case GIMPLE_NOP:
+          gsi_remove (gsi, false);
+          break;
+</div>
+
+현재 문장이 nop인 경우는 단순히 삭제한다. (이 경우 자동으로 다음 문장으로 넘어간다.)
+다음은 조건문의 경우이다.
+
+
+<div class="source">
+        case GIMPLE_COND:
+          remove_useless_stmts_cond (gsi, data);
+          break;
+</div>
+
+조건문을 나타내는 GIMPLE_COND의 경우 remove_useless_stmts_cond() 보조 함수를 이용한다.
+이 경우 GIMPLE_COND 문장은 다음과 같은 정보들을 포함하고 있다.
+
+
+<div class="source">
+/* GIMPLE_COND &lt;COND_CODE, OP1, OP2, TRUE_LABEL, FALSE_LABEL&gt;
+   represents the conditional jump:
+   
+   if (OP1 COND_CODE OP2) goto TRUE_LABEL else goto FALSE_LABEL
+</div>
+
+remove_useless_stmts_cond() 함수는 먼저 fold_stmt_inplace()를 호출하여 문장을 최대한 단순한 형태로 만든다.
+즉, 각각의 인자를 단순한 형태로 변형하고 (대표적으로 *&amp;var를 그냥 var로 만든다거나..)
+필요한 경우 해당 인자들을 바로 계산하여 간단하게 만든다.
+(예를 들어 1 + 2를 3으로 바꾸거나 a * 1 + 0을 그냥 a로 만드는 것을 말한다.
+전문 용어로는 constant folding &amp; algebraic simplification이라고 한다.)
+
+fold_stmt() 함수와 fold_stmt_inplace() 함수는 동일한 작업을 수행하는데
+전자의 경우는 함수 호출 결과 해당 문장이 아예 다른 것으로 대체될 수도 있지만
+후자의 경우는 그렇지 않다는 차이점이 있다.
+
+이들 자체로도 충분한 복잡하고 많은 작업을 수행하기 때문에 여기서는 자세히 살펴보지 않겠지만
+(언젠가 이에 대해 자세히 살펴볼 시간이 나기를 기대한다.. :-)
+조건문의 경우 fold_stmt_inplace()의 결과로 조건식이 변경될 수 있다.
+특히 조건식의 양변이 모두 상수인 경우 이를 바로 계산하여 true/false 여부를 알 수 있다.
+
+이 경우 다음과 같은 형식의 최적화가 가능하다.
+
+<ul>
+  <li>조건식이 true: if-else 문 전체를 true의 경우에 대한 goto 문으로 변경</li>
+  <li>조건식이 false: if-else 문 전체를 false의 경우에 대한 goto 문으로 변경</li>
+</ul>추가적으로 true의 경우와 false의 경우에 대한 이동 위치(label)가 동일하다면
+단순히 if-else 문 전체를 해당 위치에 대한 goto 문으로 변경할 수도 있다.
+
+다음으로 살펴볼 것은 (중괄호로 둘러싸인) 코드 블록을 나타내는 경우이다.
+
+
+<div class="source">
+        case GIMPLE_BIND:
+          remove_useless_stmts_bind (gsi, data);
+          break;
+</div>
+
+코드 블록을 나타내는 GIMPLE_BIND의 경우 remove_useless_stmts_bind() 보조 함수를 이용한다.
+이 경우 GIMPLE_BIND 문장은 다음과 같은 정보를 포함하고 있다.
+
+
+<div class="source">
+/* GIMPLE_BIND &lt;VARS, BLOCK, BODY&gt; represents a lexical scope.
+</div>
+
+여기서 body 부분이 블록 내에 포함된 문장들의 목록을 가리킨다.
+따라서 단순히 해당 문장들에 대한 gsi를 구성한 후 remove_useless_stmts_1() 함수를 재귀 호출하면 된다.
+
+추가적으로 현재 블록 내에서 선언된 지역 변수가 없고 (vars가 NULL인 경우)
+현재 블록이 함수의 가장 상위 블록이 아니라면 (블록의 첫번째 문장이 함수의 첫번째 문장이 아님)
+블록 내의 모든 문장들을 상위 블록에 포함시킨 후 현재 bind 문장 (블록)을 제거한다.
+
+마지막으로 살펴볼 경우는 goto 문에 대한 것이다.
+
+
+<div class="source">
+        case GIMPLE_GOTO:
+          remove_useless_stmts_goto (gsi, data);
+          break;
+
+        case GIMPLE_LABEL:
+          remove_useless_stmts_label (gsi, data);
+          break;
+</div>
+
+GIMPLE_GOTO 문은 remove_useless_stmts_goto() 보조 함수에서 처리하는데
+단순히 현재 문장이 goto 문임을 기록해두는 역할만 수행한다.
+
+GIMPLE_LABEL 문은 remove_useless_stmts_label() 보조 함수에서 처리하는데
+바로 이전 문장이 goto 문이었고 해당 goto 문의 label이 현재 위치를 가리킨다면
+해당 goto 문을 nop 문장으로 변경한다.
+
+여기서 설명하지 않은 다른 종류의 문장들은 대체로
+fold_stmt() 함수를 호출하여 문장을 단순하게 만들고
+현재 문장이 goto 문이 아님을 표시한 뒤 다음 문장으로 넘어간다.
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/gcc" rel="tag">gcc</a>, <a href="/tag/compiler" rel="tag">compiler</a>
+</div>
+

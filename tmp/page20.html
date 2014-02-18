@@ -1,0 +1,47 @@
+	
+<div class="version">
+Linux: 2.6.39
+</div>
+
+
+2.6.39 커널이 새로이 발표되었다. (<a target="_blank" href="http://kernelnewbies.org/Linux_2_6_39">변경 사항 보기</a>)
+현재 개인적으로 block layer에 관심을 가지고 있는 만큼 이번 커널의 최대 관심사는
+Jens Axboe님의 block plugging 방식의 변경이라 할 수 있겠다.
+
+
+<div class="source">
+$ git log --author=namhyung v2.6.38..v2.6.39 | git shortlog
+Namhyung Kim (12):
+      dio: fix typos in comments
+      fs: update comments to point correct document
+      locks: use assign_type()
+      x86, dumpstack: Correct stack dump info when frame pointer is available
+      vfs: cleanup do_vfs_ioctl()
+      select: remove unused MAX_SELECT_SECONDS
+      mm: batch-free pcp list if possible
+      mempolicy: remove redundant check in __mpol_equal()
+      vmalloc: remove confusing comment on vwrite()
+      vsprintf: Introduce %pB format specifier
+      x86, dumpstack: Use %pB format specifier for stack trace
+      kdb: add usage string of 'per_cpu' command
+</div>
+
+이번 커널에 포함된 패치의 수는 많이 줄었지만 그래도 전보다는 질적으로 조금 나아진 것으로 생각하고
+조금씩 코어 코드에 익숙해져 가고 있음을 위안으로 삼는다.
+(중간에 아이들이 번갈아가며 아파서 며칠씩 입원해있느라 인터럽트가 걸리기도 했지만.. ;;)
+
+가장 주목할만한 사항은 전에도 소개한 적이 있는 stack trace 시의 버그 패치가 포함된 것이며
+몇몇 mm 쪽 패치도 있지만 아직 Andrew Morton님의 mm 트리에 남아있는 것들이 있어서
+이것들은 다음 버전에 포함될 것으로 보인다.
+
+앞으로는 당분간 block layer 및 block device driver 쪽을 주로 살펴보게 될 것 같다.
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/patch" rel="tag">patch</a>
+</div>
+

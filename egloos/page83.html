@@ -1,0 +1,612 @@
+<html>
+<head>	<meta http-equiv='pragma' content='no-cache' />
+	<meta http-equiv='cache-control' content='no-cache' />
+	<meta http-equiv='Content-type' content='text/html; charset=utf-8' />
+	<meta name="author" content="namhyung" />
+	<meta name="keywords" content="F/OSS study" />
+	<meta http-equiv="X-XRDS-Location" content="http://namhyung.myid.net/xrds" />
+	<link rel="openid.server" href="http://www.myid.net/server" />
+	<link rel="openid.delegate" href="http://namhyung.myid.net" />
+	<link rel="shortcut icon" href="http://md.egloos.com/img/favicon.ico" />
+	<link rel="pingback" href="https://rpc.egloos.com/rpc1" />
+	<link rel="alternate" type="application/rss+xml" title="F/OSS study" href="http://rss.egloos.com/blog/studyfoss" />
+	<title>F/OSS study</title>
+	<script type="text/javascript" src="http://md.egloos.com/js/ap.js?ver=1.043"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/gd.js?ver=1.002"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/eg.js?ver=1.012"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/cr.js?ver=1.002"></script>
+    <script type="text/javascript" src="http://md.egloos.com/js/page/ins.js?ver=1.4"></script>
+		
+	<script type="text/javascript" src="http://md.egloos.com/js/lib/prototype_v1511.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.ImgModal.js?ver=1.004"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/page/blog/compatible.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/player.js"></script>
+	
+	<script type="text/javascript" src="http://md.egloos.com/js/lazyload.js"></script>
+	
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloos_template.css?ver=1.002" media="screen" />
+<style type="text/css">
+/* jiinny text-only skin
+ */
+
+
+BODY
+{
+	BACKGROUND : #FCFEFF;
+	MARGIN : 0PX;
+	PADDING : 0PX;
+}
+
+BODY,TD,DIV,LI
+{
+	FONT : 9PT/160% Tahoma, SANS-SERIF, Verdana, monaco,굴림,돋움,SANS-SERIF;
+	COLOR : #33455E;
+}
+
+A:LINK		{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:VISITED	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:ACTIVE	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:HOVER		{ COLOR: #C00000; TEXT-DECORATION: UNDERLINE; }
+
+/* filter의 shadow보다 품질을 좋게 하기 위해서*/
+DIV.HEADER
+{
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+	filter:progid:DXImageTransform.Microsoft.Blur;
+}
+
+#HEADER_SHADOW
+{
+	POSITION : relative;
+	top :-50px; right:0px;
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+}
+
+#HEADER_SHADOW A:LINK		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:VISITED		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:HOVER		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+
+DIV.HEADER A:LINK		{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:VISITED	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:HOVER	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+
+DIV.URL			{ FONT : 8PT/100% VERDANA,TAHOMA; }
+DIV.USERMENU
+{
+	POSITION:absolute:
+	left:0px;
+	top:0px;
+	COLOR : #FFFFFF;
+	FONT : bold 7pt;
+	TEXT-ALIGN : RIGHT;
+	MARGIN-BOTTOM : 50px;
+	BACKGROUND : #000060;
+	PADDING : 4px;
+	BORDER-BOTTOM : 2px #336699 SOLID;
+}
+DIV.USERMENU A:LINK {COLOR:#FFF}
+DIV.USERMENU A:VISITED {COLOR:#FFF}
+DIV.USERMENU A:HOVER {COLOR:#FFF}
+
+DIV.PROFILE
+{
+	WIDTH : 200PX;
+	PADDING : 0PX 0PX 10PX;
+	LINE-HEIGHT : 150%;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.MNTTL
+{
+	FONT:BOLD 10pt;
+	WIDTH : 200PX;
+	BORDER-BOTTOM :	1PX #888 DASHED;
+	PADDING : 2PX 0PX 0PX;
+	MARGIN : 25PX 0PX 10PX;
+	TEXT-ALIGN:CENTER;
+}
+
+DIV.MNBODY
+{
+	font:9pt/135%;
+	WIDTH :200PX;
+}
+
+DIV.POST { MARGIN-BOTTOM : 50PX;}
+
+DIV.POST_HEAD
+{
+	MARGIN-BOTTOM : 15PX;
+	PADDING-BOTTOM : 3PX;
+}
+
+DIV.POST_TTL
+{
+	TEXT-DECORATION: UNDERLINE;
+	FONT: BOLD 10pt Georgia ;
+	COLOR: #000;
+}
+
+DIV.POST_BODY
+{
+	FONT:10pt/150%;
+	WIDTH : 100%;
+	MARGIN-BOTTOM : 30PX;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.POST_BODY A:LINK
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION:none;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:VISITED
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:HOVER
+{
+	COLOR: #CF4040;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #CF4040
+}
+
+
+DIV.POST_TAIL {
+	FONT : 11PX/150% VERDANA, TAHOMA, 돋움;
+	MARGIN-TOP : 10PX;
+	TEXT-ALIGN : RIGHT;
+}
+
+DIV.POST_TAIL A:LINK {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:VISITED {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:HOVER {COLOR: #006699; TEXT-DECORATION: NONE; border-bottom:1px dotted #cc0000}
+
+DIV.COMMENT
+{
+	BORDER : 1PX #D3D3D3 SOLID;
+	BACKGROUND : #F7F7F7;
+	PADDING : 15PX;
+	MARGIN : 20PX 0PX;
+}
+
+DIV.COMMENT_BODY
+{
+	MARGIN-BOTTOM : 20PX;
+}
+
+DIV.COMMENT_TAIL
+{
+	MARGIN : 8PX 0PX 5PX;
+	FONT : 8PT/150% VERDANA, TAHOMA, 돋움;
+	COLOR : #777;
+}
+
+DIV.COMMENT_INPUT
+{
+	MARGIN-TOP : 20PX;
+	BORDER-TOP : 1PX #AAA DOTTED;
+	PADDING-TOP : 20PX;
+}
+
+DIV.COMMENT_LINE
+{
+	BORDER-TOP : 1PX #AAA DOTTED;
+	MARGIN : 10PX 0PX 15PX;
+}
+DIV.POST_BODY IMG
+{
+	filter:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	border:1px #000 solid;
+}
+
+DIV.VERSION
+{
+  font-weight: bold;
+  color: white;
+  background: #525d76;
+  border: 1px solid silver;
+#  margin: 0.5em 10% 0.5em 1em;
+  padding: 0.5em;
+}
+
+DIV.SOURCE
+{
+  font-family: monospace, Courier New, Seoul;
+#  margin: 0.5em 10% 0.5em 1em;
+  margin: 1em;
+  color: navy;
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+BLOCKQUOTE
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD dotted;
+	padding:5px;
+	color:#000;
+	margin:20px;
+}
+
+/* begin style of emphasis */
+.BOX1
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#00FF00;
+	background:#000;
+	margin:20px;
+}
+
+.BOX2
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#FFC000;
+	background:#000;
+	margin:20px;
+}
+
+.EM1
+{
+	background : #FFFF80;
+}
+
+.EM2
+{
+	background : #F0C0FF;
+}
+/* end style of emphasis */
+
+#RIGHTMAIN{ POSITION: ABSOLUTE; RIGHT:300px; LEFT:40px;}
+
+#LEFTSIDE
+{
+	POSITION: ABSOLUTE;
+	TOP:60PX;
+	RIGHT: 20PX;
+	FONT: 9PT;
+	WIDTH:200PX;
+	BORDER-LEFT: 2PX #BCBDC4 DASHED;
+	PADDING: 20PX;
+}
+
+#LEFTSHOW
+{
+	TOP:60PX;
+	RIGHT: 0PX;
+	FONT: 7PT/150%;
+	WIDTH:7px;
+	HEIGHT:200px;
+	BACKGROUND:#DDDDDD;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	BORDER-TOP: 3PX #7598A3 SOLID;
+	BORDER-LEFT: 2PX #7598A3 DASHED;
+	BORDER-BOTTOM: 3PX #7598A3 SOLID;
+}
+
+#LEFTHIDE
+{
+	TOP:63PX;
+	RIGHT: 23PX;
+	FONT: 7PT/150%;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	WIDTH:18px;
+	HEIGHT:18px;
+	TEXT-ALIGN:CENTER;
+}
+#BOTTOMBANNER
+{
+	TEXT-ALIGN=CENTER;
+	WIDTH=100%;
+}
+
+IMG.IMG_DECO
+{
+	TEXT-ALIGN:CENTER;BORDER:1px #000 SOLID;
+	filter:progid:DXImageTransform.Microsoft.DropShadow(color=#AAAAAA,offX=3, offY=3)
+}
+
+#LOGO
+{
+	WIDTH=200;
+	TEXT-ALIGN=CENTER;
+	FILTER:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	progid:DXImageTransform.Microsoft.Glow(Color=#AAAAAA, strength=5)
+}
+
+/* 여기서 부터는 시스템에관한 클래스 이므로 변경하지 않으시는 것이 좋습니다. */
+
+DIV.TRACK_TOP { LINE-HEIGHT : 170%; }
+DIV.ARCHIVE_HEAD { FONT-WEIGHT : BOLD; MARGIN-BOTTOM : 10PX; }
+DIV.ARCHIVE_BODY { MARGIN : 20PX 0PX; LINE-HEIGHT : 160%; PADDING-BOTTOM : 100PX; }
+
+IMG.IMAGE_TOP	{ MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_LEFT	{ MARGIN-RIGHT : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_MID	{ MARGIN-TOP : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.BOOKMK		{ MARGIN : 10PX; BORDER : 0PX; }
+IMG.USERMENU	{ MARGIN-LEFT : 8PX; }
+IMG.LOGO
+{
+BORDER: 1PX #000 SOLID;
+}
+
+DIV.BANNER	{ MARGIN-TOP : 30PX; }
+
+.SMALL		{ FONT-SIZE : 11PX; }
+.DATE		{ FONT : BOLD 8PT/150% VERDANA, TAHOMA, 돋움; }
+.TIME		{ FONT : 8PT/150% VERDANA, TAHOMA, 돋움; TEXT-ALIGN : LEFT; }
+.AUTHOR		{ FONT : BOLD 9PT; }
+.TXTFLD		{ FONT-SIZE:9PT;COLOR:#000; BORDER:1PX SOLID #666678; BACKGROUND:#FFF; }
+
+
+
+/* 여기서 부터는 달력 및 XML에 관련된 클래스입니다. */
+
+
+DIV.CAL_TOP { }
+DIV.CAL { MARGIN : 20PX 0PX 20PX; WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_HEAD { WIDTH : 150PX; FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; PADDING : 4PX 0PX; MARGIN-BOTTOM : 10PX;}
+DIV.CAL_BODY { WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_BOTTOM { }
+
+.CAL
+{
+	FONT : 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+}
+
+.CAL_DAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SUN
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #D36654;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SAT
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #3572A1;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_TODAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	BACKGROUND : #E3E3E3;
+	COLOR : #3D5586;
+	TEXT-ALIGN : CENTER;
+	BORDER : 1px #AAA SOLID;
+}
+
+.CAL_TR
+{
+	BACKGROUND:#EFEFEF;
+}
+
+DIV.XML { FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; }
+   div.memobody {
+       width : 200px;
+       overflow : hidden;
+       }
+   </style>
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloo_navibar.css?ver=1.2" media="screen" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/popup.css?ver=2.00" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/button.css" />
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.Center.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/page/blog/Modal.BookmarkDlg.js?ver=1.002"></script>
+<script type="text/javascript">
+//<![CDATA[
+Event.observe(window, 'load', function() {
+    new Modal.BookmarkDlg('egloo_bookmark', {overlay: true,
+                'groupURL'     : "/exec/egloo_bookmark_group.php",
+                'remoteURL'    : "/exec/egloo_insbookmark_exec.php"});
+    if(''==''){
+	    	copy_contents('studyfoss.egloos.com','namhyung','0');
+    }
+});
+//]]>
+</script></head>
+<body>
+<iframe name="cmtviewfrm" id="cmtviewfrm" src="about:blank" width="0" height="0" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" style="display:block;border:0px;"></iframe>
+<DIV CLASS=USERMENU>  
+<a href="http://www.egloos.com">Egloos</a> | <a href="http://sec.egloos.com/login.php?returnurl=http%3A%2F%2Fstudyfoss.egloos.com%2Fpage%2F83">Log-in</a> </DIV>
+
+<DIV ID=RIGHTMAIN>
+<DIV CLASS=HEADER><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<DIV ID=HEADER_SHADOW><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<!--		<DIV CLASS=URL><a href="http://studyfoss.egloos.com" name="egloo_url">studyfoss.egloos.com</a></DIV>-->
+		<!-- egloos content start -->
+<div class='hentry'><span class='copyright_entry' style='display:none;' title='[gcc] 컴파일러 실행 과정@@**@@http://studyfoss.egloos.com/5274269'></span><DIV CLASS=POST>
+	<DIV CLASS=POST_HEAD>
+	<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=100%>
+	<TR><TD WIDTH=80%><DIV CLASS=POST_TTL><img src=http://md.egloos.com/img/vl/ico_star_o.gif> <a name="5274269" title="[gcc] 컴파일러 실행 과정">[gcc] 컴파일러 실행 과정</a></DIV></TD>
+		<TD WIDTH=20% ALIGN=RIGHT></TD></TR>
+	</TABLE>
+	</DIV>
+	<DIV CLASS=POST_BODY>
+	<div class="version">gcc: 4.4.3</div><br/>이전 글 보기 :<br/><ul><li><a href="http://studyfoss.egloos.com/5273402" title="">[gcc] gcc 실행 과정</a></li></ul><br/>앞서 gcc (compiler driver)가 실행되는 과정을 간략히 살펴보았다.<br/>이제 실제로 컴파일러(cc1)이 동작하는 전체적인 과정을 살펴보도록 하자.<br/>참고로 여기서 살펴볼 내용은 사용하는 언어에 상관없이 동일하게 동작하며<br/>각각의 언어는 language hook을 통해 해당 언어에 알맞는 동작을 수행하게 된다.<br/><br/>cc1의 main() 함수는 단순히 gcc/toplev.c에 정의된 toplev_main()을 호출하게 되어 있다.<br/><br/><div class="source">/* Entry point of cc1, cc1plus, jc1, f771, etc.<br/>&nbsp;&nbsp; Exit code is FATAL_EXIT_CODE if can't open files or if there were<br/>&nbsp;&nbsp; any errors, or SUCCESS_EXIT_CODE if compilation succeeded.<br/><br/>&nbsp;&nbsp; It is not safe to call this function more than once.&nbsp; */<br/><br/>int<br/>toplev_main (unsigned int argc, const char **argv)<br/>{<br/>&nbsp; save_argv = argv;<br/><br/>&nbsp; /* Initialization of GCC's environment, and diagnostics.&nbsp; */<br/>&nbsp; general_init (argv[0]);<br/><br/>&nbsp; /* Parse the options and do minimal processing; basically just<br/>&nbsp;&nbsp;&nbsp;&nbsp; enough to default flags appropriately.&nbsp; */<br/>&nbsp; decode_options (argc, argv);<br/><br/>&nbsp; init_local_tick ();<br/><br/>&nbsp; /* Exit early if we can (e.g. -help).&nbsp; */<br/>&nbsp; if (!exit_after_options)<br/>&nbsp;&nbsp;&nbsp; do_compile ();<br/><br/>&nbsp; if (warningcount || errorcount) <br/>&nbsp;&nbsp;&nbsp; print_ignored_options ();<br/><br/>&nbsp; if (errorcount || sorrycount)<br/>&nbsp;&nbsp;&nbsp; return (FATAL_EXIT_CODE);<br/><br/>&nbsp; return (SUCCESS_EXIT_CODE);<br/>}</div><br/>먼저 명령행 인자를 저장한 후에 general_init()을 불러 필요한 초기화 과정을 수행한다.<br/>이것이 끝나면 decode_options()를 불러 명령행 인자로 주어진 옵션을 분석하여<br/>이후 컴파일 (및 최적화) 과정을 수행하기 위한 정보를 저장해 둔다.<br/>그리고 init_local_tick()을 호출하여 현재 시간을 기록해 둔 뒤<br/>do_compile()을 통해 실제 컴파일 과정을 수행한다.<br/>print_ignored_options()는 잘못된 옵션이 주어진 경우 경고를 출력한 뒤 종료한다.<br/><br/>warningcount, errorcount, sorrycount는 오류나 경고 등의 진단(diagnostic) 메시지를 보여주기 위한 것으로<br/>옵션 처리나 컴파일 도중 발생한 오류 및 경고 상태의 횟수를 기록해 둔다.<br/>보다 자세한 목록은 gcc/diagnostic.def 파일에 다음과 같이 정의되어 있다. (일부만 발췌)<br/><br/><div class="source">DEFINE_DIAGNOSTIC_KIND (DK_ERROR, "error: ")<br/>DEFINE_DIAGNOSTIC_KIND (DK_SORRY, "sorry, unimplemented: ")<br/>DEFINE_DIAGNOSTIC_KIND (DK_WARNING, "warning: ")</div><br/>이러한 def 파일은 용도에 따라 전처리를 하여 소스를 자동으로 구성하기 위한 목적으로 자주 이용된다.<br/><br/>general_init() 함수는 여러 가지 초기화 과정을 수행하는데<br/>i18n 관련 초기화, signal handler 등록, ggc (gcc garbage collector) 초기화,<br/>문자열, identifier 등을 위한 string pool 및 tree type의 hash table 등을 구성한 뒤<br/>컴파일 시 수행할 최적화 과정의 목록을 init_optimization_passes() 함수를 통해 작성한다.<br/>(여기서 등록된 최적화 과정들은 나중에 자세히 살펴볼 기회가 있을 것이다.)<br/><br/>이제 do_compile() 함수를 살펴보자.<br/><br/><div class="source">/* Initialize the compiler, and compile the input file.&nbsp; */<br/>static void<br/>do_compile (void)<br/>{<br/>&nbsp; /* Initialize timing first.&nbsp; The C front ends read the main file in<br/>&nbsp;&nbsp; &nbsp; &nbsp; the post_options hook, and C++ does file timings.&nbsp; */<br/>&nbsp; if (time_report || !quiet_flag&nbsp; || flag_detailed_statistics)<br/>&nbsp;&nbsp;&nbsp; timevar_init ();<br/>&nbsp; timevar_start (TV_TOTAL);<br/><br/>&nbsp; process_options ();<br/><br/>&nbsp; /* Don't do any more if an error has already occurred.&nbsp; */<br/>&nbsp; if (!errorcount)<br/>&nbsp;&nbsp;&nbsp; {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /* This must be run always, because it is needed to compute the FP<br/>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; predefined macros, such as __LDBL_MAX__, for targets using non<br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; default FP formats.&nbsp; */<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; init_adjust_machine_modes ();<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /* Set up the back-end if requested.&nbsp; */<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (!no_backend)<br/>&nbsp; &nbsp; &nbsp; &nbsp; backend_init ();<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /* Language-dependent initialization.&nbsp; Returns true on success.&nbsp; */<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (lang_dependent_init (main_input_filename))<br/>&nbsp; &nbsp; &nbsp; &nbsp; compile_file ();<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; finalize ();<br/>&nbsp;&nbsp;&nbsp; }<br/><br/>&nbsp; /* Stop timing and print the times.&nbsp; */<br/>&nbsp; timevar_stop (TV_TOTAL);<br/>&nbsp; timevar_print (stderr);<br/>}</div><br/>역시나 (이 함수 자체로는) 그리 복잡하지 않다.<br/>먼저 컴파일 시간을 알려달라는 요청이 있었다면<br/>timing variable들을 초기화하기 위해 timevar_init()을 호출한다.<br/>각 단계는 TV_XXX 형태로 나누어져 측정되는데 위에 보이는 것처럼<br/>timevar_start() 부터 timevar_stop() 까지의 시간을 기록하는 형태이다.<br/>timevar의 전체 목록은 gcc/timevar.def 파일에 정의되어 있으며<br/>만일 여기서 timevar_init()가 호출되지 않았다면 이 후의 모든 timevar 관련 함수는 무시된다.<br/><br/>그리고는 process_options()를 호출하는데<br/>주로 인자로 주어진 옵션들 간의 충돌이 일어나는 경우를 검사하는 일을 수행하며<br/>주어진 옵션에 따라 디버깅 정보를 기록하기 위해 debug_hooks를 설정하는데<br/>ELF 파일을 이용하는 경우에는 기본값으로 dwarf2_debug_hooks가 사용된다.<br/><br/>init_adjust_machine_modes() 함수는 부동소수점 처리에 관련된 초기화가 필요한 경우 이를 수행하며<br/>backend_init() 함수는 실제 컴파일 될 타겟 머신을 위한 backend 관련 초기화를 수행한다.<br/>(주로 RTL이나 레지스터 정보 등과 관련된 것이다.<br/>지금 현재로는 이에 대한 더욱 자세한 설명은 힘들다.. ;;)<br/><br/>그리고 lang_dependent_init() 함수가 호출이 되는데<br/>이 함수는 이름에서 알 수 있듯이 컴파일할 언어 (frontend)에 고유한 초기화를 수행한다.<br/>이러한 언어에 따른 정보는 lang_hooks라는 구조체를 통해 설정되기 때문에<br/>공통의 코드를 이용하여 관리할 수 있다. 여기서는 lang_hooks.init 함수가 불린다.<br/>lang_hooks는 LANG_HOOKS_INITIALIZER라는 매크로를 통해 초기화되기 때문에<br/>각 frontend에서는 다음과 같은 형식으로 각 필드를 정의해야 한다.<br/>C 언어의 경우 gcc/c-lang.c와 gcc/c-objc-common.h 파일에 아래와 같이 정의되어 있다.<br/><br/><div class="source">#define LANG_HOOKS_NAME "GNU C"<br/>#define LANG_HOOKS_INIT c_objc_common_init<br/>...<br/>#define LANG_HOOKS_FINISH c_common_finish<br/>#define LANG_HOOKS_PARSE_FILE c_common_parse_file<br/>#define LANG_HOOKS_WRITE_GLOBALS c_write_global_declarations<br/>...</div><br/>lang_dependent_init()가 성공적으로 종료되었다면 compile_file()이 호출된다.<br/>이 함수가 실제 컴파일 과정을 모두 수행하는데 여기서 주의깊게 봐야할 부분은<br/>lang_hooks.parse_file과 lang_hooks.decls.final_write_globals이다.<br/><br/>위에서 보듯이 C 언어 frontend의 parse_file은 c_common_parse_file()로 구현되어 있으며<br/>각 소스 파일을 차례로 parsing하여 tree를 구성하고 각 함수 별로 GIMPLE 형식으로 변환한다.<br/>하나의 소스 파일 (정확히는 translation unit)의 parsing이 완료되면<br/>여기에 속한 GIMPLE 형식의 함수들을 최적화를 위한 형태로 수정하고 필요한 정보를 구성한다.<br/>(보다 low-level 형태로 바꾸는 과정이므로 lowering이라고 한다.)<br/><br/>좀 더 구체적으로 말하면 c_common_parse_file()에서 호출하는 pop_file_scope() 함수는<br/>cgraph_finalize_compilation_unit()을 호출하고 이 함수는 결국 tree_lowering_passes()를 호출한다.<br/>이 함수는 위의 init_optimization_passes()에서 등록한 all_lowering_passes 내의<br/>모든 최적화 과정을 수행한다.<br/><br/>lang_hooks.decls.final_write_globals는 c_write_global_declarations()로 구현되며<br/>여기서 호출하는 cgraph_optimize() 함수는 ipa_passes()와 tree_rest_of_compilation()을 호출하여<br/>실제 최적화 과정인 all_ipa_passes와 all_passes 내의 모든 과정을 수행한다.<br/>여기까지 수행하고 나면 컴파일 결과로 어셈블리 파일이 생성된다.<br/><br/>do_compile() 함수의 마지막 과정은 finalize() 함수가 수행하는데<br/>컴파일 과정의 통계 정보나 최적화 단계의 중간 결과 및 메모리 덤프 요청이 있었다면 이를 수행하고<br/>마지막으로 lang_hooks의 finish 함수를 호출한다.<br/>또한 시간 정보가 요청된 경우 측정된 timevar 정보를 표준 에러 스트림으로 출력한다.<br/><br/><div style="clear:both; _display: none;"></div><div class="posttaglist"><a href="/tag/gcc" rel="tag">gcc</a></div>
+       <!--
+       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+		    xmlns:dc="http://purl.org/dc/elements/1.1/"
+		    xmlns:trackback="http://madskills.com/public/xml/rss/module/trackback/">
+       <rdf:Description
+	        rdf:about="http://studyfoss.egloos.com/5274269"
+	        dc:identifier="http://studyfoss.egloos.com/5274269"
+	        dc:title="[gcc] 컴파일러 실행 과정"
+	        trackback:ping="http://studyfoss.egloos.com/tb/5274269"/>
+       </rdf:RDF>
+       -->
+
+	</DIV>
+	<DIV CLASS=POST_TAIL ALIGN=RIGHT><span class="TIME"> <a href="/5274269" class="permalink" title="[gcc] 컴파일러 실행 과정" rel="bookmark">#</a> by <span class="AUTHOR">namhyung</span> | <a href="/5274269" class="time"  title="[gcc] 컴파일러 실행 과정" rel="bookmark">2010/03/19 23:12</a></span> | <a href="/category/System" class="category">System</a> | <span class="linkback"><a href="#trb" onclick="trbview('5274269','c0098335','0'); return false;" class="tail_trb">트랙백(<span id="trbcnt5274269">1</span>)</a></span> | <span class="linkback"><a href="#cmt" onclick="cmtview('5274269','c0098335','0'); return false;" class="tail_cmt">덧글(<span id="cmtcnt5274269">0</span>)</a></span></DIV>
+		<span id="cmt5274269"></span>
+</DIV>
+</div><!-- egloos content end -->
+<span style="float: left"><a href="/page/82">◀ 이전 페이지</a></a></span>
+<span style="float: right"><a href="/page/84">다음 페이지 ▶</a></span>
+<BR><BR>
+<DIV ID='BOTTOMBANNER' style="display:none;">	<div class="BANNER"><a href="http://www.egloos.com"><img src="http://md.egloos.com/img/edt/banner_ffffff_1.gif" width="150" height="50" border="0" alt="Powered by egloos" /></a></div>
+<BR><BR></DIV>
+</DIV>
+<DIV ID=LEFTSIDE style="display:block;">
+	<DIV ID=LOGO></DIV>
+	     <script language="javascript" type="text/javascript">
+     <!--
+     var s_calendar = new Array();
+     s_calendar = [];
+	  calendar("","");
+     -->
+     </script>
+
+	
+<DIV CLASS=MNTTL>카테고리</DIV>
+<DIV CLASS=MNBODY>
+<a href="/category/General">General</a><br/><a href="/category/Application">Application</a><br/><a href="/category/System">System</a><br/><a href="/category/Kernel">Kernel</a><br/><a href="/category/Book">Book</a><br/><a href="/category/Tips">Tips</a><br/>
+</DIV>
+
+<DIV CLASS=MNTTL>태그</DIV>
+<DIV CLASS=MNBODY><a href="/tag/CARM" class="tlevel1"> CARM</a>
+<a href="/tag/SMP" class="tlevel2"> SMP</a>
+<a href="/tag/memory" class="tlevel3"> memory</a>
+<a href="/tag/scm" class="tlevel1"> scm</a>
+<a href="/tag/compiler" class="tlevel3"> compiler</a>
+<a href="/tag/documentation" class="tlevel1"> documentation</a>
+<a href="/tag/block-layer" class="tlevel2"> block-layer</a>
+<a href="/tag/emacs" class="tlevel3"> emacs</a>
+<a href="/tag/gcc" class="tlevel3"> gcc</a>
+<a href="/tag/perf" class="tlevel1"> perf</a>
+<a href="/tag/build" class="tlevel3"> build</a>
+<a href="/tag/sed" class="tlevel1"> sed</a>
+<a href="/tag/synchronization" class="tlevel3"> synchronization</a>
+<a href="/tag/linux" class="tlevel3"> linux</a>
+<a href="/tag/elf" class="tlevel3"> elf</a>
+<a href="/tag/CAaQA3" class="tlevel3"> CAaQA3</a>
+<a href="/tag/git" class="tlevel2"> git</a>
+<a href="/tag/computer-architecture" class="tlevel3"> computer-architecture</a>
+<a href="/tag/patch" class="tlevel3"> patch</a>
+<a href="/tag/script" class="tlevel1"> script</a>
+<a href="/tag/awk" class="tlevel1"> awk</a>
+<a href="/tag/algorithm" class="tlevel3"> algorithm</a>
+<a href="/tag/blktrace" class="tlevel1"> blktrace</a>
+<a href="/tag/kernel" class="tlevel3"> kernel</a>
+<a href="/tag/bash" class="tlevel2"> bash</a>
+<a href="/tag/glibc" class="tlevel3"> glibc</a>
+<a href="/tag/C" class="tlevel3"> C</a>
+<a href="/tag/x86" class="tlevel3"> x86</a>
+<a href="/tag/vcs" class="tlevel1"> vcs</a>
+<a href="/tag/binutils" class="tlevel2"> binutils</a>
+<div style="text-align:right;margin-top:5px;"><a href="/tag">전체보기</a></div>
+</DIV>
+
+<DIV CLASS=MNTTL>이글루 파인더</DIV>
+<DIV CLASS=MNBODY><form id="finder" style="margin:0;" name="finder" method="post" action="http://studyfoss.egloos.com/" onsubmit="return go_search(document.finder);"><input type="text" id="srch_kwd" name="srch_kwd" size="10" style="vertical-align: middle;width: 100px;font-size:12px;" maxlength="30"/><input type="image" style="vertical-align: middle;margin-left:3px;" src="http://md.egloos.com/img/fnd/searchb.gif" /><p style="margin:3px 0 0 13px;text-align:left"><a href="http://www.zum.com" target="_blank"><img src="http://md.egloos.com/img/search/txt_power.png"></a></p></form>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 덧글</DIV>
+<DIV CLASS=MNBODY>
+<style type="text/css"> 
+.reply_write {margin:10px 0;}
+.reply_write fieldset {border:none;margin:0;padding:0;}
+.reply_write legend {display:none;}
+.reply_write .comment_info {width:95%;}
+.reply_write .comment_info span.comment_name,
+.reply_write .comment_info span.comment_passwd,
+.reply_write .comment_info span.comment_blog {display:block;padding:0 0 2px 0;clear:both;}
+.reply_write .comment_info span.comment_blog {float:left;}
+.reply_write .comment_info span.comment_name label,
+.reply_write .comment_info span.comment_passwd label,
+.reply_write .comment_info span.comment_blog label {display:block;float:left;width:55px;}
+.reply_write .comment_info input {padding:1px 0 0 1px;vertical-align:middle;}
+.reply_write .comment_info input.name {width:100px;}
+.reply_write .comment_info input.passwd {width:60px;}
+.reply_write .comment_info input.blog {width:200px;font-family:tahoma,sans-serif;font-size:11px;}
+.reply_write .comment_info span.comment_now {display:none;}
+.reply_write .comment_info span.comment_login {float:right;}
+.reply_write textarea {margin:2px 0;padding:0;width:95%;height:100px;margin-left:0 !important;font:normal 12px '돋움',sans-serif;}
+.reply_write .comment_btn {width:95%;height:23px;position:relative;*position:static;*text-align:right;}
+.reply_write .comment_btn .comment_submit {position:absolute;top:0;right:0;*position:static;*text-align:right;}
+</style>     
+
+<a href="http://studyfoss.egloos.com/5129119#12438993">이렇게 좋은 글이 한글로 있다는 것..</a><br/><span class="SMALL">by 프로그라머 at 02/17</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5512112#12419757">흐름을 이해할 수 있는글이라 좋..</a><br/><span class="SMALL">by morenice at 11/26</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#12401092">좋은 글 감사합니다~퍼갑니다~</a><br/><span class="SMALL">by 김석범 at 09/10</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 트랙백</DIV>
+<DIV CLASS=MNBODY>
+<a href="http://studyfoss.egloos.com/5350643#515727">이맥스의 파일 변수 사용하기</a><br/><span class="SMALL">by 개똥이야기</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#512679">asmlinkage modifier in Linux..</a><br/><span class="SMALL">by novum의 공유창고</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5409933#511713">구조체의 패킹에 대한 이야기</a><br/><span class="SMALL">by 김재호의 디지털보단 아날로그</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+
+
+
+
+
+
+
+<DIV style="TEXT-ALIGN:center; width:200px;">
+<div class="XML"><a href="http://rss.egloos.com/blog/studyfoss" target="_new"><img src="http://md.egloos.com/img/skn/rss.gif" alt="rss" border="0" /></a><br /><br /> skin by <a href="http://jiinny.egloos.com">jiinny</a></div>
+<BR /><BR />
+<DIV ID=OHLOH><a href='https://www.ohloh.net/accounts/115130?ref=Detailed'>
+  <img alt='Ohloh profile for Namhyung Kim' height='35' src='https://www.ohloh.net/accounts/115130/widgets/account_detailed.gif' width='191' border='0' />
+</a></DIV>
+</DIV>
+</DIV>
+<DIV ID='LEFTSHOW'  onclick=document.all['RIGHTMAIN'].style.right='300px';document.all['BOTTOMBANNER'].style.display='none';document.all['LEFTSIDE'].style.display='block';document.all['LEFTSHOW'].style.display='none';document.all['LEFTHIDE'].style.display='block';  style='color:red;display:none;'>
+</DIV>
+
+<DIV id='LEFTHIDE' onclick=document.all['RIGHTMAIN'].style.right='20px';document.all['BOTTOMBANNER'].style.display='block';document.all['LEFTSIDE'].style.display='none';document.all['LEFTHIDE'].style.display='none';document.all['LEFTSHOW'].style.display='block';  style='color:red'>X</DIV><iframe src="http://www.egloos.com/estat/stat_logger.php?bid=c0098335&ref=&openflag=" style="width: 0px; height: 0px; border: 0px solid #fff;"></iframe>
+<img width="0" height="0" border="0" src="http://studyfoss.egloos.com/egloo_pds.php?eid=c0098335" alt="" />
+<form id="trackfrom" name="trackfrom" method="post" action="">
+<input type="hidden" name="url" value="" />
+<input type="hidden" name="title" value="" />
+<input type="hidden" name="trburl" value="" />
+</form>
+<div style="z-index:9901;top:764px;left:169px;display:none;" id="egloo_bookmark" class="popupWrap">
+    <div class="popupTitle">이글루링크 추가하기</div>
+    <dl class="popupBody">
+        <dt class="no-arrow" style="background:none;font-size:12px;text-align:center;">
+            <span id="egloo-bookmark-url" style="color:#0F71A1;"></span>
+            (<span id="egloo-bookmark-name"></span>)을(를)</dt>
+        <dd class="notice" style="margin:0;padding:0 0 0 8px;line-height:1.8em;color:#000;font-size:12px;text-align:center;">이글루링크로 추가하시겠습니까? 추가하시려면 그룹선택을 하세요.</dd>
+        <dd class="notice weak" style="margin:0;padding:0 0 0 8px;line-height:1.8em;font-size:11px;color:#666666;text-align:center;">(그룹선택 하지 않는 경우, 최상단 목록에 추가됩니다.)</dd>
+        <dd class="egloo-bookmark-group" style="margin:0;padding:10px 0 8px;line-height:1.8em;text-align:center;color:#333;font-size:12px;text-align:center;">그룹선택 :
+            <select name="groupID" id="egloo-bookmark-groupID" style="font-family:'돋움','dotum','Trebuchet MS',Sans-serif;margin-left:10px;"><option value="000">그룹선택없음</option></select></dd>
+        <dd class="buttons">
+            <input type="button" value="지금 확인" onfocus="blur();" onclick="Modal.insertBookmark(true);" class="button btn24 btn_bold"/>
+            <input type="button" value="나중에 확인" onfocus="blur();" onclick="Modal.insertBookmark(false);" class="button btn24 btn_weak"/>
+        </dd>
+        <dd class="close" onclick="Modal.close();"><img src="http://md.egloos.com/img/www/btn/button_popup_close.gif" alt="이글루링크 취소" title="이글루링크 취소" /></dd>
+    </dl>
+</div>
+</body>
+</html>

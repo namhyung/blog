@@ -1,0 +1,202 @@
+	
+<div class="version">
+zlib: 1.2.5
+</div>
+
+이전 글 보기:
+
+<ul>
+  <li><a href="http://studyfoss.egloos.com/5355158">[zlib] DEFLATE algorithm (1) - LZ77</a></li>
+  <li><a href="http://studyfoss.egloos.com/5356876">[zlib] DEFLATE algorithm (2) - Huffman coding</a></li>
+</ul>
+
+앞서 zlib에서 사용하는 알고리즘에 대해서 살펴보았으니
+이번에는 실제로 zlib의 API를 사용하는 방법에 대해서 살펴보고자 한다.
+여기서도 압축 및 해제 시 사용법이 거의 비슷하기 때문에 압축을 수행하는 과정 만을 살펴볼 것이다.
+
+가장 기본적인 사용 형태는 다음과 같다.
+
+
+<div class="source">
+z_stream zs;
+
+/* z 초기화 */
+
+deflateInit(&amp;zs, Z_DEFAULT_COMPRESSION);
+deflate(&amp;zs, Z_FINISH);
+deflateEnd(&amp;zs);
+</div>
+
+z_stream 구조체를 초기화 할 때는 이전 글에서 언급한
+next_in, avail_in, next_out, avail_out 필드 이외에도
+내부적으로 사용할 버퍼를 할당할 때 사용할 메모리 할당 함수를 지정해야 하는데
+대부분의 경우에는 단순히 다음과 같이 NULL 값을 설정하면 된다.
+
+
+<div class="source">
+zs.zalloc = (alloc_func) Z_NULL;
+zs.zfree  = (free_func) Z_NULL;
+zs.opaque = (voidpf) Z_NULL;
+</div>
+
+deflateInit() 함수에서는 압축을 수행할 때의 level 값을 지정할 수 있다.
+이 외에도 압축 과정에 영향을 주는 변수로는 strategy, window size, hash table size 및
+내부 버퍼 크기 등이 있는데 이들은 모두 다음과 같은 기본 값이 사용된다.
+
+<ul>
+  <li>compression method: Z_DEFLATED</li>
+  <li>strategy: Z_DEFAULT_STRATEGY</li>
+  <li>sliding window size: MAX_WBITS</li>
+  <li>hash table size: DEF_MEM_LEVEL</li>
+  <li>internal buffer size: DEF_MEM_LEVEL</li>
+</ul>
+만약 이들을 직접 설정하고 싶다면 deflateInit2() 함수를 대신 사용하면 된다.
+(참고로 해시 테이블 및 내부 버퍼 크기는 memLevel 매개 변수 하나로 함께 조정된다.)
+
+현재 method는 Z_DEFLATED 이 외에는 사용할 수 없으며
+strategy는 Z_FILTERED, Z_HUFFMAN_ONLY, Z_RLE, Z_FIXED 등의 값도 이용할 수 있다.
+
+또한 windowBits 매개 변수의 경우 sliding window의 (비트 단위) 크기를 지정하는 것 외에도
+압축된 스트림의 format을 지정하는 side effect를 가지고 있다.
+기본적으로 (MAX_WBITS 이하의) 양수 값이 사용된 경우 zlib format이 사용되며
+16 이상의 값이 사용된 경우 gzip format이 사용되고 실제 window 크기는 16을 뺀 값이 적용된다.
+(물론 컴파일 시에 gzip 지원 기능이 포함된 경우에만 해당한다!)
+음수 값이 사용된 경우는 어떠한 format도 사용하지 않고 바로 압축되며
+window의 크기는 주어진 값에 절대값을 취하여 적용한다.
+
+zlib format과 gzip format은 각각 RFC 1950과 1952에 공개되어 있으며
+압축된 스트림의 특성을 나타내는 헤더 정보와 데이터의 무결성을 검사하기 위한 checksum 등이 추가된다.
+
+이렇게 초기화를 마치고 나면 실제 압축 루틴인 deflate() 함수를 호출한다.
+위에서는 충분한 입출력 버퍼가 주어진 경우를 가정하여 deflate() 함수를 한 번 만 호출했지만
+실제로 처리해야 할 버퍼가 매우 커서 한 번에 넘겨주지 못하거나
+압축 루틴을 수행하는 도중 입/출력 버퍼의 공간이 부족한 경우 등으로 인해
+deflate() 함수를 여러 번 호출해야 하는 경우가 생길 수 있다.
+이 때의 내부 동작을 조정하기 위해서 두 번째 매개 변수인 flush가 사용된다.
+
+deflate() 함수가 반환되는 경우는 크게 다음과 같은 네 가지 경우로 볼 수 있다.
+
+<ul>
+  <li>입력 버퍼가 비어있는 경우: Z_OK를 반환하고 zs.avail_in == 0이다.</li>
+  <li>출력 버퍼가 가득 찬 경우: Z_OK를 반환하고 zs.avail_out == 0이다.</li>
+  <li>모든 데이터를 처리한 경우: Z_STREAM_END를 반환한다.</li>
+  <li>에러가 발생한 경우: 해당하는 에러 코드를 반환한다.</li>
+</ul>
+이 중 입력 버퍼가 비게되는 상황과 관련하여 flush 매개 변수가 사용된다.
+입력 버퍼가 비어있다는 것은 사용자가 (한 번에) 전달해 준 데이터를 모두 압축했다는 것을 의미한다.
+먼저 압축된 파일의 내용을 일정 크기의 버퍼에 읽어서 전달해 준 경우와 같이
+단순히 연속된 데이터 중 일부 만을 전달해 준 경우가 있을 수 있으며
+따라서 zlib은 별도의 동작을 수행하지 않고 다음 데이터를 기다려야 한다.
+이러한 동작을 지정하기 위해서는 Z_NO_FLUSH 인자를 넘기면 된다.
+
+반면 네트워크로 특정 길이의 패킷을 압축하여 전송하는 경우를 생각해보면
+하나의 패킷 단위로 입력 버퍼를 구성하여 전달하므로
+입력 버퍼의 데이터를 모두 압축한 시점에서 다음 데이터를 기다리지 않고
+현재까지의 데이터를 하나의 블럭으로 묶어서 출력 버퍼로 내보내야(flush) 한다.
+
+이 때 고려해야 할 사항은 압축된 데이터는 비트 단위의 스트림이라는 사실이다.
+하지만 압축된 데이터가 실제로 출력 버퍼로 전달되기 위해서는 바이트 단위로 채워져야 하므로
+마지막에 사용된 코드의 경우 전달되지 않고 내부적으로 대기(pending)하고 있을 수도 있다.
+또한 압축을 해제하는 쪽에서도 데이터의 코드가 비트 단위로 들어오기 때문에
+1 바이트 정도 크기의 lookahead 버퍼를 두어 충분한 데이터가 있을 때에 압축을 해제하게 되므로
+여유 분의 데이터를 더 전달해 주어야 현재 압축을 완료한 블럭의 마지막 데이터까지
+확실히 전달된다는 것을 보장할 수 있다.
+
+이를 위해 사용할 수 있는 flush 인자는 다음과 같이 3가지 종류가 존재한다.
+
+<ul>
+  <li>Z_PARTIAL_FLUSH: 현재 블럭의 EOB 코드를 보내고, 01 타입(fixed code)의 빈 블럭을 1-2개 더 보낸다. (deprecated)</li>
+  <li>Z_SYNC_FLUSH: 현재 블럭의 EOB 코드를 보내고, 00 타입 (stored block)의 빈 블럭을 1개 더 보낸다.</li>
+  <li>Z_FULL_FLUSH: Z_SYNC_FLUSH와 같지만 flush 후 해시 테이블을 초기화하여 새로운 코드를 생성하도록 한다.</li>
+</ul>
+01 타입의 빈 블럭은 3비트 헤더와 7비트의 EOB 코드로 구성되므로 총 10비트 길이이다.
+00 타입의 빈 블럭은 3비트 헤더를 바이트 단위로 정렬한 뒤 블럭의 길이(2+2 바이트)를 보내므로
+5-6 바이트의 데이터가 전송되며 부가적으로 압축된 데이터가 바이트 단위로 정렬되는 효과가 있다.
+
+현재는 Z_PARTIAL_FLUSH의 경우 하위 호환성을 위해서만 유지하며
+새로운 코드에서는 Z_SYNC_FLUSH를 사용할 것을 권장하고 있다.
+Z_FULL_FLUSH의 경우에는 해시 테이블이 초기화되므로 이후에 생성되는 압축 데이터들은
+이전의 데이터와 무관한 코드를 가지게 된다. 따라서 (앞쪽의) 스트림이 일부 손상된 경우에도
+뒤쪽의 데이터는 압축 해제가 가능하다는 장점을 가지게 된다.
+
+하지만 이러한 flush 인자를 사용하는 경우 압축을 해제하는 쪽에서도
+동일한 인자를 사용해야지만 원본 데이터를 올바르게 복구할 수 있을 것이다.
+
+deflate() 함수가 Z_OK를 반환하였고 zs.avail_in이 0이라면
+다음으로 압축할 데이터를 zs.next_in에 지정하고 zs.avail_in도 업데이트 한 뒤
+다시 deflate() 함수를 호출하면 된다. 만약 입력 버퍼로 전달한 데이터가
+실제로 전달할 마지막 데이터라면 Z_FINISH 인자를 이용해야 한다.
+이 경우 정상적으로 압축이 종료되었다면 Z_STREAM_END가 반환된다.
+
+deflate() 함수는 입력 버퍼내에 데이터가 남아있어도 내부 버퍼가 가득찬 경우
+자동으로 flush를 수행하는데 이 때 내부 버퍼 내의 데이터가 압축되어 출력 버퍼에 기록된다.
+(물론 위에서 살펴본대로 직접 flush 인자를 지정하여 수행된 경우도 마찬가지이다)
+하지만 출력 버퍼에 충분한 공간이 없는 경우에는 Z_OK를 반환할 수 있다.
+이 경우 출력 버퍼의 내용을 적절히 처리한 후 다시 zs.next_out과 zs.avail_out을
+업데이트 한 뒤 이전과 동일한 방식으로 deflate() 함수를 다시 호출하면 된다.
+
+맨 처음에 보았던 코드에서처럼 압축할 데이터와 출력할 버퍼가 한 번에 모두 주어진 경우
+다음의 함수를 이용하면 번거롭게 deflateInit(), deflate(), deflateEnd()를 차례로 호출할 필요없이
+한 번의 호출로 모두 처리할 수 있다. (이 때 내부적으로 Z_FINISH 인자가 적용된다)
+
+
+<div class="source">
+int compress  (Bytef *dest,   uLongf *destLen,
+               const Bytef *source, uLong sourceLen);
+int compress2 (Bytef *dest,   uLongf *destLen,
+               const Bytef *source, uLong sourceLen,
+               int level));
+int uncompress(Bytef *dest,   uLongf *destLen,
+               const Bytef *source, uLong sourceLen);
+</div>
+
+만약 특정한 블럭 별로 다른 압축 전략을 사용해야 하거나
+다른 매개 변수를 적용하고 싶다면 다음의 함수들을 이용할 수도 있다.
+
+
+<div class="source">
+int deflateParams (z_streamp strm, int level, int strategy);
+int deflateTune   (z_streamp strm, int good_length, int max_lazy,
+                   int nice_length, int max_chain));
+</div>
+
+각각의 매개 변수들에 대해서는 이전 글에서 LZ77 압축 알고리즘을 설명할 때 살펴보았었다.
+마지막으로 소개할 함수는 LZ77의 압축 효율을 높이기 위해 자주 사용하는 데이터의 패턴을
+미리 sliding window에 입력해두는 함수이다.
+
+
+<div class="source">
+int deflateSetDictionary (z_streamp strm, const Bytef *dictionary,
+                          uInt  dictLength);
+int inflateSetDictionary (z_streamp strm, const Bytef *dictionary,
+                          uInt  dictLength);
+</div>
+
+입력 버퍼 내의 초기 데이터는 sliding window 내에 아무런 데이터가 없으므로
+LZ77을 적용할 수가 없기 때문에, 실제 압축에는 사용되지는 않지만 사전으로 사용할 수 있는
+패턴들을 입력해 두면 압축률을 높일 수 있을 것이다.
+또한 zlib의 구현의 편의를 위해 window 내의 0번 위치에 존재하는 데이터는
+LZ77 압축 시 일치하지 않는 것으로 처리하고 있으므로 이를 고려하여 사전을 구성하는 것이 좋다.
+당연한 얘기일 테지만 압축 해제 시에도 압축 시와 동일한 사전 데이터를 이용해야 한다.
+이 함수들은 초기화 후 실제 deflate/inflate() 함수 호출 전에 호출해야 한다.
+
+
+=== 참고 문헌 ===
+
+<ul>
+  <li><a target="_blank" href="http://kaistizen.net/project/Zip/Index.htm">http://kaistizen.net/project/Zip/Index.htm</a></li>
+  <li><a target="_blank" href="http://www.bolet.org/%7Epornin/deflate-flush.html">http://www.bolet.org/~pornin/deflate-flush.html</a></li>
+  <li><a target="_blank" href="http://zlib.net/zlib_how.html">http://zlib.net/zlib_how.html</a></li>
+  <li><a target="_blank" href="http://www.ietf.org/rfc/rfc1950.txt">http://www.ietf.org/rfc/rfc1950.txt</a></li>
+  <li><a target="_blank" href="http://www.ietf.org/rfc/rfc1952.txt">http://www.ietf.org/rfc/rfc1952.txt</a>
+</li>
+</ul>
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/compression" rel="tag">compression</a>
+</div>
+

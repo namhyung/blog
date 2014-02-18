@@ -1,0 +1,136 @@
+	
+<div class="version">
+Linux: 2.6.33arch: x86
+</div>
+
+커널의 타이머 관련 기능은 크게 다음과 같이 두 가지로 구분할 수 있다.
+
+<ul>
+  <li>time-out : 특정 이벤트가 정해진 시간 내에 일어나기를 기다리는 경우이다. 대부분의 경우 시간 내에 이벤트가 발생하여 처음 지정한 시간만큼 기다리지 않으며, 시간 단위가 비교적 크므로 약간의 오차는 중요하지 않다.</li>
+  <li>timer : 정해진 시간이 흐른 후에 다른 작업을 해야하는 경우이다. 비교적 짧은 시간이지만 항상 주어진 시간 동안 대기한 후 다음 동작을 수행하므로 최대한 정확할수록 좋다.</li>
+</ul>
+이전의 리눅스 커널에서는 이러한 기능을 모두 HZ 단위의 (low-resolution) timer로 구현하였다.
+이는 밀리초 단위로 동작하기 때문에 time-out의 처리에는 문제가 없지만
+timer의 처리에는 그리 적절치 못했다.
+
+high resolution timer (줄여서 hrtimer)는 이러한 단점을 보강하기 위해
+기존의 타이머 모델보다 더 세밀한 단위로 시간을 제어하기 위한 기법이다.
+당연하게도 세밀한 단위로 시간(clock)을 제공해주는 장치가 시스템에 존재해야 한다.
+
+hrtimer는 나노초 단위로 시간을 관리하며 ktime_t는 이를 다루기 위한 64 비트 크기의 타입이다.
+(짐작할 수 있듯이 nanosleep() 시스템 콜은 hrtimer로 구현된다.)
+이를 도입하는 과정에서 각 아키텍처 마다 독자적으로 처리하던
+타이머 관련 루틴들을 정리하여 generic time subsystem을 구축하게 되었다.
+
+먼저 clock에 관련된 자료 구조를 다음과 같이 구분하여 그 역할을 확실히 분리하였다.
+
+<ul>
+  <li>clock source: 시간 정보를 읽어오기 위한 객체(장치)이다.</li>
+  <li>clock event device: 특정 시간에 이벤트(인터럽트)를 발생시키는 장치이다.</li>
+</ul>
+clock source는 여러 객체가 등록될 수 있는데 그 중 가장 적절한 것을 찾아서 사용한다.
+각 clock source 객체는 rating 필드를 가지고 있는데 이 값이 높은 객체가 선택되며
+일반적인 x86 환경에서는 TSC (time stamp counter)가 선택될 것이다.
+참고로 tsc의 rating은 330, hpet는 250, pit는 110 순이었다.
+
+clock event의 특성은 주기적으로 동작하는지 (CLOCK_EVT_FEAT_PERIODIC) 혹은
+매번 타이머를 다시 설정해 주어야 하는지로 (CLOCK_EVT_FEAT_ONESHOT) 구분하는데
+hrtimer는 매번 재설정이 필요한 oneshot timer 방식을 이용한다.
+나중에 살펴 볼 dynamic tick 기능도 oneshot timer 방식에서만 동작한다.
+
+위와 같은 clock source와 event를 이용하여 커널은 각 CPU 별로 다음과 같은 2개의 clock을 관리한다.
+
+<ul>
+  <li>CLOCK_REALTIME (0) : 현재 시간을 기준으로 하여 시간을 계산한다. 시스템 시간 변경 시 영향을 받는다.</li>
+  <li>CLOCK_MONOTONIC (1) : 커널이 동작한 시간을 기준으로 하여 시간을 계산한다. 외부의 영향을 받지 않는다.</li>
+</ul>
+각 clock 별로 등록된 타이머의 목록은 /proc/timer_list 파일에서 볼 수 있다.
+참고로 대부분의 커널 동작은 CLOCK_MONOTONIC을 이용하여 동작한다.
+
+hrtimer의 핵심은 항상 동일한 주기로 계속 타이머 인터럽트가 발생되는 것이 아니라
+특정 이벤트가 일어날 시점을 정확히 지정하여 타이머를 등록하고
+해당 시점에 타이머 인터럽트가 발생하면 그 때 이벤트를 처리하는 것이다.
+따라서 발생할 이벤트의 유무 및 간격에 따라 타이머 인터럽트의 주기는 바뀌게 된다.
+
+hrtimer를 사용하는 함수(대표적으로 nanosleep)를 호출하면 hrtimer 객체가 만들어지고
+등록된 hrtimer 객체들은 해당 clock 별로 관리되는 red-black tree에 포함된다.
+clock 객체는 tree 내의 첫번째 hrtimer 객체의 만료 시간에 인터럽트가 발생하도록 event device를 설정한다.
+이 후 인터럽트가 발생하면 tree를 탐색하여 만료된 hrtimer 객체들을 빼낸 뒤
+설정된 callback mode 값에 따라 직접 혹은 softirq를 통해 등록된 함수를 실행한다.
+
+또한 tree에 남아있는 첫번째 객체의 만료 시간에 따라 event device를 다시 설정한다.
+이렇게 하면 등록된 타이머들을 모두 잘 처리할 수 있을 것이다.
+
+하지만 기존의 방식으로 동작하던 (low resolution) timer 루틴들에 대해서도 호환성을 보장해야 하며
+스케줄러나 프로세스 통계 정보 등은 tick 단위로 호출되어야 하기 때문에
+tick_sched 라고하는 periodic tick emulation layer가 추가되었다.
+
+tick sched timer는 HZ 설정값에 따라 주기적으로 호출되며
+기존의 타이머 인터럽트가 수행하던 jiffies 값 갱신, timer wheel 관리, CPU 로드 갱신,
+스케줄러의 timeslice 관리, 사용자 타이머 관리 등의 작업을 도맡아서 처리한다.
+추가로 tick sched timer는 각 CPU별로 이벤트가 발생하는 시간을 약간씩 다르게하여
+이들 간에 경쟁 상태가 발생하지 않도록 미리 방지한 듯 하다.
+
+dynamic tick은 위와 같은 tick sched timer의 기능이 불필요한 경우
+즉, 실행할 프로세스가 전혀 없는 경우에 해당 타이머를 disable시키는 것을 말한다.
+소위 "tickless" 모드라고 하는 기능이다.
+
+기본적으로 timer interrupt가 oneshot timer를 기반으로 동작하므로
+다음 번에 수행할 timer를 등록하지만 않으면 간단히 구현할 수 있다.
+수행할 프로세스가 없는 경우 CPU는 저전력 모드로 들어가 소비 전력을 줄이게 되는데
+tickless 모드가 아니라면 주기적으로 발생하는 타이머 인터럽트로 인해
+CPU가 다시 동작 모드로 돌아오기 때문에 절전 모드의 이점을 충분히 살릴 수가 없다.
+따라서 이 경우 아예 타이머 인터럽트를 동작하지 않도록 하자는 것이 dynamic tick (tickless) 기능의 핵심이다.
+
+이 후 외부 인터럽트를 기다리며 sleep하고 있던 프로세스가 깨어나는 순간
+timer를 새로 등록하여 tickless 모드를 빠져나오게 할 수 있다.
+이에 대한 구현은 CPU가 실행할 프로세스가 없을 때 실행하는 idle 스레드에서 찾아볼 수 있다.
+
+
+<div class="source">
+void cpu_idle(void)
+{
+    int cpu = smp_processor_id();
+...
+    ∕* endless idle loop with no priority at all *∕
+    while (1) {
+        tick_nohz_stop_sched_tick(1);
+        while (!need_resched()) {
+            local_irq_disable();
+            ∕* Don't trace irqs off for idle *∕
+            stop_critical_timings();
+            pm_idle();
+            start_critical_timings();
+        }
+        tick_nohz_restart_sched_tick();
+        preempt_enable_no_resched();
+        schedule();
+        preempt_disable();
+    }
+}
+</div>
+
+바깥쪽 while 루프에서는 먼저 tick_nohz_stop_sched_tick()을 호출하여 tickless 모드로 진입한다.
+안쪽 while 루프에서는 그 사이 깨어난 다른 프로세스가 없는지 검사하고 pm_idle()을 호출하여 전력 소모를 줄인다.
+start/stop_critical_timings()는 인터럽트 on/off나 선점에 대한 trace 정보를 모으는 부분이며
+local_irq_disable()를 호출하는 것은 이상한데 (tickless 모드에서 빠져나오려면 인터럽트가 걸려야 한다!)
+찾아보니 pm_idle() 과정에서 어차피 local_irq_enable()이 호출되게 되어 있다.
+인터럽트에 의해 다른 프로세스가 깨어나 실행할 준비가 되면
+need_resched()가 true가 되어 안쪽 루프를 빠져나올 수 있다.
+이 경우 tick_nohz_restart_sched_tick()을 호출하여 low-resolution timer 기능을 시작하고
+깨어난 프로세스가 실행되도록 스케줄러를 호출한다.
+
+=== 참조 문헌 ===
+
+<ul>
+  <li>Professional Linux Kernel Architecture, W. Mauerer, 2008</li>
+  <li><a target="_blank" href="http://lwn.net/Articles/223185/">http://lwn.net/Articles/223185/</a></li>
+</ul>
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>
+</div>
+

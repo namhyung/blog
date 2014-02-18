@@ -1,0 +1,131 @@
+	
+<div class="version">
+Linux : 2.6.30
+</div>
+
+
+alternative()는 x86에서 memory barrier를 구현할 때 사용되는 기법으로
+커널 부팅 시에 (즉, runtime에!) machine에서 지원한다면 특정 부분의 코드를 더 좋은 성능의 코드로 변경한다.
+
+사용되는 예는 다음과 같다. (arch/x86/include/asm/system.h)
+
+
+<div class="source">
+#define mb() alternative("lock; addl $0,0(%%esp)", "mfence", X86_FEATURE_XMM2)
+</div>
+
+기본적으로는 SSE2 instruction set을 지원하지 않는 구식 machine을 지원하기 위해
+예전부터 사용하던 lock prefix를 이용하여 memory 접근을 serialize한다.
+하지만 SSE2 instruction set을 지원한다면 mfence 명령을 이용하도록 코드를 수정할 것이다.
+
+alternative() 매크로는 다음과 같이 정의되어 있다.
+
+
+<div class="source">
+#define alternative(oldinstr, newinstr, feature)            \
+    asm volatile ("661:\n\t" oldinstr "\n662:\n"            \
+              ".section .altinstructions,\"a\"\n"        \
+              _ASM_ALIGN "\n"                    \
+              _ASM_PTR "661b\n"        /* label */        \
+              _ASM_PTR "663f\n"        /* new instruction */    \
+              "     .byte %c0\n"        /* feature bit */    \
+              "     .byte 662b-661b\n"    /* sourcelen */        \
+              "     .byte 664f-663f\n"    /* replacementlen */    \
+              ".previous\n"                    \
+              ".section .altinstr_replacement,\"ax\"\n"        \
+              "663:\n\t" newinstr "\n664:\n"  /* replacement */    \
+              ".previous" :: "i" (feature) : "memory")
+</div>
+
+oldinstr 부분은 원래대로 저장된다. (661 ~ 662)
+그리고는 .altinstructions 섹션이 나오는데 이는 아래에서 볼 alt_instr 구조체와 같다.
+다음은 .altinstr_replacement 섹션으로 newinstr이 저장된다. (663 ~ 664)
+alt_instr 구조체는 다음과 같이 정의한다.
+
+
+<div class="source">
+struct alt_instr {
+    u8 *instr;        /* original instruction */
+    u8 *replacement;
+    u8  cpuid;        /* cpuid bit set for replacement */
+    u8  instrlen;        /* length of original instruction */
+    u8  replacementlen;    /* length of new instruction, &lt;= instrlen */
+    u8  pad1;
+#ifdef CONFIG_X86_64
+    u32 pad2;
+#endif
+};
+</div>
+
+각 섹션은 링커 스크립트에서 볼 수 있듯이 text segment로 합쳐지지 않고 별도로 존재한다.
+
+
+<div class="source">
+  . = ALIGN(4);
+  .altinstructions : AT(ADDR(.altinstructions) - LOAD_OFFSET) {
+      __alt_instructions = .;
+    *(.altinstructions)
+    __alt_instructions_end = .;
+  }
+  .altinstr_replacement : AT(ADDR(.altinstr_replacement) - LOAD_OFFSET) {
+    *(.altinstr_replacement)
+  }
+</div>
+
+.altinstructions 섹션은 alt_Instr 구조체 만이 모여있기 때문에
+섹션의 첫 주소(__alt_instructions)를 구조체의 포인터로 변경하여 접근할 수 있다.
+이를 이용하여 코드를 patch하는 부분은 다음과 같다. (불필요한 부분은 생략)
+
+
+<div class="source">
+/* Replace instructions with better alternatives for this CPU type.
+   This runs before SMP is initialized to avoid SMP problems with
+   self modifying code. This implies that assymetric systems where
+   APs have less capabilities than the boot processor are not handled.
+   Tough. Make sure you disable such features by hand. */
+
+void apply_alternatives(struct alt_instr *start, struct alt_instr *end)
+{
+    struct alt_instr *a;
+    char insnbuf[MAX_PATCH_LEN];
+
+    for (a = start; a &lt; end; a++) {
+        u8 *instr = a-&gt;instr;
+
+        if (!boot_cpu_has(a-&gt;cpuid))
+            continue;
+
+        memcpy(insnbuf, a-&gt;replacement, a-&gt;replacementlen);
+        add_nops(insnbuf + a-&gt;replacementlen,
+             a-&gt;instrlen - a-&gt;replacementlen);
+        text_poke_early(instr, insnbuf, a-&gt;instrlen);
+    }
+}
+</div>
+
+함수의 인자로 주어지는 start와 end는 당연히 __alt_instructions와 __alt_instructions_end로 설정된다.
+(그럼 왜 굳이 인자로 받을까? 그 이유는 module을 loading하는 경우에도 동일하게 적용할 수 있기 때문이다.)
+각각의 alternative instruction에 대해 머신의 지원 여부를 확인하고 (cpuid)
+가능하다면 replacement 부분의 instruction을 원래의 instr 부분에 덮어쓴다. (memcpy)
+이 때 replacement 코드의 크기가 다를 수 있기 때문에
+add_nops() 함수를 실행하여 남는 부분은 nop로 채운다.
+(사실은 최소한의 instruction을 수행하도록 실제 nop가 아닌 다른 instruction을 수행할 수도 있다.)
+그리고는 커널의 코드를 업데이트한다. (text_poke_early)
+<span style="text-decoration: line-through;">사실 아직 어떻게 (read only 영역일) text segment의 내용을 바꿀 수 있는지는 확실히 이해하지 못했다.</span>
+
+alternative() mechanism은 다른 architecture에서도 사용할 수 있으리라고 생각되지만
+현재는 x86의 memory barrier 관련 부분에만 사용되고 있다.
+
+
+=== 참고 ===
+ * <a target="_blank" href="http://lwn.net/Articles/29599/">http://lwn.net/Articles/29599/</a>
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>
+</div>
+

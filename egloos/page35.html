@@ -1,0 +1,612 @@
+<html>
+<head>	<meta http-equiv='pragma' content='no-cache' />
+	<meta http-equiv='cache-control' content='no-cache' />
+	<meta http-equiv='Content-type' content='text/html; charset=utf-8' />
+	<meta name="author" content="namhyung" />
+	<meta name="keywords" content="F/OSS study" />
+	<meta http-equiv="X-XRDS-Location" content="http://namhyung.myid.net/xrds" />
+	<link rel="openid.server" href="http://www.myid.net/server" />
+	<link rel="openid.delegate" href="http://namhyung.myid.net" />
+	<link rel="shortcut icon" href="http://md.egloos.com/img/favicon.ico" />
+	<link rel="pingback" href="https://rpc.egloos.com/rpc1" />
+	<link rel="alternate" type="application/rss+xml" title="F/OSS study" href="http://rss.egloos.com/blog/studyfoss" />
+	<title>F/OSS study</title>
+	<script type="text/javascript" src="http://md.egloos.com/js/ap.js?ver=1.043"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/gd.js?ver=1.002"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/eg.js?ver=1.012"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/cr.js?ver=1.002"></script>
+    <script type="text/javascript" src="http://md.egloos.com/js/page/ins.js?ver=1.4"></script>
+		
+	<script type="text/javascript" src="http://md.egloos.com/js/lib/prototype_v1511.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.ImgModal.js?ver=1.004"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/page/blog/compatible.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/player.js"></script>
+	
+	<script type="text/javascript" src="http://md.egloos.com/js/lazyload.js"></script>
+	
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloos_template.css?ver=1.002" media="screen" />
+<style type="text/css">
+/* jiinny text-only skin
+ */
+
+
+BODY
+{
+	BACKGROUND : #FCFEFF;
+	MARGIN : 0PX;
+	PADDING : 0PX;
+}
+
+BODY,TD,DIV,LI
+{
+	FONT : 9PT/160% Tahoma, SANS-SERIF, Verdana, monaco,굴림,돋움,SANS-SERIF;
+	COLOR : #33455E;
+}
+
+A:LINK		{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:VISITED	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:ACTIVE	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:HOVER		{ COLOR: #C00000; TEXT-DECORATION: UNDERLINE; }
+
+/* filter의 shadow보다 품질을 좋게 하기 위해서*/
+DIV.HEADER
+{
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+	filter:progid:DXImageTransform.Microsoft.Blur;
+}
+
+#HEADER_SHADOW
+{
+	POSITION : relative;
+	top :-50px; right:0px;
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+}
+
+#HEADER_SHADOW A:LINK		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:VISITED		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:HOVER		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+
+DIV.HEADER A:LINK		{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:VISITED	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:HOVER	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+
+DIV.URL			{ FONT : 8PT/100% VERDANA,TAHOMA; }
+DIV.USERMENU
+{
+	POSITION:absolute:
+	left:0px;
+	top:0px;
+	COLOR : #FFFFFF;
+	FONT : bold 7pt;
+	TEXT-ALIGN : RIGHT;
+	MARGIN-BOTTOM : 50px;
+	BACKGROUND : #000060;
+	PADDING : 4px;
+	BORDER-BOTTOM : 2px #336699 SOLID;
+}
+DIV.USERMENU A:LINK {COLOR:#FFF}
+DIV.USERMENU A:VISITED {COLOR:#FFF}
+DIV.USERMENU A:HOVER {COLOR:#FFF}
+
+DIV.PROFILE
+{
+	WIDTH : 200PX;
+	PADDING : 0PX 0PX 10PX;
+	LINE-HEIGHT : 150%;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.MNTTL
+{
+	FONT:BOLD 10pt;
+	WIDTH : 200PX;
+	BORDER-BOTTOM :	1PX #888 DASHED;
+	PADDING : 2PX 0PX 0PX;
+	MARGIN : 25PX 0PX 10PX;
+	TEXT-ALIGN:CENTER;
+}
+
+DIV.MNBODY
+{
+	font:9pt/135%;
+	WIDTH :200PX;
+}
+
+DIV.POST { MARGIN-BOTTOM : 50PX;}
+
+DIV.POST_HEAD
+{
+	MARGIN-BOTTOM : 15PX;
+	PADDING-BOTTOM : 3PX;
+}
+
+DIV.POST_TTL
+{
+	TEXT-DECORATION: UNDERLINE;
+	FONT: BOLD 10pt Georgia ;
+	COLOR: #000;
+}
+
+DIV.POST_BODY
+{
+	FONT:10pt/150%;
+	WIDTH : 100%;
+	MARGIN-BOTTOM : 30PX;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.POST_BODY A:LINK
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION:none;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:VISITED
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:HOVER
+{
+	COLOR: #CF4040;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #CF4040
+}
+
+
+DIV.POST_TAIL {
+	FONT : 11PX/150% VERDANA, TAHOMA, 돋움;
+	MARGIN-TOP : 10PX;
+	TEXT-ALIGN : RIGHT;
+}
+
+DIV.POST_TAIL A:LINK {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:VISITED {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:HOVER {COLOR: #006699; TEXT-DECORATION: NONE; border-bottom:1px dotted #cc0000}
+
+DIV.COMMENT
+{
+	BORDER : 1PX #D3D3D3 SOLID;
+	BACKGROUND : #F7F7F7;
+	PADDING : 15PX;
+	MARGIN : 20PX 0PX;
+}
+
+DIV.COMMENT_BODY
+{
+	MARGIN-BOTTOM : 20PX;
+}
+
+DIV.COMMENT_TAIL
+{
+	MARGIN : 8PX 0PX 5PX;
+	FONT : 8PT/150% VERDANA, TAHOMA, 돋움;
+	COLOR : #777;
+}
+
+DIV.COMMENT_INPUT
+{
+	MARGIN-TOP : 20PX;
+	BORDER-TOP : 1PX #AAA DOTTED;
+	PADDING-TOP : 20PX;
+}
+
+DIV.COMMENT_LINE
+{
+	BORDER-TOP : 1PX #AAA DOTTED;
+	MARGIN : 10PX 0PX 15PX;
+}
+DIV.POST_BODY IMG
+{
+	filter:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	border:1px #000 solid;
+}
+
+DIV.VERSION
+{
+  font-weight: bold;
+  color: white;
+  background: #525d76;
+  border: 1px solid silver;
+#  margin: 0.5em 10% 0.5em 1em;
+  padding: 0.5em;
+}
+
+DIV.SOURCE
+{
+  font-family: monospace, Courier New, Seoul;
+#  margin: 0.5em 10% 0.5em 1em;
+  margin: 1em;
+  color: navy;
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+BLOCKQUOTE
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD dotted;
+	padding:5px;
+	color:#000;
+	margin:20px;
+}
+
+/* begin style of emphasis */
+.BOX1
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#00FF00;
+	background:#000;
+	margin:20px;
+}
+
+.BOX2
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#FFC000;
+	background:#000;
+	margin:20px;
+}
+
+.EM1
+{
+	background : #FFFF80;
+}
+
+.EM2
+{
+	background : #F0C0FF;
+}
+/* end style of emphasis */
+
+#RIGHTMAIN{ POSITION: ABSOLUTE; RIGHT:300px; LEFT:40px;}
+
+#LEFTSIDE
+{
+	POSITION: ABSOLUTE;
+	TOP:60PX;
+	RIGHT: 20PX;
+	FONT: 9PT;
+	WIDTH:200PX;
+	BORDER-LEFT: 2PX #BCBDC4 DASHED;
+	PADDING: 20PX;
+}
+
+#LEFTSHOW
+{
+	TOP:60PX;
+	RIGHT: 0PX;
+	FONT: 7PT/150%;
+	WIDTH:7px;
+	HEIGHT:200px;
+	BACKGROUND:#DDDDDD;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	BORDER-TOP: 3PX #7598A3 SOLID;
+	BORDER-LEFT: 2PX #7598A3 DASHED;
+	BORDER-BOTTOM: 3PX #7598A3 SOLID;
+}
+
+#LEFTHIDE
+{
+	TOP:63PX;
+	RIGHT: 23PX;
+	FONT: 7PT/150%;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	WIDTH:18px;
+	HEIGHT:18px;
+	TEXT-ALIGN:CENTER;
+}
+#BOTTOMBANNER
+{
+	TEXT-ALIGN=CENTER;
+	WIDTH=100%;
+}
+
+IMG.IMG_DECO
+{
+	TEXT-ALIGN:CENTER;BORDER:1px #000 SOLID;
+	filter:progid:DXImageTransform.Microsoft.DropShadow(color=#AAAAAA,offX=3, offY=3)
+}
+
+#LOGO
+{
+	WIDTH=200;
+	TEXT-ALIGN=CENTER;
+	FILTER:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	progid:DXImageTransform.Microsoft.Glow(Color=#AAAAAA, strength=5)
+}
+
+/* 여기서 부터는 시스템에관한 클래스 이므로 변경하지 않으시는 것이 좋습니다. */
+
+DIV.TRACK_TOP { LINE-HEIGHT : 170%; }
+DIV.ARCHIVE_HEAD { FONT-WEIGHT : BOLD; MARGIN-BOTTOM : 10PX; }
+DIV.ARCHIVE_BODY { MARGIN : 20PX 0PX; LINE-HEIGHT : 160%; PADDING-BOTTOM : 100PX; }
+
+IMG.IMAGE_TOP	{ MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_LEFT	{ MARGIN-RIGHT : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_MID	{ MARGIN-TOP : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.BOOKMK		{ MARGIN : 10PX; BORDER : 0PX; }
+IMG.USERMENU	{ MARGIN-LEFT : 8PX; }
+IMG.LOGO
+{
+BORDER: 1PX #000 SOLID;
+}
+
+DIV.BANNER	{ MARGIN-TOP : 30PX; }
+
+.SMALL		{ FONT-SIZE : 11PX; }
+.DATE		{ FONT : BOLD 8PT/150% VERDANA, TAHOMA, 돋움; }
+.TIME		{ FONT : 8PT/150% VERDANA, TAHOMA, 돋움; TEXT-ALIGN : LEFT; }
+.AUTHOR		{ FONT : BOLD 9PT; }
+.TXTFLD		{ FONT-SIZE:9PT;COLOR:#000; BORDER:1PX SOLID #666678; BACKGROUND:#FFF; }
+
+
+
+/* 여기서 부터는 달력 및 XML에 관련된 클래스입니다. */
+
+
+DIV.CAL_TOP { }
+DIV.CAL { MARGIN : 20PX 0PX 20PX; WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_HEAD { WIDTH : 150PX; FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; PADDING : 4PX 0PX; MARGIN-BOTTOM : 10PX;}
+DIV.CAL_BODY { WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_BOTTOM { }
+
+.CAL
+{
+	FONT : 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+}
+
+.CAL_DAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SUN
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #D36654;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SAT
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #3572A1;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_TODAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	BACKGROUND : #E3E3E3;
+	COLOR : #3D5586;
+	TEXT-ALIGN : CENTER;
+	BORDER : 1px #AAA SOLID;
+}
+
+.CAL_TR
+{
+	BACKGROUND:#EFEFEF;
+}
+
+DIV.XML { FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; }
+   div.memobody {
+       width : 200px;
+       overflow : hidden;
+       }
+   </style>
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloo_navibar.css?ver=1.2" media="screen" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/popup.css?ver=2.00" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/button.css" />
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.Center.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/page/blog/Modal.BookmarkDlg.js?ver=1.002"></script>
+<script type="text/javascript">
+//<![CDATA[
+Event.observe(window, 'load', function() {
+    new Modal.BookmarkDlg('egloo_bookmark', {overlay: true,
+                'groupURL'     : "/exec/egloo_bookmark_group.php",
+                'remoteURL'    : "/exec/egloo_insbookmark_exec.php"});
+    if(''==''){
+	    	copy_contents('studyfoss.egloos.com','namhyung','0');
+    }
+});
+//]]>
+</script></head>
+<body>
+<iframe name="cmtviewfrm" id="cmtviewfrm" src="about:blank" width="0" height="0" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" style="display:block;border:0px;"></iframe>
+<DIV CLASS=USERMENU>  
+<a href="http://www.egloos.com">Egloos</a> | <a href="http://sec.egloos.com/login.php?returnurl=http%3A%2F%2Fstudyfoss.egloos.com%2Fpage%2F35">Log-in</a> </DIV>
+
+<DIV ID=RIGHTMAIN>
+<DIV CLASS=HEADER><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<DIV ID=HEADER_SHADOW><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<!--		<DIV CLASS=URL><a href="http://studyfoss.egloos.com" name="egloo_url">studyfoss.egloos.com</a></DIV>-->
+		<!-- egloos content start -->
+<div class='hentry'><span class='copyright_entry' style='display:none;' title='[Linux] VFS scalability - dcache@@**@@http://studyfoss.egloos.com/5469672'></span><DIV CLASS=POST>
+	<DIV CLASS=POST_HEAD>
+	<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=100%>
+	<TR><TD WIDTH=80%><DIV CLASS=POST_TTL><img src=http://md.egloos.com/img/vl/ico_star_o.gif> <a name="5469672" title="[Linux] VFS scalability - dcache">[Linux] VFS scalability - dcache</a></DIV></TD>
+		<TD WIDTH=20% ALIGN=RIGHT></TD></TR>
+	</TABLE>
+	</DIV>
+	<DIV CLASS=POST_BODY>
+	<div class="version">Linux: 2.6.38-rc1</div><br/><br/>드디어 2.6.38 merge window에 Nick Piggin님의 vfs-scale series가 포함되었다.<br/>아직 inode_lock에 대한 이슈가 남아있긴 하지만 이 부분은 아직 LKML에서도 합의가 이루어지지 않았고<br/>이번에 추가된 dcache_lock에 대한 작업 만으로도 상당한 성능 향상을 이루어 낼 수 있으리라 생각된다.<br/>아직 많이 부족하지만 마침 vfs 코드를 살펴보던 참이니 아는 데 까지만이라도 정리할 겸 글로 남겨보도록 한다.<br/><br/>dcache는 directory-entry (= dentry)의 cache를 말하는 것이다.<br/>dentry는 기본적으로 디렉터리 내의 요소들, 즉 파일 (및 하위 디렉터리의) 이름을 나타내는 것이고<br/>(이름 외의 파일에 대한 정보는 inode 상에 저장된다. 물론 dentry에는 주어진 이름을 통해<br/>해당하는 inode를 알아낼 수 있도록 inode 번호를 함께 저장한다.)<br/>이러한 정보는 당연히 파일 시스템 상의 디스크 블록에 저장되어 있게 되지만<br/>성능 향상을 위해 이를 메모리에 저장해 두는 것이 바로 dcache가 된다.<br/><br/>dcache는 부모 dentry와 파일 이름을 키로 하는 hash table로 구현되어 있으며<br/>시스템의 가용 메모리 크기에 따라 동적으로 크기를 조정하기 위해 LRU 리스트를 별도로 유지한다.<br/><br/>따라서 dcache는 이름을 통해 파일에 접근하는 (보통 path lookup 혹은 path walk라고 한다) 시스템 콜<br/>(즉, open, access, stat, chmod, ...)의 성능에 많은 영향을 미치게 된다.<br/>여기서는 가장 대표적인 open의 경우를 살펴볼 것이다.<br/><br/>이번에 수정된 내용을 이해하기 위해서는 먼저 이전에 사용하던 동작 방식과 그에 따른 문제점을 살펴보아야 한다.<br/>path lookup의 기본은 주어진 경로를 각 dentry로 분리한 후 경로의 시작 위치에서 부터 차례로<br/>각각의 dentry를 dcache에 찾고 (만약 dcache에 없다면 부모 inode-&gt;i_op-&gt;lookup() 함수를 통해 디스크에 접근한다)<br/>그로부터 inode를 얻어서 적절한 권한이 있는지, 심볼릭 링크인지, 마운트 포인트 인지를 검사하고<br/>그에 대한 적절한 처리를 최종 경로에 이를 때까지 반복하는 것이다.<br/><br/>예를 들어 C 라이브러리인 /lib/libc.so.6 파일에 접근하는 경우<br/>이는 각각 "/", "libc", "libc.so.6"으로 나누어지게 되고<br/>절대 경로이므로 current-&gt;fs-&gt;root.dentry가 가리키는 dentry에서 path lookup을 시작하게 된다.<br/><br/>하지만 path lookup은 커널의 다른 활동에 의해 영향을 받게될 수 있는데<br/>간단한 예로 시스템의 메모리가 부족하여 dcache 내의 dentry 들을 해제하거나<br/>파일/디렉터리 추가/삭제로 인해 dentry가 추가/삭제되거나<br/>rename/move를 통해 dentry의 내용이 변경되는 경우 등을 꼽을 수 있겠다.<br/><br/>dcache는 RCU를 통해 관리하기 때문에 reader의 입장에서는 rcu_read_lock의 보호 아래에서<br/>dentry 들이 제거되리라는 걱정없이 dcache에 접근할 수 있다.<br/>하지만 이는 한 번의 dcache 접근에만 해당하는 얘기로 path lookup 시에는 경우에 따라 수 많은<br/>dentry에 접근할 수도 있으며 특히나 하위 dentry를 dcache에서 찾지 못한 경우에는 디스크 접근이 필요하며<br/>따라서 이 시간 동안 (이미 접근해 둔) 경로 내부의 dentry가 해제되지 않도록 보장하기 위해<br/>얻어진 각각의 dentry에 대해서 ref-count를 증가시켜야 한다.<br/><br/>이러한 기존의 방식을 이제는 ref-walk라고 부른다.<br/>이름이 말하는 바와 같이 ref-walk는 경로 내의 각 dentry의 ref-count를 변경하는데<br/>바로 이 부분이 성능 향상의 걸림돌이 되는 부분 중의 하나이다.<br/>(다른 부분 중 하나는 대부분의 dcache 연산들이 dcache_lock이라는 coarse-grained lock을 이용한다는 점이다.)<br/>왜냐하면 ref-count를 갱신하기 위해 dentry의 내용을 변경하면 다른 CPU의 cache line이 invalidate되고<br/>따라서 path lookup이 매우 빈번하게 발생되는 환경에서 공통적으로 접근하게 되는 dentry의 접근 시간에<br/>심각한 영향을 주게 되기 때문이다. 예를 들어 C 라이브러리는 모든 프로그램이 실행될 때 마다 참조된다.<br/><br/>바로 이점을 개선한 것이 이번 vfs/dcache-scaling series의 핵심이다.<br/>이는 lookup path에서 dentry 객체의 어떤 필드도 변경하지 않기 때문에 (store-free) 위와 같은 문제를 극복할 수 있다.<br/>하지만 당연히 모든 상황에 적용할 수 있는 방법은 아니고 fast-path에서의 성능 향상을 노린 것이다.<br/>이를 위해 RCU를 lookup 과정 전체에 적용하므로 이를 RCU-walk라고 부른다.<br/><br/>좀 더 자세히 말하면 RCU-walk는 접근하려는 모든 경로가 이미 dcache에 존재한다고 가정한다.<br/>따라서 이러한 경우 각 경로의 dcache 접근이 성공할 것이므로<br/>path lookup 과정에서 block되는 일 없이 짧은 시간 안에 종료될 것이다.<br/>(rcu_read_lock 구간 내에서 프로세스가 block되면 안 된다!)<br/>따라서 ref-walk에서처럼 각 단계 별로 dcache에 접근할 때 마다 rcu_read_lock/unlock을 수행하는 대신<br/>시작 단계에서 rcu_read_lock을 걸고 마지막 단계에서 rcu_read_unlock을 수행하면<br/>중간의 모든 dentry가 해지되지 않을 것이라고 보장할 수 있게 되며<br/>따라서 ref-count에 의존할 필요가 없게 되는 것이다.<br/><br/>물론 path lookup 도중 dcache에 존재하지 않는 dentry를 만나면 더 이상 RCU-walk를 수행할 수 없다.<br/>이러한 경우 현재까지 찾은 최종 dentry에 대해서만 ref-count를 증가시키고<br/>ref-walk로 전환되어 path lookup을 계속 진행하게 된다.<br/><br/>동일한 내용이 vfsmount 객체에도 적용된다.<br/>lookup 도중 umount가 발생하는 것을 방지하기 위해 ref-count가 필요하게 되는데<br/>이도 path lookup의 성능에 영향을 미칠 수 있으므로 동일한 방식으로 이를 방지하는데<br/>vfsmount 객체는 RCU가 아닌 brlock (big reader lock)이라는 per-CPU lock을 통해 보호한다.<br/><br/>가장 미묘한 부분은 path lookup 도중 rename이 발생하는 경우인데<br/>비록 dentry가 RCU를 통해 관리되고 있긴 하지만<br/>이 경우에는 일반적인 RCU의 개념과 달리 기존의 객체를 새로운 copy로 update 하는 것이 아니라<br/>기존의 객체 내용 (여기서는 dentry의 이름) 자체를 바꿔버리게 된다.<br/>(아마도, rename 연산은 dentry가 참조되고 있는 상황에서도 수행될 수 있기 때문에<br/>단순히 기존의 객체를 제거하고 새로운 객체를 삽입하는 것이 불가능하기 때문이라 생각된다.)<br/><br/>path lookup 도중 rename으로부터 보호하려면 각 dentry의 이름을 비교하거나 변경할 때 마다<br/>해당 dentry의 d_lock을 얻어야 하는데 이는 위에서 살펴본 ref-count의 경우와 동일한 문제를 유발시킨다.<br/>따라서 spin lock 대신 seqlock/count를 도입하여 path lookup 시의 데이터 변경을 방지하였다.<br/><br/>또한 RCU-walk 외에도 dcache_lock을 fine-grained lock으로 분리하는 작업도 추가되었다.<br/>dcache (hashtable)자체를 보호하기 위해서 각 bucket 별로 bit spin lock을 사용하고<br/>LRU 리스트의 경우 별도의 dcache_lru_lock이 도입되었으며<br/>dentry 내부의 자료 구조를 보호하는 경우에는 내부의 d_lock 필드를 이용하게 되었다.<br/><br/>이제 실제로 open 시스템을 수행하는 경우에 어떤 일이 벌어지는지 살펴보기로 한다.<br/>open 시스템 콜의 서비스 루틴인 sys_open은 먼저 주어진 플래그를 적절히 설정하고<br/>사용하지 않은 fd 및 file 구조체를 할당한 후 do_filp_open() 함수를 거쳐 do_path_lookup()을 호출한다.<br/><br/>do_path_lookup은 먼저 RCU-walk를 시도하고 실패한 경우 다시 ref-walk를 수행한다.<br/>여기서는 RCU-walk의 경우를 중점적으로 살펴볼 것이다.<br/><br/>fs/namei.c:<div class="source">static int do_path_lookup(int dfd, const char *name,<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;unsigned int flags, struct nameidata *nd)<br/>{<br/>&nbsp;&nbsp; &nbsp;int retval;<br/><br/>&nbsp;&nbsp; &nbsp;retval = path_init_rcu(dfd, name, flags, nd);<br/>&nbsp;&nbsp; &nbsp;if (unlikely(retval))<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;return retval;<br/>&nbsp;&nbsp; &nbsp;retval = path_walk_rcu(name, nd);<br/>&nbsp;&nbsp; &nbsp;path_finish_rcu(nd);<br/>&nbsp;&nbsp; &nbsp;if (nd-&gt;root.mnt) {<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;path_put(&amp;nd-&gt;root);<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;nd-&gt;root.mnt = NULL;<br/>&nbsp;&nbsp; &nbsp;}<br/><br/>&nbsp;&nbsp; &nbsp;if (unlikely(retval == -ECHILD || retval == -ESTALE)) {<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;/* slower, locked walk */<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;if (retval == -ESTALE)<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;flags |= LOOKUP_REVAL;<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;retval = path_init(dfd, name, flags, nd);<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;if (unlikely(retval))<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;return retval;<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;retval = path_walk(name, nd);<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;if (nd-&gt;root.mnt) {<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;path_put(&amp;nd-&gt;root);<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;nd-&gt;root.mnt = NULL;<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;}<br/>&nbsp;&nbsp; &nbsp;}<br/><br/>&nbsp;&nbsp; &nbsp;...<br/>}</div><br/>path_init_rcu() 함수는 path lookup 과정에서 사용될 nameidata 구조체의 필드를 적절히 초기화하는데<br/>먼저 flags에 LOOKUP_RCU를 추가하여 RCU-walk를 수행 중임을 표시하고<br/>위에서 설명한 대로 rcu_read_lock() 과 br_read_lock(vfsmount_lock)을 호출한 뒤<br/>주어진 name이 절대 경로인지 상대 경로인지 아니면 openat() 류의 시스템 콜을 통한 경우인지에 따라<br/>적절한 시작 경로에 대한 path 구조체를 초기화하고 해당 dentry에 대한 seqcount 값을 읽어둔다.<br/><br/>다음으로 path_walk_rcu() 함수는 link_path_walk() 함수를 호출하는데<br/>이 함수는 loop를 돌며 주어진 name에 해당하는 경로가 모두 탐색될 때까지 다음을 수행한다:<br/><ul><li>현재 디렉터리가 실행 권한를 가지는지를 먼저 검사한다. (여기서 디렉터리의 실행 권한은 디렉터리 내의 dentry에 접근할 수 있는지 여부를 나타낸다.)</li><li>주어진 name을 '/' 문자로 구분하여 현재 단계의 경로명을 추출한 뒤 hash 값을 계산한다.</li><li>현재 경로명이 "."이면 무시하고 ".."이면 follow_dotdot() 함수를 호출하여 부모 디렉터리로 이동한다.</li><li>그렇지 않으면 do_lookup() 함수를 호출하여 해당 dentry를 탐색한다.</li><li>만약 탐색한 dentry가 symbolic link인 경우라면 do_follow_link()를 호출하여 실제 dentry를 탐색한다.</li><li>그렇지 않으면 현재 경로와 찾아낸 inode를 기억해 둔다.</li></ul><br/>여기서는 do_lookup() 함수에 대해서만 간략히 살펴볼 것이다.<br/><br/><div class="source">static int do_lookup(struct nameidata *nd, struct qstr *name,<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;struct path *path, struct inode **inode)<br/>{<br/>&nbsp;&nbsp; &nbsp;...<br/><br/>&nbsp;&nbsp; &nbsp;if (nd-&gt;flags &amp; LOOKUP_RCU) {<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;unsigned seq;<br/><br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;*inode = nd-&gt;inode;<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;dentry = __d_lookup_rcu(parent, name, &amp;seq, inode);<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;if (!dentry) {<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;if (nameidata_drop_rcu(nd))<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;return -ECHILD;<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;goto need_lookup;<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;}<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;/* Memory barrier in read_seqcount_begin of child is enough */<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;if (__read_seqcount_retry(&amp;parent-&gt;d_seq, nd-&gt;seq))<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;return -ECHILD;<br/><br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;nd-&gt;seq = seq;<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;path-&gt;mnt = mnt;<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;path-&gt;dentry = dentry;<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;if (likely(__follow_mount_rcu(nd, path, inode, false)))<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;return 0;<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;if (nameidata_drop_rcu(nd))<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;return -ECHILD;<br/>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;/* fallthru */<br/>&nbsp;&nbsp; &nbsp;}<br/><br/>&nbsp;&nbsp; &nbsp;...<br/>}</div><br/>이 함수는 RCU-walk의 경우 먼저 __d_lookup_rcu() 함수를 호출하여<br/>dcache 내에 동일한 부모 dentry와 일치하는 이름을 가진 dentry 객체가 있는지 검사한다.<br/>이 과정에서 rename 연산이 발생하지 않았다는 것을 확인하기 위해 seq 값을 읽어서 확인해 둘 뿐<br/>아무런 lock이나 ref-count 연산이 발생하지 않는다는 것을 알 수 있다.<br/><br/>적절한 dentry를 찾았다면 그 사이 부모 dentry가 변경되지 않았는지 확인하기 위해 seq 값을 검사하고<br/>(__read_seqcount_retry) 올바른 값이라면 이를 저장해 둔다.<br/><br/>마지막으로 __follow_mount_rcu() 함수를 호출하는데<br/>이는 주어진 dentry가 mount point라면 가장 상위의 vfsmount 객체를 찾아준다.<br/>이 때 vfsmount 객체의 hashtable을 검색하기 위해 __lookup_mnt() 함수를 이용하는데<br/>여기서도 마찬가지로 lock이나 ref-count 연산이 발생하지 않는다.<br/><br/>하지만 이러한 연산들이 도중에 실패하게 된다면 위에서 보듯이 nameidata_drop_rcu() 함수가 호출되며<br/>이는 현재의 parent에 해당하는 dentry와 이에 대한 vfsmount 객체의 ref-count를 증가시키고<br/>rcu_read_unlock()과 br_read_unlock(vfsmount_lock)을 호출한 뒤 LOOKUP_RCU 플래그를 지운다.<br/><br/>단순히 __d_lookup_rcu() 함수에서 실패한 것이라면 해당 dentry가 dcache 내에 존재하지 않는 것이므로<br/>디스크 접근을 통해 읽어온 후 현재 위치에서부터 ref-walk를 진행해도 되지만<br/>seqcount가 일치하지 않는다면 rename이 발생한 것이므로 처음부터 path lookup을 다시 시도하게 된다. (-ECHILD)<br/><br/>ref-walk는 path_init() 함수에서 시작하는데 이 함수는 nd 구조체를 초기화하고<br/>주어진 경로에 따라 적절히 path 구조체를 초기화하고 dentry와 vfsmount 객체의 ref-count를 증가시킨다.<br/><br/>path_walk() 함수는 RCU-walk와 마찬가지로 link_path_walk()를 거쳐 do_lookup() 함수를 호출한다.<br/>하지만 이 경우는 __d_lookup_rcu() 대신 __d_lookup()을<br/>__lookup_mnt() 대신 lookup_mnt() 함수를 호출한다는 차이가 있다.<br/>두 경우 공통적으로 hashtable에 접근하기 위해 lock을 얻고, 원하는 객체를 찾은 후에는 ref-count를 증가시킨다.<br/><br/>이렇게 path lookup이 종료되면 해당 정보를 file 구조체에 저장하고<br/>필요한 접근 권한을 확인한 후에 경우에 따라 truncate를 수행한 후<br/>마지막으로 현재 file 객체 정보를 fdtable에 저장한 뒤 해당 fd 값을 사용자 공간으로 반환한다.<br/><br/><br/>=== 참고 문헌 ===<br/><ul><li><a target="_blank" href="http://lwn.net/Articles/419826/">http://lwn.net/Articles/419826/</a></li><li><a target="_blank" href="http://lwn.net/Articles/419811/">http://lwn.net/Articles/419811/</a></li><li><a target="_blank" href="http://linuxplumbersconf.org/2009/slides/Nick-Piggin-presentation.pdf">http://linuxplumbersconf.org/2009/slides/Nick-Piggin-presentation.pdf</a></li></ul><br/><div style="clear:both; _display: none;"></div><div class="posttaglist"><a href="/tag/linux" rel="tag">linux</a>,&nbsp;<a href="/tag/kernel" rel="tag">kernel</a>,&nbsp;<a href="/tag/filesystem" rel="tag">filesystem</a></div>
+       <!--
+       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+		    xmlns:dc="http://purl.org/dc/elements/1.1/"
+		    xmlns:trackback="http://madskills.com/public/xml/rss/module/trackback/">
+       <rdf:Description
+	        rdf:about="http://studyfoss.egloos.com/5469672"
+	        dc:identifier="http://studyfoss.egloos.com/5469672"
+	        dc:title="[Linux] VFS scalability - dcache"
+	        trackback:ping="http://studyfoss.egloos.com/tb/5469672"/>
+       </rdf:RDF>
+       -->
+
+	</DIV>
+	<DIV CLASS=POST_TAIL ALIGN=RIGHT><span class="TIME"> <a href="/5469672" class="permalink" title="[Linux] VFS scalability - dcache" rel="bookmark">#</a> by <span class="AUTHOR">namhyung</span> | <a href="/5469672" class="time"  title="[Linux] VFS scalability - dcache" rel="bookmark">2011/01/19 22:16</a></span> | <a href="/category/Kernel" class="category">Kernel</a> | <span class="linkback"><a href="#trb" onclick="trbview('5469672','c0098335','0'); return false;" class="tail_trb">트랙백<span id="trbcnt5469672"></span></a></span> | <span class="linkback"><a href="#cmt" onclick="cmtview('5469672','c0098335','0'); return false;" class="tail_cmt">덧글(<span id="cmtcnt5469672">0</span>)</a></span></DIV>
+		<span id="cmt5469672"></span>
+</DIV>
+</div><!-- egloos content end -->
+<span style="float: left"><a href="/page/34">◀ 이전 페이지</a></a></span>
+<span style="float: right"><a href="/page/36">다음 페이지 ▶</a></span>
+<BR><BR>
+<DIV ID='BOTTOMBANNER' style="display:none;">	<div class="BANNER"><a href="http://www.egloos.com"><img src="http://md.egloos.com/img/edt/banner_ffffff_1.gif" width="150" height="50" border="0" alt="Powered by egloos" /></a></div>
+<BR><BR></DIV>
+</DIV>
+<DIV ID=LEFTSIDE style="display:block;">
+	<DIV ID=LOGO></DIV>
+	     <script language="javascript" type="text/javascript">
+     <!--
+     var s_calendar = new Array();
+     s_calendar = [];
+	  calendar("","");
+     -->
+     </script>
+
+	
+<DIV CLASS=MNTTL>카테고리</DIV>
+<DIV CLASS=MNBODY>
+<a href="/category/General">General</a><br/><a href="/category/Application">Application</a><br/><a href="/category/System">System</a><br/><a href="/category/Kernel">Kernel</a><br/><a href="/category/Book">Book</a><br/><a href="/category/Tips">Tips</a><br/>
+</DIV>
+
+<DIV CLASS=MNTTL>태그</DIV>
+<DIV CLASS=MNBODY><a href="/tag/bash" class="tlevel2"> bash</a>
+<a href="/tag/synchronization" class="tlevel3"> synchronization</a>
+<a href="/tag/computer-architecture" class="tlevel3"> computer-architecture</a>
+<a href="/tag/linux" class="tlevel3"> linux</a>
+<a href="/tag/build" class="tlevel3"> build</a>
+<a href="/tag/SMP" class="tlevel2"> SMP</a>
+<a href="/tag/compiler" class="tlevel3"> compiler</a>
+<a href="/tag/gcc" class="tlevel3"> gcc</a>
+<a href="/tag/algorithm" class="tlevel3"> algorithm</a>
+<a href="/tag/C" class="tlevel3"> C</a>
+<a href="/tag/glibc" class="tlevel3"> glibc</a>
+<a href="/tag/x86" class="tlevel3"> x86</a>
+<a href="/tag/kernel" class="tlevel3"> kernel</a>
+<a href="/tag/scm" class="tlevel1"> scm</a>
+<a href="/tag/memory" class="tlevel3"> memory</a>
+<a href="/tag/awk" class="tlevel1"> awk</a>
+<a href="/tag/vcs" class="tlevel1"> vcs</a>
+<a href="/tag/CARM" class="tlevel1"> CARM</a>
+<a href="/tag/block-layer" class="tlevel2"> block-layer</a>
+<a href="/tag/script" class="tlevel1"> script</a>
+<a href="/tag/CAaQA3" class="tlevel3"> CAaQA3</a>
+<a href="/tag/blktrace" class="tlevel1"> blktrace</a>
+<a href="/tag/emacs" class="tlevel3"> emacs</a>
+<a href="/tag/binutils" class="tlevel2"> binutils</a>
+<a href="/tag/elf" class="tlevel3"> elf</a>
+<a href="/tag/git" class="tlevel2"> git</a>
+<a href="/tag/perf" class="tlevel1"> perf</a>
+<a href="/tag/patch" class="tlevel3"> patch</a>
+<a href="/tag/documentation" class="tlevel1"> documentation</a>
+<a href="/tag/sed" class="tlevel1"> sed</a>
+<div style="text-align:right;margin-top:5px;"><a href="/tag">전체보기</a></div>
+</DIV>
+
+<DIV CLASS=MNTTL>이글루 파인더</DIV>
+<DIV CLASS=MNBODY><form id="finder" style="margin:0;" name="finder" method="post" action="http://studyfoss.egloos.com/" onsubmit="return go_search(document.finder);"><input type="text" id="srch_kwd" name="srch_kwd" size="10" style="vertical-align: middle;width: 100px;font-size:12px;" maxlength="30"/><input type="image" style="vertical-align: middle;margin-left:3px;" src="http://md.egloos.com/img/fnd/searchb.gif" /><p style="margin:3px 0 0 13px;text-align:left"><a href="http://www.zum.com" target="_blank"><img src="http://md.egloos.com/img/search/txt_power.png"></a></p></form>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 덧글</DIV>
+<DIV CLASS=MNBODY>
+<style type="text/css"> 
+.reply_write {margin:10px 0;}
+.reply_write fieldset {border:none;margin:0;padding:0;}
+.reply_write legend {display:none;}
+.reply_write .comment_info {width:95%;}
+.reply_write .comment_info span.comment_name,
+.reply_write .comment_info span.comment_passwd,
+.reply_write .comment_info span.comment_blog {display:block;padding:0 0 2px 0;clear:both;}
+.reply_write .comment_info span.comment_blog {float:left;}
+.reply_write .comment_info span.comment_name label,
+.reply_write .comment_info span.comment_passwd label,
+.reply_write .comment_info span.comment_blog label {display:block;float:left;width:55px;}
+.reply_write .comment_info input {padding:1px 0 0 1px;vertical-align:middle;}
+.reply_write .comment_info input.name {width:100px;}
+.reply_write .comment_info input.passwd {width:60px;}
+.reply_write .comment_info input.blog {width:200px;font-family:tahoma,sans-serif;font-size:11px;}
+.reply_write .comment_info span.comment_now {display:none;}
+.reply_write .comment_info span.comment_login {float:right;}
+.reply_write textarea {margin:2px 0;padding:0;width:95%;height:100px;margin-left:0 !important;font:normal 12px '돋움',sans-serif;}
+.reply_write .comment_btn {width:95%;height:23px;position:relative;*position:static;*text-align:right;}
+.reply_write .comment_btn .comment_submit {position:absolute;top:0;right:0;*position:static;*text-align:right;}
+</style>     
+
+<a href="http://studyfoss.egloos.com/5129119#12438993">이렇게 좋은 글이 한글로 있다는 것..</a><br/><span class="SMALL">by 프로그라머 at 02/17</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5512112#12419757">흐름을 이해할 수 있는글이라 좋..</a><br/><span class="SMALL">by morenice at 11/26</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#12401092">좋은 글 감사합니다~퍼갑니다~</a><br/><span class="SMALL">by 김석범 at 09/10</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 트랙백</DIV>
+<DIV CLASS=MNBODY>
+<a href="http://studyfoss.egloos.com/5350643#515727">이맥스의 파일 변수 사용하기</a><br/><span class="SMALL">by 개똥이야기</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#512679">asmlinkage modifier in Linux..</a><br/><span class="SMALL">by novum의 공유창고</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5409933#511713">구조체의 패킹에 대한 이야기</a><br/><span class="SMALL">by 김재호의 디지털보단 아날로그</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+
+
+
+
+
+
+
+<DIV style="TEXT-ALIGN:center; width:200px;">
+<div class="XML"><a href="http://rss.egloos.com/blog/studyfoss" target="_new"><img src="http://md.egloos.com/img/skn/rss.gif" alt="rss" border="0" /></a><br /><br /> skin by <a href="http://jiinny.egloos.com">jiinny</a></div>
+<BR /><BR />
+<DIV ID=OHLOH><a href='https://www.ohloh.net/accounts/115130?ref=Detailed'>
+  <img alt='Ohloh profile for Namhyung Kim' height='35' src='https://www.ohloh.net/accounts/115130/widgets/account_detailed.gif' width='191' border='0' />
+</a></DIV>
+</DIV>
+</DIV>
+<DIV ID='LEFTSHOW'  onclick=document.all['RIGHTMAIN'].style.right='300px';document.all['BOTTOMBANNER'].style.display='none';document.all['LEFTSIDE'].style.display='block';document.all['LEFTSHOW'].style.display='none';document.all['LEFTHIDE'].style.display='block';  style='color:red;display:none;'>
+</DIV>
+
+<DIV id='LEFTHIDE' onclick=document.all['RIGHTMAIN'].style.right='20px';document.all['BOTTOMBANNER'].style.display='block';document.all['LEFTSIDE'].style.display='none';document.all['LEFTHIDE'].style.display='none';document.all['LEFTSHOW'].style.display='block';  style='color:red'>X</DIV><iframe src="http://www.egloos.com/estat/stat_logger.php?bid=c0098335&ref=&openflag=" style="width: 0px; height: 0px; border: 0px solid #fff;"></iframe>
+<img width="0" height="0" border="0" src="http://studyfoss.egloos.com/egloo_pds.php?eid=c0098335" alt="" />
+<form id="trackfrom" name="trackfrom" method="post" action="">
+<input type="hidden" name="url" value="" />
+<input type="hidden" name="title" value="" />
+<input type="hidden" name="trburl" value="" />
+</form>
+<div style="z-index:9901;top:764px;left:169px;display:none;" id="egloo_bookmark" class="popupWrap">
+    <div class="popupTitle">이글루링크 추가하기</div>
+    <dl class="popupBody">
+        <dt class="no-arrow" style="background:none;font-size:12px;text-align:center;">
+            <span id="egloo-bookmark-url" style="color:#0F71A1;"></span>
+            (<span id="egloo-bookmark-name"></span>)을(를)</dt>
+        <dd class="notice" style="margin:0;padding:0 0 0 8px;line-height:1.8em;color:#000;font-size:12px;text-align:center;">이글루링크로 추가하시겠습니까? 추가하시려면 그룹선택을 하세요.</dd>
+        <dd class="notice weak" style="margin:0;padding:0 0 0 8px;line-height:1.8em;font-size:11px;color:#666666;text-align:center;">(그룹선택 하지 않는 경우, 최상단 목록에 추가됩니다.)</dd>
+        <dd class="egloo-bookmark-group" style="margin:0;padding:10px 0 8px;line-height:1.8em;text-align:center;color:#333;font-size:12px;text-align:center;">그룹선택 :
+            <select name="groupID" id="egloo-bookmark-groupID" style="font-family:'돋움','dotum','Trebuchet MS',Sans-serif;margin-left:10px;"><option value="000">그룹선택없음</option></select></dd>
+        <dd class="buttons">
+            <input type="button" value="지금 확인" onfocus="blur();" onclick="Modal.insertBookmark(true);" class="button btn24 btn_bold"/>
+            <input type="button" value="나중에 확인" onfocus="blur();" onclick="Modal.insertBookmark(false);" class="button btn24 btn_weak"/>
+        </dd>
+        <dd class="close" onclick="Modal.close();"><img src="http://md.egloos.com/img/www/btn/button_popup_close.gif" alt="이글루링크 취소" title="이글루링크 취소" /></dd>
+    </dl>
+</div>
+</body>
+</html>

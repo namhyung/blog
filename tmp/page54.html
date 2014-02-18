@@ -1,0 +1,93 @@
+	
+<div class="version">
+Linux: 2.6.35
+</div>
+
+
+RELOC_HIDE() 매크로는 컴파일러의 최적화/오동작(?)을 방지하려는 목적으로 만들어진 것으로
+gcc의 경우 다음과 같이 정의되어 있다.
+
+include/linux/compiler-gcc.h:
+<div class="source">
+#define RELOC_HIDE(ptr, off)                    \
+  ({ unsigned long __ptr;                       \
+    __asm__ ("" : "=r"(__ptr) : "0"(ptr));      \
+    (typeof(ptr)) (__ptr + (off)); })
+</div>
+
+이러한 (요상하기 짝이 없는) 매크로의 의미는 사실 단순한데
+ptr 포인터에 off 오프셋을 더하여 리턴하는 것일 뿐이다.
+즉 ((unsigned long) ptr + off)과 동일한 계산을 하는 것이다.
+(물론 최종적으로 다시 원래의 포인터 타입으로 cast한다)
+
+그럼 이러한 작업이 왜 필요한 것일까?
+간단하게 말하면 (대부분의 경우) 필요없다!! (-_-;;)
+(사실 커널 소스 내에도 불필요하게 사용된 부분이 조금씩 보인다.)
+
+원래 RELOC_HIDE 매크로가 사용되는 상황은
+주어진 ptr을 통해 off 만큼 떨어진 데이터에 접근하는 경우인데
+사실 이 ptr 값이 실제로 메모리 상에 존재하는 데이터 (객체)에 대한 타입이 아니라
+(구현 상의 어떤 제약에 따른) 다른 타입의 포인터인 경우이다.
+
+일반적인 경우에는 ptr이 가리키는 해당 객체의 내부 영역에만 접근할 것이므로
+ptr이 어떠한 구조체에 대한 포인터이고 해당 구조체 내의 field 필드에 접근한다고 하면
+(너무나 당연하게도) 이러한 매크로가 필요없이 ptr-&gt;field와 같이 접근하면 된다.
+
+하지만 ptr이 가리키는 원래의 객체의 크기를 넘어가는 영역에 접근하기 위해서
+(type cast하여) 강제로 off 값을 더하게 되면 컴파일러가 잘못된 접근을 감지하고
+컴파일 시에 의도하지 않은 코드를 생성하게 될 가능성이 있다.
+
+C 표준에서는 포인터를 통해 지정된 크기를 넘어서 접근하는 경우는 undefined behavior로 명시하고 있다.
+실제로 PPC64 아키텍처에서 gcc 4.1 이전의 버전을 사용하는 경우 이러한 문제가 발생했다고 하는데
+이 경우 ptr 값을 unsigned long 타입으로 cast하더라도 원래의 포인터 정보가 남아있어서
+(copy propagation에 의해?) 동일한 문제가 발생한 것 같다.
+
+따라서 gcc에게 이러한 타입 정보를 완전히 숨기기 위해 중간의 inline asm 부분이 추가되었는데
+해당 코드는 단순히 (타입 정보를 무시하고) 다음의 C 코드와 동일하다.
+
+
+<div class="source">
+__ptr = ptr;
+</div>
+
+대신 이 부분은 gcc가 관여하지 않도록 assembly 루틴으로 생성되기 때문에
+gcc는 __ptr 값이 어디서 왔는지 전혀 알 수 없으며 따라서 이에 대한 어떠한 최적화(?)도 수행할 수 없다.
+
+RELOC_HIDE 매크로가 필요한 유일한(?) 경우는 per-CPU 메모리 영역에 접근할 때이다.
+per-CPU 영역은 kernel image 상에는 1 set의 데이터 만이 포함되어 있지만
+실행 시에 이를 CPU 수 만큼 복제하여 할당하기 때문에 원래의 크기를 넘어서는 접근이 발생한다.
+
+한 마디 추가하자면 RELOC_HIDE는 (이름에서 쉽게 연상할 수 있는 것과 달리)
+linker relocaiton과는 전혀 상관이 없다는 것을 알아두기 바란다.
+(이것 때문에 얼마나 고민+삽질했는지.. ;;)
+
+그냥 ptr을 off 만큼 이동시키는 것을 (이것 자체를 relocation이라고 생각하자)
+gcc에게 숨기는 (hide) 역할일 뿐이다.
+
+참고로 (나중에 알고는 충격을 받았지만;;) 이 매크로는 컴파일러에 종속적인 특성이므로
+gcc가 아닌 다른 컴파일러의 경우는 단순히 RELOC_HIDE 매크로가 다음과 같이 정의되어 있다.
+
+include/linux/compiler-intel.h:
+<div class="source">
+#define RELOC_HIDE(ptr, off)                    \
+  ({ unsigned long __ptr;                       \
+     __ptr = (unsigned long) (ptr);             \
+    (typeof(ptr)) (__ptr + (off)); })
+</div>
+
+
+=== 참조 문서 ===
+
+<ul>
+  <li><a target="_blank" href="http://lkml.org/lkml/2006/8/24/394">http://lkml.org/lkml/2006/8/24/394
+</a></li>
+</ul>
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>
+</div>
+

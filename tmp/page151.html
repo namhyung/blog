@@ -1,0 +1,66 @@
+	
+<div class="version">
+OS: 우분투 9.04
+Firefox: 3.0.10
+</div>
+
+
+
+근래에 데스크탑을 좀 꾸며보려고 이것저것 바꿔보던 차에
+Gtk 테마를 반전된 색상("뉴 웨이브")으로 선택했는데
+다른 것에는 문제가 없었으나 유독 Mozilla 계열의 프로그램들만
+메뉴 색상이 그대로 검게 나오는 문제가 있었다.
+
+인터넷 검색을 해보니 역시 문제가 있었던 모양이다.
+https://bugzilla.mozilla.org/show_bug.cgi?id=433885
+
+하지만 버그 리포트에 달린 설명에 따라
+userContent.css 파일을 수정해 보아도 문제는 그대로 재현되었고
+그나마 각 항목에 대한 reference 문서도 찾기가 힘들었다.
+
+결국 알아낸 것은 userContent.css가 아닌
+userChrome.css 파일을 수정해야 한다는 것!!
+
+홈 디렉터리의 .mozilla/firefox/&lt;profile&gt;/chrome 폴더에 있는
+userChrome-example.css 파일을 userChrome.css로 복사하고
+파일에 다음과 같은 부분을 추가하니 메뉴 항목의 색상이 변경되었다.
+(아, 당연히? Firefox를 재시작해야 한다!)
+
+
+<div class="source">
+menu {
+  color: #A8A8A8 !important;
+  font-weight: 700;
+  -moz-appearance: none !important;
+}
+</div>
+
+
+하지만 문제가 있었으니 이 색상은 메뉴가 선택되어도 변경이 되지 않는다는 것이다.
+여기에 대해서는 아직 확실한 해결책을 못 찾았기 때문에 어쩔 수 없이? 
+선택되나 그렇지 않으나 모두 적당히 보일만한 색상으로 color 값을 지정하였다.
+(뉴 웨이브 테마의 기본 색상은 #E5E5E5 이지만 #A8A8A8 정도로 변경)
+
+이왕 내친 김에 Thunderbird도 해보기로 했다..;;
+우선 .thunderbird 폴더를 못찾아서 한참 헤멨는데
+알고보니 .mozilla-thunderbird 라는 폴더가 따로 있더라.
+(그냥 firefox 옆에다 만들어주면 안되나..;;)
+
+어쨌든 .mozilla-thunderbird/&lt;profile&gt; 폴더에는 chrome 폴더가 아예 존재하지 않는데
+그냥 chrome 폴더를 만든 후에 firefox에 있는 userChrome.css 파일을
+복사해서 넣어주니 완료!
+
+
+<div style="text-align:center">
+<img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds13.egloos.com/pds/200905/02/35/c0098335_49fb41e38579b.png" width="500" height="124.637681159" onclick="Control.Modal.openDialog(this, event, 'http://pds13.egloos.com/pds/200905/02/35/c0098335_49fb41e38579b.png');" />
+</div>
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/mozilla" rel="tag">mozilla</a>, <a href="/tag/firefox" rel="tag">firefox</a>, <a href="/tag/thunderbird" rel="tag">thunderbird</a>, <a href="/tag/gtk-theme" rel="tag">gtk-theme</a>
+</div>
+

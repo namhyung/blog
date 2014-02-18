@@ -1,0 +1,205 @@
+	
+<div class="version">
+glibc: 2.17
+</div>
+
+
+glibc에는 SVR4 시절부터 제공되는 몇가지 자료구조 함수가 포함되어 있는데,
+(대부분 이미 POSIX 표준으로도 정의되어 있다.) 그리 널리 알려지지 않은 듯 하여
+이번 기회에 간단히 소개하는 기회를 가지려고 한다.
+
+가장 단순하게는 정렬되지 않은 배열에 대해서 검색(linear search)을 수행하는
+lfind()와 lsearch() 함수가 있는데 이들의 차이점은 검색에 실패한 경우
+lfind()는 NULL을 반환하지만, lsearch()는 배열의 맨 뒤에 주어진 원소를
+추가한다는 점이다. (이 때 해당 배열에 이미 이를 위한 공간이 할당되어 있어야 한다.)
+이러한 이름 규칙은 다른 비슷한 류의 함수들에도 적용되니 참고하도록 하자.
+
+/usr/include/search.h:
+
+<div class="source">
+void * lfind (const void *key, void *base, size_t *nmemb, size_t size, comparison_fn_t compar);
+void * lsearch (const void *key, void *base, size_t *nmemb, size_t size, comparison_fn_t compar);
+</div>
+
+배열의 어떠한 타입의 원소로 구성될 수 있도록 void * 타입으로 지정되며
+배열 내의 원소의 수는 nmemb 인자에, 배열 원소 하나의 크기는 size 인자에 저장된다.
+따라서 검색을 위해서는 해당 배열의 자료구조 특성에 맞는 비교함수가 존재해야 하며
+이를 위해 마지막 인자로 다음과 같이 정의된 함수의 포인터를 받게된다.
+
+
+<div class="source">
+typedef int (*__compar_fn_t)(const void *, const void *);
+
+# ifdef    __USE_GNU
+typedef __compar_fn_t comparison_fn_t;
+# endif
+</div>
+
+비교함수는 주어진 두 개의 인자 (편의상 a 와 b로 부르기로 한다)를 비교하여
+a가 더 작으면 음수, a와 b가 같으면 0, a가 더 크면 양수를 반환해야 한다.
+참고로 검색함수에서 주어진 key 값이 a가 되며, 배열의 각 원소가 차례로 b로 주어진다.
+
+위의 함수들은 배열이 정렬되지 않은 경우 (혹은 어떠한 이유로든 정렬할 수 없는 경우)에나 유용하며
+사실 그냥 loop로 검색하는 것과 다를 바 없으므로 크게 사용할 일은 없을 것이라 생각된다.
+
+하지만 만약 정렬을 할 수 있다고 한다면 훨씬 효율적인 이진검색을 할 수 있으며
+이를 위해 다음과 같은 함수를 정의한다. (사실 이 함수들은 이미 C 표준에 포함되어 있다.)
+
+/usr/include/stdlib.h:
+
+<div class="source">
+void qsort (void *array, size_t count, size_t size, comparison_fn_t compare);
+void * bsearch (const void *key, const void *array, size_t count, size_t size, comparison_fn_t compare);
+</div>
+
+qsort()는 이름에서 알 수 있듯이 quick sort 알고리즘을 구현한 함수이지만,
+더 빠른 속도를 위해 내부적으로 임시 메모리 공간을 할당하여 사용할 수도 있다.
+(물론 정렬이 완료되면 해당 메모리 공간을 해제한다)
+bsearch() 함수는 binary search 알고리즘을 구현하며 qsort()와 마찬가지로
+count는 배열의 원소 수, size는 원소 하나의 크기 (바이트 단위)를 나타내며
+compare 인자는 위와 동일한 특성을 가지는 검색함수이다.
+
+이 외에도 hash와 binary tree와 같은 고급 자료구조에 대한 함수도 제공하는데
+먼저 hash의 경우를 살펴보면 다음과 같다.
+
+/usr/include/search.h:
+
+<div class="source">
+typedef enum
+  {
+    FIND,
+    ENTER
+  }
+ACTION;
+
+typedef struct entry
+  {
+    char *key;
+    void *data;
+  }
+ENTRY;
+
+int hcreate (size_t nel);
+ENTRY *hsearch (ENTRY item, ACTION action);
+void hdestroy (void)
+</div>
+
+먼저 hcreate() 함수는 nel 인자로 주어진 수 만큼의 항목을 저장할 수 있는
+해시 테이블을 내부적으로(!) 생성한다. 이는 hdestroy() 함수를 통해 삭제할 수 있다.
+
+hsearch() 함수가 핵심인데, 먼저 ENTRY 타입은 해시 테이블 내에서 사용하는 데이터 타입이며,
+data 필드는 실제 데이터 영역을 가리키고, key는 이 데이터를 구분하기 위한 문자열(!)이다.
+따라서 이 해시 테이블을 이용하기 위해서는 항상 데이터마다 고유한 문자열이 존재해야 한다.
+두 번째 인자인 action은 테이블 내에서 원하는 데이터를 찾지 못했을 때 수행할 행동을 나타내며,
+FIND인 경우 NULL을 리턴하고, ENTER인 경우 item에 해당하는 데이터를 새로 추가한다.
+(따라서 별도의 hfind() 함수는 존재하지 않는다)
+
+이 해시 테이블의 구현은 double hashing을 이용한 open-addressing 방식이므로,
+최초에 hcreate() 함수로 생성한 크기의 이상의 인자를 추가할 수 없다.
+(하지만 구현 상의 이유로 테이블 크기는 가장 가까운 크기의 소수로 높여지기 때문에
+운 좋게 성공할 수도 있다!) 하지만 man 페이지에 따르면 일반적으로 좋은 성능을 얻기 위해
+실제로 사용될 최대 크기보다 약 25% 정도 더 큰 크기로 테이블을 생성하는 것이 좋다고 한다.
+또한 앞서 말한 대로 key 비교를 위해 문자열 비교 함수인 strcmp() 함수가 사용되는데
+이는 key 값이 길수록 오래 걸릴 수 있기 때문에 불필요한 호출 횟수를 줄이고자
+key 값을 특정한 방식으로 계산하여 저장해두는 트릭을 사용한다.
+
+이 해시 테이블 구현의 가장 큰 문제 중의 하나는 앞서 말한 것처럼
+프로그램 내에서 오직 하나의 테이블 만을 사용할 수 있다는 점이다.
+따라서 glibc에서는 여러 테이블을 이용할 수 있는 _r (reentrant) 버전을 제공하며
+이를 사용하기 위해서는 소스 코드에서 search.h 파일을 #include 하기 전에
+_GNU_SOURCE 매크로가 정의되어 있어야 한다.
+
+
+<div class="source">
+int hcreate_r(size_t nel, struct hsearch_data *htab);
+int hsearch_r(ENTRY item, ACTION action, ENTRY **retval,
+              struct hsearch_data *htab);
+void hdestroy_r(struct hsearch_data *htab);
+</div>
+
+이 함수들은 opaque type인 struct hsearch_data 구조체의 포인터를 통해
+여러 테이블을 생성하여 사용할 수 있으며 다른 점은 모두 동일하다.
+
+마지막으로 binary tree를 구현한 함수들을 살펴보도록 하자.
+(이는 내부적으로 red-black tree로 구현된다)
+
+
+<div class="source">
+void * tfind (const void *key, void *const *rootp, comparison_fn_t compar);
+void * tsearch (const void *key, void **rootp, comparison_fn_t compar);
+</div>
+
+앞서 살펴본 것처럼 tfind() 함수는 rootp가 가리키는 트리에서 비교함수를 통해 key를 검색하며
+검색이 실패한 경우 NULL을 반환하고, tsearch()는 해당 key 데이터를 트리에 추가한다.
+새로운 데이터가 추가될 때 마다 트리 관리를 위해 필요한 공간이 내부적으로 (동적으로) 할당된다.
+rootp는 단순히 void * 타입의 변수를 하나 선언하여 NULL로 초기화한 후 그 포인터를 넘기면 된다.
+
+따라서 다른 준비 작업없이 tsearch()를 계속 호출하는 것 만으로 트리를 구성할 수 있다.
+다만 트리를 사용하고 나면 이러한 내부 자료구조를 해제하기 위해 tdelete() 함수를 호출해야 한다.
+
+
+<div class="source">
+void * tdelete (const void *key, void **rootp, comparison_fn_t compar);
+</div>
+
+주의할 것인 이 tdelete() 함수는 트리 내부 자료구조 만을 해제할 뿐이지
+사용자가 직접 넘겨준 key에 해당하는 데이터는 자동으로 해제되지 않는다는 점이다.
+필요한 경우 사용자는 직접 (free() 함수 등을 통해) 해당 영역을 해지해야 한다.
+
+만약 (모든 사용이 끝나서) 트리 전체를 해지하려는 경우라면
+glibc의 확장 기능으로 제공되는 (따라서 앞서와 마찬가지로 _GNU_SOURCE 매크로가 필요하다)
+아래와 같은 tdestroy() 함수를 이용할 수도 있다.
+
+
+<div class="source">
+void tdestroy (void *root, void (*free_node)(void *nodep));
+</div>
+
+여기서 두 번째 인자로 주어진 free_node 함수는 트리 내의 각각의 노드에 대해 불리게 되며
+이 때 인자로 해당 노드에 저장된 실제 데이터를 가리키는 포인터가 넘어오게 되므로
+적절한 방식으로 사용자가 할당한 메모리를 해지할 수 있다.
+
+끝으로 흥미로운 함수 중에 twalk() 라는 함수가 있는데
+이는 트리 내의 각 노드를 순회하며 특정한 작업을 하고 싶을 때 유용하게 사용할 수 있다.
+
+
+<div class="source">
+typedef enum
+{
+  preorder,
+  postorder,
+  endorder,
+  leaf
+}
+VISIT;
+
+typedef void (*__action_fn_t) (const void *nodep, VISIT value, int level);
+
+void twalk (const void *root, __action_fn_t action);
+</div>
+
+twalk() 함수의 두 번째 인자로 전해지는 action() 함수는
+non-leaf node인 경우 각 노드에 대해 3번씩 호출되며 leaf node의 경우 한 번만 호출된다.
+action() 함수의 두 번째 인자로 주어지는 VISIT 타입의 값은 leaf node의 경우 leaf이고
+non-leaf node인 경우 left child를 순회하기 전에는 preorder,
+left child를 모두 순회하였지만 아직 right child를 순회하기 전에는 postorder,
+right child도 모두 순회하였다면 endorder라는 값이 각각 전달된다.
+action() 함수는 이 인자로 받은 값에 따라 어느 시점에서 어떤 작업을 할 지
+결정할 수 있을 것이다. 세 번째 인자인 level은 root node로부터 현재 노드까지
+이르는 데 필요한 최소 거리를 뜻하며, root의 경우는 0이고 자식 노드로 갈수록 1씩 증가한다.
+
+
+=== 참고 문헌 ===
+* <a target="_blank" href="http://linux.die.net/man/3/tsearch">man [lbht]search</a>
+* <a href="http://www.gnu.org/software/libc/manual/html_node/Searching-and-Sorting.html" target="_blank">www.gnu.org/software/libc/manual/html_node/Searching-and-Sorting.html</a>
+* Introduction to Algorithms, CLRS
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/glibc" rel="tag">glibc</a>, <a href="/tag/C" rel="tag">C</a>, <a href="/tag/algorithm" rel="tag">algorithm</a>
+</div>
+

@@ -1,0 +1,72 @@
+	emacs의 c-mode는 preprocessor 조건식 단위로 이동할 수 있는 command를 제공한다.
+
+<ul>
+  <li>해당 조건식의 끝으로 이동 : c-forward-conditional</li>
+  <li>해당 조건식의 처음으로 이동 : c-backword-conditional</li>
+  <li>해당 조건식 내에 포함된 다른 조건식의 처음으로 이동 : c-down-conditional</li>
+  <li>해당 조건식을 포함한 조건식의 처음으로 이동 : c-up-conditional</li>
+</ul>아래과 같은 파일이 있다고 할 때 각각은 다음과 같이 동작한다.
+
+<div class="source">
+#ifdef __HEADER_H            // 1a
+#define __HEADER_H
+
+#ifdef KERNEL                // 2a
+
+#if BITS_PER_LONG == 32      // 3a
+#else                        // 3b
+#endif                       // 3c
+
+#else /* KERNEL */           // 2b
+
+#endif /* KERNEL */          // 2c
+
+#endif /* __HEADER_H */      // 1b
+</div>
+
+각각은 간단히 up, down, forward, backward로 나타내면 다음과 같다.
+
+<ul>
+  <li>up : 3x -&gt; 2a, 2x -&gt; 1a</li>
+  <li>down : 1a -&gt; 2a, 2a -&gt; 3a</li>
+  <li>forward : 1a -&gt; 1b, 2a -&gt; 2c, 3a -&gt; 3c</li>
+  <li>backward : 1b -&gt; 1a, 2c -&gt; 2a, 3c -&gt; 3a</li>
+</ul>기본적으로는 #else 부분을 건너뛰게 되는데
+up, down 시에는 command 뒤에 -with-else를 붙여서 #else 부분을 포함시킬 수 있다.
+
+<ul>
+  <li>down-with-else : 3a -&gt; 3b</li>
+</ul>하지만 (막상 필요한) forward/backward는 -with-else command가 없기 때문에
+중간에 다른 조건식이 들어있는 1과 2에서는 이를 이용할 수 없다.
+(cc_cmds.el 파일을 들여다보면 구현은 되어 있는 것 같은데 동작이 제대로 안되는 듯 싶다..
+사용자 불량인가.. -_-;;)
+
+하지만 up/down -with-else를 이용하면 이를 해결할 수는 있다.
+up과 down은 (-with-else 포함) argument를 넘길 수가 있는데
+이는 해당 명령의 반복 횟수에 해당하며 특히 음수를 넘기면 시작 위치가 아닌 끝 위치로 이동한다.
+따라서 down-with-else로 먼저 이동한 후에 같은 level이 아닌 다른 조건식이 나온다면
+-1을 인자로 넘긴 up-with-else를 이용하여 해당 level의 #else 부분으로 돌아올 수 있다.
+(뭐 자동화시킬만한 여지가 있긴 하지만 귀찮으니 패스~)
+
+<ul>
+  <li>down-with-else : 2a -&gt; 3a</li>
+  <li>up-with-else (-1) : 3a -&gt; 2b</li>
+</ul>간단히 이를 함수로 만든 후에 키를 바인딩하면 간단하게 사용할 수 있다.
+
+<div class="source">
+(define-key c-mode-base-map "\C-c\C-j" 'c-down-conditional-with-else)
+(define-key c-mode-base-map "\C-c\C-k" 'c-up-conditional-with-else-back)
+
+(defun c-up-conditional-with-else-back()
+  (interactive)
+  (c-up-conditional-with-else -1))
+</div>
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/emacs" rel="tag">emacs</a>
+</div>
+

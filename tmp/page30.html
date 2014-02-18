@@ -1,0 +1,75 @@
+	
+<div class="version">
+Linux: 2.6.38
+</div>
+
+
+2.6.38 버전의 커널이 새로이 발표되었다. (<a target="_blank" href="http://kernelnewbies.org/Linux_2_6_38">변경 사항 보기</a>)
+이번 커널에는 한동안 뜨거운 감자로 떠올랐던 ("마술같은 성능 향상 패치"로 알려진)
+auto group scheduling이나 이전 글에서 소개한 적이 있는 VFS scalability와 같이
+주로 성능 향상에 대한 부분이 눈에 띄며 요즘 들여다보고 있는 mm 쪽에서도
+transparent huge page 기능이 도입되어 내부적으로 적잖은 변화가 있었다.
+
+
+<div class="source">
+$ git log --author=namhyung v2.6.37..v2.6.38 | git shortlog
+Namhyung Kim (39):
+      posix-timers: Annotate lock_timer()
+      uwb: fix compiler warning on whcrc_id_table
+      uwb: fix compiler warning on i1480_est_id_table
+      isdn/hisax: fix compiler warning on hisax_pci_tbl
+      Staging: vme_ca91cx42: use DEFINE_PCI_DEVICE_TABLE
+      Staging: vme_tsi148: use DEFINE_PCI_DEVICE_TABLE
+      Staging: phison: use DEFINE_PCI_DEVICE_TABLE
+      Staging: cx25821: use DEFINE_PCI_DEVICE_TABLE
+      Staging: rtl8192e: use DEFINE_PCI_DEVICE_TABLE
+      Staging: sm7xx: use DEFINE_PCI_DEVICE_TABLE
+      poll: fix a typo in comment
+      anon_inodes: fix wrong function name in comment
+      USB: whci-hcd: fix compiler warning
+      rocket: fix compiler warning on rocket_pci_ids
+      specialix: fix compiler warning on specialix_pci_tbl
+      ip2: fix compiler warning on ip2main_pci_tbl
+      dlm: sanitize work_start() in lowcomms.c
+      hrtimer: fix a typo in comment
+      NFS: use ERR_CAST()
+      ext3: Add error check in ext3_mkdir()
+      ext3: Add journal error check into ext3_delete_entry()
+      ext3: Add journal error check into ext3_rename()
+      fujitsu-laptop: fix compiler warning on pnp_ids
+      ext4: add more error checks to ext4_mkdir()
+      ext3: Add journal error check in resize.c
+      ext3: Add more journal error check
+      watchdog: alim1535_wdt: fix compiler warning on ali_pci_tbl
+      watchdog: alim7101_wdt: fix compiler warning on alim7101_pci_tbl
+      fs/char_dev.c: remove unused cdev_index()
+      aio: remove unnecessary check
+      alpha/osf_sys: remove unused MAX_SELECT_SECONDS
+      compat: remove unnecessary assignment in compat_rw_copy_check_uvector()
+      compat: update comment of compat statfs syscalls
+      compat: copy missing fields in compat_statfs64 to user
+      aio: check return value of create_workqueue()
+      fs: fix address space warnings in ioctl_fiemap()
+      vfs: sparse: remove a warning on OPEN_FMODE()
+      vfs: sparse: add __FMODE_EXEC
+      mm: fix dubious code in __count_immobile_pages()
+</div>
+
+개인적인 작업 내용은 주로 (아직까진) 질보단 양을 위주로 이루어졌으며 (..;;)
+많은 부분은 PCI 드라이버 코드에서 발생한 컴파일러 경고를 없애기 위한 패치들이었고
+나머지는 ext3/ext4 파일 시스템에서 빠져있던 에러 처리를 추가한 것들이 대부분이다.
+
+하지만 뒤쪽에 나오는 VFS 코드의 cleanup/fixup에 대한 내용부터
+최근에 보고 있는 mm 쪽에서도 점차 소스에 익숙해 질수록 조금씩 큰 틀이 보이기 시작하니
+앞으로는 조금은 더 serious한 패치를 만들어 낼 수 있지 않을까하는 기대를 해 본다..
+이제는 "양보다 질"로 변화를 줄 때가 되었다!!!
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/patch" rel="tag">patch</a>
+</div>
+

@@ -1,0 +1,252 @@
+	
+<div class="version">
+Linux: 2.6.35
+arch: x86_64
+</div>
+
+
+per-CPU (이하 percpu) 영역은 커널의 메모리 관리 기법 중의 하나로
+각 CPU 별로 따라 사용하는 데이터들을 완전히 분리하여 lock과 같은 동기화를 통하지 않고도
+안전하고 빠르게 데이터에 접근하기 위한 기법이다. 다만 동일한 CPU 내에서는 동기화가 필요하므로
+접근 시 프로세스가 선점되지 않도록 주의해야 한다. (물론 필요에 따라 IRQ도 고려해야 할 것이다)
+
+percpu의 기본 개념은 상당히 단순하다. 어떤 자료 구조를 percpu를 통해 관리하고 싶다면
+해당 객체를 시스템 내의 cpu 수 만큼의 배열로 생성하고 자기 cpu 번호에 맞는 원소만 참조하면 된다.
+하지만 커널은 효율성을 높이기 위해 (이미지 크기를 줄이기 위해?) 이 방법 대신
+커널 내부에는 한 벌의 데이터만을 유지하고 부팅 시에 이 영역들을 cpu 수 만큼 새로이 할당하여 사용한다.
+(물론 이는 정적으로 선언된 percpu 데이터에 한한 것이다.
+동적으로 할당되는 percpu 데이터는 처음부터 cpu 수 만큼의 크기가 할당된다.)
+
+percpu 영역은 별도의 주소 공간으로 취급되며 이를 위해 gs 세그먼트 레지스터를 이용한다.
+(IA-32 에서는 fs 레지스터를 이용한다.) 하지만 IA-32와는 달리 x86_64에서는 GDT 내에
+별도의 segment descriptor를 할당하지는 않고 KERNEL_GS_BASE라는 MSR에 시작 주소를 저장해 둔다.
+이 후 프로세스가 커널에 진입할 때 swapgs instruction을 통해 MSR에 저장된 값을 gs 레지스터로 옮긴다.
+
+또한 percpu 영역의 데이터를 가리키는 포인터는 __percpu라는 표기를 추가하여 이를 명시적으로 알리고
+반드시 percpu 관련 함수/매크로를 통해서만 접근해야 한다.
+다음은 이와 관련된 정의를 일부 추출한 내용이다.
+
+include/linux/compiler.h:
+<div class="source">
+#ifdef __CHECKER__
+# define __user      __attribute__((noderef, address_space(1)))
+# define __kernel    __attribute__((address_space(0)))
+# define __force     __attribute__((force))
+# define __iomem     __attribute__((noderef, address_space(2)))
+# define __percpu    __attribute__((noderef, address_space(3)))
+#else
+# define __user
+# define __kernel
+# define __force
+# define __iomem
+# define __percpu
+#endif
+</div>
+
+위에서 보듯이 커널에는 다음과 같은 4 개의 주소 공간이 존재한다.
+
+<ul>
+  <li>__kernel: (0) 기본 주소 공간. 별도의 표기가 없는 포인터는 모두 커널 공간에 속한다고 생각하면 된다.</li>
+  <li>__user: (1) 사용자 주소 공간. 시스템 콜 호출 시 사용자 공간에서 제공한 버퍼의 주소 등에 해당한다. 이 포인터가 가리키는 영역은 사용자 메모리 영역일 것이므로 실제로 페이지가 아직 할당되지 않았을 수도 있으며 따라서 접근 시 page fault가 발생할 가능성이 있다. 따라서 사용자 주소 공간에 접근 시에는 항상 page fault에 대한 fixup 코드를 미리 정의해 둔 copy_[to|from]_user 류의 함수/매크로를 통해서 접근해야 한다.</li>
+  <li>__iomem: (2) 장치 I/O 주소 공간. (device driver 등에서) 장치 상에 존재하는 메모리를 매핑한 주소이다. 아키텍처에 따라서 해당 주소에 접근할 때 특수한 instruction을 이용하거나 독특한 방식으로 주소 계산을 수행할 수 있으므로 read/write[bwlq] 류의 함수/매크로를 통해서 접근해야 한다.</li>
+  <li>__percpu: (3) percpu 주소 공간. 정적으로 할당된 percpu 영역의 경우 컴파일 된 이미지 상의 심볼 주소와 실제로 메모리가 할당된 주소가 다르며, 동적으로 할당된 경우라도 cpu에 따라 실제 존재하는 위치가 다르므로 반드시 per_cpu, get_cpu_var 등의 함수/매크로를 통해서 접근해야 한다.</li>
+</ul>
+또한 __kernel을 제외한 나머지 주소 공간들에는 noderef (no dereference) 속성이 있으므로
+이 값을 직접 읽으려고 해서는 안된다. (최소한 좋은 코딩 습관은 아니다!)
+다만 이들도 결국에는 동일한 주소 공간을 목적에 따라 OS에서 분류해 둔 것일 뿐이므로
+각 주소 공간의 정확한 특성을 알고 적절한 방법을 통해 해당 영역에 실제로 접근하는 경우
+이러한 제약을 없애기 위해 __force 표기를 사용한다.
+
+하지만 사실 실질적인 코드에서는 __CHECK__ 매크로가 정의되지 않기 때문에
+(__CHECK__는 커널 소스 정적 분석 도구인 sparse에서 내부적으로 정의하는 매크로이다.)
+실제로 컴파일러가 이에 대한 특별한 처리를 해 주거나 경고를 보여주지는 않는다.
+(즉 make C=1과 같이 sparse를 실행하는 경우에만 이에 따른 경고를 보여준다)
+
+그래도 percpu 영역에 접근할 때는 항상 다음과 같은 accessor 매크로들을 통해야 한다.
+
+<ul>
+  <li>per_cpu(var, cpu) : percpu 영역 내에서 cpu에 할당된 var 값을 얻는다.</li>
+  <li>per_cpu_ptr(ptr, cpu) : percpu 영역 내에서 cpu에 할당된 변수의 포인터를 얻는다.</li>
+  <li>get_cpu_var(var) : 선점을 금지하고 __get_cpu_var(var)를 수행한다.</li>
+  <li>__get_cpu_var(var) : percpu 영역 내에서 현재 CPU에 할당된 var 값을 얻는다.</li>
+  <li>this_cpu_ptr(ptr) : percpu 영역 내에서 현재 CPU에 할당된 변수의 포인터를 얻는다.</li>
+</ul>
+이들 매크로의 구현은 거의 동일하므로 per_cpu에 대해서만 살펴보도록 하겠다.
+
+include/asm-generic/percpu.h:
+<div class="source">
+/* Weird cast keeps both GCC and sparse happy. */
+#define SHIFT_PERCPU_PTR(__p, __offset)    ({                         \
+    __verify_pcpu_ptr((__p));                                         \
+    RELOC_HIDE((typeof(*(__p)) __kernel __force *)(__p), (__offset)); \
+})
+
+#define per_cpu(var, cpu) \
+    (*SHIFT_PERCPU_PTR(&amp;(var), per_cpu_offset(cpu)))
+</div>
+
+먼저 간단한 per_cpu_offset()를 살펴보자면 이는 부팅 시에 미리 계산되는 값으로
+전체 percpu 영역 내에서 각 cpu 별로 실제 데이터가 존재하는 offset 값이다.
+이 값을 통해 SHIFT_PERCPU_PTR 매크로를 호출하는데
+이는 주어진 __p가 __percpu 주소 공간에 대한 포인터인지 확인하고 (__verify_pcpu_ptr)
+RELOC_HIDE를 통해 __p에 __offset 만큼을 더해서 실제 데이터가 저장된 위치를 계산한다.
+RELOC_HIDE 매크로는 __p가 가리키는 타입에 상관없이 안전하게 포인터 연산을 할 수 있도록
+inline asm을 통해 gcc에게 타입 정보를 숨기기 위한 목적으로 사용된다. (이전 글 참조)
+계산된 주소는 강제로(__force) 커널 주소 공간(__kernel)을 가리키도록 cast된다.
+
+위에서 __percpu 포인터임을 확인하기 위한 __verify_pcpu_ptr 매크로는 다음과 같이 정의된다.
+
+include/linux/percpu-defs.h:
+<div class="source">
+#define __verify_pcpu_ptr(ptr)    do {                         \
+    const void __percpu *__vpp_verify = (typeof(ptr))NULL;     \
+    (void)__vpp_verify;                                        \
+} while (0)
+</div>
+
+이 매크로는 __vpp_verify라는 변수를 선언하는데 이는 __percpu 영역을 가리키는 void 포인터이다.
+이 변수는 NULL값으로 초기화하는데 이 때 ptr의 타입으로 cast하므로 ptr의 타입이
+__percpu 영역을 가리키는 임의의 포인터가 아니라면 sparse가 다음과 같은 경고를 보여준다.
+
+
+<div class="source">
+warning: incorrect type in initializer (different address spaces)
+   expected void const [noderef] &lt;asn:3&gt;*__vpp_verify
+   got struct hlist_head *&lt;noident&gt;
+</div>
+
+위의 경우는 hlist_head 구조체의 포인터가 __percpu로 선언되지 않았기 때문에 발생한 것이다.
+
+__percpu 주소 공간이 추가된 것은 비교적 최근의 일이다. (정확한 버전은 귀찮아서 확인을 못했다..;)
+최근의 커널에서도 UP 환경에 대해서는 percpu 접근 함수에 아직 __percpu 주소 공간에 대한 고려가 없어서
+sparse를 실행하는 경우 무수히 많은 경고를 볼 수 있다.
+
+참고로 정적으로 할당된 percpu 영역은 커널 이미지 내의 init.data 영역에 포함되어 로드되지만
+별도의 percpu 세그먼트를 구성하기 때문에 가상 주소는 0번지에서 시작하도록 설정된다.
+따라서 최종적으로 생성된 커널 이미지 상에서 percpu 변수의 주소는 percpu 영역 내에서의 offset에 해당한다.
+
+percpu 영역이 커널 이미지 내의 어느 부분에 위치하는지 정확히 파악하려면 링커 스크립트를 살펴봐야 한다.
+먼저 아래는 링커 스크립트에서 사용할 매크로를 정의해 둔 부분이다.
+
+include/asm-generic/vmlinux.lds.h:
+<div class="source">
+#define PERCPU_VADDR(vaddr, phdr)                               \
+    VMLINUX_SYMBOL(__per_cpu_load) = .;                         \
+    .data..percpu vaddr : AT(VMLINUX_SYMBOL(__per_cpu_load)     \
+                - LOAD_OFFSET) {                                \
+        VMLINUX_SYMBOL(__per_cpu_start) = .;                    \
+        *(.data..percpu..first)                                 \
+        *(.data..percpu..page_aligned)                          \
+        *(.data..percpu)                                        \
+        *(.data..percpu..shared_aligned)                        \
+        VMLINUX_SYMBOL(__per_cpu_end) = .;                      \
+    } phdr                                                      \
+    . = VMLINUX_SYMBOL(__per_cpu_load) + SIZEOF(.data..percpu);
+</div>
+
+PERCPU_VADDR은 percpu 영역에 가상 주소 vaddr을 부여하며
+phdr 세그먼트 (ELF program header)에 포함되도록 한다.
+다만 이후의 영역은 연속된 주소에 로드되도록 __per_cpu_load 변수를 통해 주소를 계산한다.
+
+즉, __per_cpu_load는 실제로 percpu 영역이 메모리에 로드되는 물리 주소이며
+__per_cpu_start에서부터 __per_cpu_end는 percpu 영역에 할당된 가상 주소의 범위를 저장한다.
+
+x86의 링커 스크립트는 다음과 같은 형태이다. (불필요한 정보는 많이 생략하였다.)
+
+arch/x86/kernel/vmlinux.lds.S:
+<div class="source">
+PHDRS {
+    text PT_LOAD FLAGS(5);          /* R_E */
+    data PT_LOAD FLAGS(7);          /* RWE */
+#ifdef CONFIG_X86_64
+    user PT_LOAD FLAGS(5);          /* R_E */
+#ifdef CONFIG_SMP
+    percpu PT_LOAD FLAGS(6);        /* RW_ */
+#endif
+    init PT_LOAD FLAGS(7);          /* RWE */
+#endif
+    note PT_NOTE FLAGS(0);          /* ___ */
+}
+
+SECTIONS
+{
+#ifdef CONFIG_X86_32
+        . = LOAD_OFFSET + LOAD_PHYSICAL_ADDR;
+        phys_startup_32 = startup_32 - LOAD_OFFSET;
+#else
+        . = __START_KERNEL;
+        phys_startup_64 = startup_64 - LOAD_OFFSET;
+#endif
+
+    /* Text and read-only data */
+    .text :  AT(ADDR(.text) - LOAD_OFFSET) {
+          ...
+    } :text = 0x9090
+
+    ...
+
+    /* Data */
+    .data : AT(ADDR(.data) - LOAD_OFFSET) {
+          ...
+    } :data
+
+    ...
+
+    /* Init code and data - will be freed after init */
+    . = ALIGN(PAGE_SIZE);
+    .init.begin : AT(ADDR(.init.begin) - LOAD_OFFSET) {
+        __init_begin = .; /* paired with __init_end */
+    }
+
+#if defined(CONFIG_X86_64) &amp;&amp; defined(CONFIG_SMP)
+    /*
+     * percpu offsets are zero-based on SMP.  PERCPU_VADDR() changes the
+     * output PHDR, so the next output section - .init.text - should
+     * start another segment - init.
+     */
+    PERCPU_VADDR(0, :percpu)
+#endif
+
+    INIT_TEXT_SECTION(PAGE_SIZE)
+#ifdef CONFIG_X86_64
+    :init
+#endif
+
+    INIT_DATA_SECTION(16)
+
+    ...
+
+#if !defined(CONFIG_X86_64) || !defined(CONFIG_SMP)
+    PERCPU(PAGE_SIZE)
+#endif
+
+    . = ALIGN(PAGE_SIZE);
+
+    /* freed after init ends here */
+    .init.end : AT(ADDR(.init.end) - LOAD_OFFSET) {
+        __init_end = .;
+    }
+
+    ...
+}
+</div>
+
+먼저 program header를 정의하는 부분에서 x86_64의 경우 percpu와 init 세그먼트가 분리되어 있음을 볼 수 있다.
+이후 section을 정의하는 부분에서 text와 data 세그먼트 이후에 init 세그먼트가 먼저 시작하고
+x86_64 SMP 환경인 경우 PERCPU_VADDR()을 통해 percpu 세그먼트를 중간에 포함하고 나서 (가상 주소가 0이다)
+원래의 .init.text와 .init.data 섹션 부분이 나오는 것을 볼 수 있다.
+IA-32 머신이거나 SMP가 아닌 경우에는 .init.data 섹션 이후에 직접 percpu 섹션들이 포함된다.
+
+부팅의 마지막 단계에서 커널의 init 프로세스가 사용자 모드의 init으로 exec되기 직전에
+init_post() 함수에서 free_initmem()을 호출하며 이는 __init_begin부터 __init_end에 이르는 메모리 영역을
+free_page() 함수를 통해 buddy system에게 반환한다.
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/memory" rel="tag">memory</a>, <a href="/tag/synchronization" rel="tag">synchronization</a>
+</div>
+

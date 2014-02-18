@@ -1,0 +1,171 @@
+	
+<div class="version">
+check: 0.9.8
+</div>
+
+
+check는 C 언어를 위한 unit test 환경이다. check라는 이름은
+autotools를 이용한 빌드 환경에서 테스트에 관련된 make target의 이름이 check인 것에서 유래했다.
+즉, autotools에 간단한 설정 만 추가해 주면 'make check'와 같은 형태로 이를 이용할 수 있다.
+물론 autotools를 이용하지 않더라도 간단하게 check를 이용할 수 있다.
+
+check의 가장 큰 특징으로 볼 수 있는 것은 각 테스트 케이스를 실행할 때
+fork() 시스템 콜을 통해 별도의 프로세스를 생성하여 실행한다는 것이다.
+(물론 실행 시 설정을 통해서 이 기능을 이용하지 않도록 할 수도 있다.)
+
+예외 처리를 제공하는 다른 언어들과 달리 C 언어에서는 정상적인 실행 이외의 상황
+즉, segmentation fault가 발생하거나, 내부에서 exit()를 호출하여 비정상 종료되는 경우
+테스트 케이스 실행 도중 프로그램 전체가 종료되어 버릴 수 있다.
+이 경우 테스트에 관련된 아무런 결과를 보고받을 수 없으므로
+이러한 문제를 극복하기 위해 분리된 별도의 프로세스에서 테스트를 수행하고
+부모 프로세스가 그 결과 및 종료 상태를 감지하여 안전하게 테스트 결과를 보고해 준다.
+
+check를 이용하는 방법은 다음과 같다.
+우선 테스트를 실행할 별도의 프로그램이 존재해야 하므로
+별도의 파일에 테스트 케이스와 main() 함수를 모두 작성한 후 빌드한다.
+해당 파일은 다음과 같은 형태가 될 것이다.
+
+check_test.c:
+<div class="source">
+#include &lt;check.h&gt;
+
+START_TEST(test_check)
+{
+  fail_unless(1 + 1 == 2, "What's wrong? 1 + 1 = %d", 1 + 1);
+}
+END_TEST
+
+START_TEST(test_check_new_api)
+{
+  ck_assert(1);
+  ck_assert_int_eq(1 + 1, 2);
+  _ck_assert_int(1, &lt;, 2);
+  ck_assert_str_eq("test_check_new_api", __FUNCTION__);
+}
+END_TEST
+
+Suite *
+my_suite(void)
+{
+  Suite *s = suite_create("My Test Suite");
+
+  TCase *tc = tcase_create("My Test Case");
+  tcase_add_test(tc, test_check);
+  tcase_add_test(tc, test_check_new_api);
+
+  suite_add_tcase(s, tc);
+  return s;
+}
+
+int
+main (void)
+{
+  Suite *s = my_suite();
+  SRunner *sr = srunner_create(s);
+  srunner_run_all(sr, CK_ENV);
+  return 0;
+}
+</div>
+
+먼저 check.h 파일을 #include한 뒤
+START_TEST/END_TEST의 쌍으로 이루어지는 테스트 함수를 작성한다.
+(종종 END_TEST를 빼먹는 실수를 하는 경우가 있으니 주의하자!)
+테스트 함수 내에서는 fail_if() 혹은 fail_unless() 매크로를 이용하여 실행 결과를 확인한다.
+두 번째 인자는 실패 시 출력할 메시지인데, printf와 동일하게 formatting이 가능하며
+단순히 NULL을 넘기면 주어진 조건을 그대로 출력해 준다.
+
+아직 문서화는 되어있지 않은 것 같지만 헤더 파일을 직접 참조해보면
+ck_assert()와 같은 매크로를 추가해 두었음을 알 수 있다. (test_check_new_api() 함수 참조)
+특히 int와 str 타입에 대해서는 별도의 API를 추가하여
+자세한 오류 메시지를 자동으로 출력할 수 있도록 배려하였다.
+메시지를 직접 작성하고 싶은 경우에는 ck_assert_msg() 매크로를 이용하면 된다.
+
+테스트를 실행하려면 test suite를 생성하여 suite runner를 통해 실행해야 한다.
+또한 test suite에 테스트 함수를 포함시키려면 중간 단계로 test case를 만들어야 한다.
+(사실 이 부분이 약간 귀찮긴 하다. 자동 생성 기능이 있으면 좋을 듯..)
+
+suite runner는 다음과 같은 API를 통해 여러 suite, test case, test function을 실행할 수 있다.
+
+
+<div class="source">
+srunner_add_suite(SRunner *, Suite *);
+suite_add_tcase(Suite *, TCase *);
+tcase_add_test(TCase *, TFun);
+</div>
+
+TFun은 위에서 START_TEST 매크로를 통해 정의한 테스트 함수이다.
+
+suite runner 실행 시에 출력 모드를 지정할 수 있는데 위와 같이 CK_ENV를 지정하면
+CK_VERBOSITY라는 환경 변수의 값에 따라 출력 모드를 조정할 수 있다.
+가능한 값은 "silent", "minimal", "normal", "verbose"이며 기본값은 "normal"이다.
+
+빌드할 때는 check가 표준적인 경로에 설치된 경우, 링크 시 -lcheck 옵션을 추가하는 것으로 충분하다.
+autotools를 이용하는 경우에는 configure.ac에 AM_INIT_PATH를 추가하고
+테스트 디렉터리의 Makefile.am에 다음과 같은 내용을 추가해야 한다.
+(물론 check_test라는 이름은 임의로 선택한 것이며 변경 가능하다.)
+
+
+<div class="source">
+TESTS = check_test
+check_PROGRAMS = check_test
+check_test_SOURCES = check_test.c
+check_test_CFLAGS = @CHECK_CFLAGS@
+check_test_LDADD = @CHECK_LIBS@
+</div>
+
+위의 예제 코드를 빌드한 후 환경 변수를 바꾸어 실행해보면 다음과 같은 결과를 얻을 수 있다.
+
+
+<div class="source">
+$ CK_VERBOSITY="silent" ./check_test
+$
+$ CK_VERBOSITY="minimal" ./check_test
+Running suite(s): My Test Suite
+100%: Checks: 2, Failures: 0, Errors: 0
+$
+$ CK_VERBOSITY="normal" ./check_test
+Running suite(s): My Test Suite
+100%: Checks: 2, Failures: 0, Errors: 0
+$
+$ CK_VERBOSITY="verbose" ./check_test
+Running suite(s): My Test Suite
+100%: Checks: 2, Failures: 0, Errors: 0
+check.c:5:P:My Test Case:test_check:0: Passed
+check.c:14:P:My Test Case:test_check_new_api:0: Passed
+</div>
+
+성공 시에는 minimal과 normal의 출력이 동일하지만 실패 시에는 차이가 있다.
+위의 예제에서 첫 번째 테스트 함수를 실패하도록 수정했다면 다음과 같이 출력될 것이다.
+
+
+<div class="source">
+$ CK_VERBOSITY="minimal" ./check_test
+Running suite(s): My Test Suite
+50%: Checks: 2, Failures: 1, Errors: 0
+$
+$ CK_VERBOSITY="normal" ./check_test
+Running suite(s): My Test Suite
+50%: Checks: 2, Failures: 1, Errors: 0
+check.c:5:F:My Test Case:test_check:0: What's wrong? 1 + 1 = 2
+</div>
+
+이 외에도 test fixture를 설정하거나
+동일한 테스트를 loop를 돌며 다른 인자를 적용하여 실행하거나
+테스트가 완료되기를 기다리는 timeout을 변경하거나 (기본값은 4초이다)
+특정 시그널 처리 및 비정상 종료 등의 경우를 테스트 할 수 있는 기능들을 제공한다.
+
+
+=== 참조 문서 ===
+
+<ul>
+  <li><a target="_blank" href="http://check.sourceforge.net/doc/check_html/index.html">http://check.sourceforge.net/doc/check_html/index.html</a></li>
+</ul>
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/C" rel="tag">C</a>, <a href="/tag/test" rel="tag">test</a>
+</div>
+

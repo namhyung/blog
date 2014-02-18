@@ -1,0 +1,75 @@
+	
+<div class="version">
+Linux kernel: 2.6.30
+</div>
+
+최신 버전의 리눅스 커널에서는 다양한 아키텍처를 지원하기 위해
+4단계 페이징(pgd, pud, pmd, pte)을 사용하며
+이를 접근하기 위한 다양한 함수/매크로를 제공한다.
+
+단순히 2단계 페이징을 이용하는 경우 (PAE 미사용 시 x86, ARM, MIPS32 등)
+pud와 pmd는 생략되고 해당 엔트리는 pgd 내의 엔트리를 가리키도록 설정되며
+이에 대한 처리는 &lt;asm-generic/pgtable-nopud.h&gt; 와 &lt;asm-generic/pgtable-nopmd.h&gt;에서 수행한다.
+3단계 페이징 시에는 pud를 생략한다.
+
+최종 페이지 프레임 정보를 저장하는 페이지 테이블(pte)의 경우에는
+페이지의 물리 주소와 함께 해당 페이지에 대한 접근 정보(pgprot_t)를 포함한다.
+이 중 필수적인 것은 present, accessed(young), read/write, dirty이며
+비선형 파일 매핑을 위한 file 플래그도 필요하다. (present가 FALSE인 경우)
+
+ARM 아키텍처의 경우 페이지 테이블 구성이 x86과 많이 달라서
+하드웨어에서 제공하는 페이지 테이블 형식을 확장하여 사용한다.
+ARM에서 1단계 테이블은 16KB 크기이며 각각 1MB 영역을 관리하는 4096개의 엔트리로 구성된다.
+2단계 테이블은 1KB 크기이며 4KB 크기의 페이지를 관리하는 256개의 엔트리로 구성된다.
+
+리눅스에서는 각 페이지 테이블이 하나의 페이지에 속해있다고 가정하며,
+또한 ARM의 페이지 테이블 엔트리는 accessed 플래그와 dirty 플래그 등도 포함하고 있지 않으므로
+2단계 테이블은 하드웨어용 테이블과 리눅스용 테이블로 중복되어 구성되며
+4KB 크기를 맞추기 위해 2개의 엔트리를 하나로 묶어서 관리하게 되므로
+1단계 테이블의 엔트리도 2개를 한 묶음으로 처리하게 된다.
+이를 간단히 ASCII Art로 나타내면 다음과 같다. (arch/arm/include/asm/pgtable.h 참조)
+
+
+<div class="source">
+     pgd             pte
+  |        |
+  +--------+ +0
+  |        |-----&gt; +------------+ +0
+  +- - - - + +4    |  h/w pt 0  |
+  |        |-----&gt; +------------+ +1024
+  +--------+ +8    |  h/w pt 1  |
+  |        |       +------------+ +2048
+  +- - - - +       | Linux pt 0 |
+  |        |       +------------+ +3072
+  +--------+       | Linux pt 1 |
+  |        |       +------------+ +4096
+</div>
+
+
+페이지를 관리하기 위한 접근 정보는 리눅스용 테이블에서 관리하므로
+pte를 이용하는 모든 연산은 리눅스용 테이블에서 수행되고
+필요한 경우에는 하드웨어용 테이블(pte - 2048)을 수정한다.
+
+MIPS 아키텍처의 경우는 특이하게도 TLB 엔트리를 직접 프로그래밍하며
+페이지 테이블 구성에 대한 제한은 없지만 
+TLB를 구성하는 EntryLo0,1 레지스터의 형식에 따라
+엔트리의 하위 12비트 중 상위 6비트를 구성하고 (G, V, D, Cache)
+나머지 6비트에는 커널에서 필요한 플래그들을 할당한다.
+
+MIPS의 TLB는 인접한 두 페이지를 함께 관리하는데
+Global 비트의 경우에는 두 페이지 모두에 설정되어 있어야 올바로 동작하므로 
+이를 위해 ptep_buddy 매크로를 정의하여 인접한 페이지의 pte를 계산한다.
+
+또한 MIPS는 2G/2G의 메모리 맵을 사용하므로
+pgd는 사용자 영역과 커널 영역으로 반반씩 분할되고,
+리눅스에서는 4 ~ 64KB 크기의 페이지를 지원하므로
+이에 따라 테이블의 크기가 변경될 수 있다.
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/memory" rel="tag">memory</a>, <a href="/tag/paging" rel="tag">paging</a>, <a href="/tag/arm" rel="tag">arm</a>, <a href="/tag/mips" rel="tag">mips</a>
+</div>
+

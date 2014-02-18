@@ -1,0 +1,612 @@
+<html>
+<head>	<meta http-equiv='pragma' content='no-cache' />
+	<meta http-equiv='cache-control' content='no-cache' />
+	<meta http-equiv='Content-type' content='text/html; charset=utf-8' />
+	<meta name="author" content="namhyung" />
+	<meta name="keywords" content="F/OSS study" />
+	<meta http-equiv="X-XRDS-Location" content="http://namhyung.myid.net/xrds" />
+	<link rel="openid.server" href="http://www.myid.net/server" />
+	<link rel="openid.delegate" href="http://namhyung.myid.net" />
+	<link rel="shortcut icon" href="http://md.egloos.com/img/favicon.ico" />
+	<link rel="pingback" href="https://rpc.egloos.com/rpc1" />
+	<link rel="alternate" type="application/rss+xml" title="F/OSS study" href="http://rss.egloos.com/blog/studyfoss" />
+	<title>F/OSS study</title>
+	<script type="text/javascript" src="http://md.egloos.com/js/ap.js?ver=1.043"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/gd.js?ver=1.002"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/eg.js?ver=1.012"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/cr.js?ver=1.002"></script>
+    <script type="text/javascript" src="http://md.egloos.com/js/page/ins.js?ver=1.4"></script>
+		
+	<script type="text/javascript" src="http://md.egloos.com/js/lib/prototype_v1511.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.ImgModal.js?ver=1.004"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/page/blog/compatible.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/player.js"></script>
+	
+	<script type="text/javascript" src="http://md.egloos.com/js/lazyload.js"></script>
+	
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloos_template.css?ver=1.002" media="screen" />
+<style type="text/css">
+/* jiinny text-only skin
+ */
+
+
+BODY
+{
+	BACKGROUND : #FCFEFF;
+	MARGIN : 0PX;
+	PADDING : 0PX;
+}
+
+BODY,TD,DIV,LI
+{
+	FONT : 9PT/160% Tahoma, SANS-SERIF, Verdana, monaco,굴림,돋움,SANS-SERIF;
+	COLOR : #33455E;
+}
+
+A:LINK		{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:VISITED	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:ACTIVE	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:HOVER		{ COLOR: #C00000; TEXT-DECORATION: UNDERLINE; }
+
+/* filter의 shadow보다 품질을 좋게 하기 위해서*/
+DIV.HEADER
+{
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+	filter:progid:DXImageTransform.Microsoft.Blur;
+}
+
+#HEADER_SHADOW
+{
+	POSITION : relative;
+	top :-50px; right:0px;
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+}
+
+#HEADER_SHADOW A:LINK		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:VISITED		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:HOVER		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+
+DIV.HEADER A:LINK		{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:VISITED	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:HOVER	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+
+DIV.URL			{ FONT : 8PT/100% VERDANA,TAHOMA; }
+DIV.USERMENU
+{
+	POSITION:absolute:
+	left:0px;
+	top:0px;
+	COLOR : #FFFFFF;
+	FONT : bold 7pt;
+	TEXT-ALIGN : RIGHT;
+	MARGIN-BOTTOM : 50px;
+	BACKGROUND : #000060;
+	PADDING : 4px;
+	BORDER-BOTTOM : 2px #336699 SOLID;
+}
+DIV.USERMENU A:LINK {COLOR:#FFF}
+DIV.USERMENU A:VISITED {COLOR:#FFF}
+DIV.USERMENU A:HOVER {COLOR:#FFF}
+
+DIV.PROFILE
+{
+	WIDTH : 200PX;
+	PADDING : 0PX 0PX 10PX;
+	LINE-HEIGHT : 150%;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.MNTTL
+{
+	FONT:BOLD 10pt;
+	WIDTH : 200PX;
+	BORDER-BOTTOM :	1PX #888 DASHED;
+	PADDING : 2PX 0PX 0PX;
+	MARGIN : 25PX 0PX 10PX;
+	TEXT-ALIGN:CENTER;
+}
+
+DIV.MNBODY
+{
+	font:9pt/135%;
+	WIDTH :200PX;
+}
+
+DIV.POST { MARGIN-BOTTOM : 50PX;}
+
+DIV.POST_HEAD
+{
+	MARGIN-BOTTOM : 15PX;
+	PADDING-BOTTOM : 3PX;
+}
+
+DIV.POST_TTL
+{
+	TEXT-DECORATION: UNDERLINE;
+	FONT: BOLD 10pt Georgia ;
+	COLOR: #000;
+}
+
+DIV.POST_BODY
+{
+	FONT:10pt/150%;
+	WIDTH : 100%;
+	MARGIN-BOTTOM : 30PX;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.POST_BODY A:LINK
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION:none;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:VISITED
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:HOVER
+{
+	COLOR: #CF4040;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #CF4040
+}
+
+
+DIV.POST_TAIL {
+	FONT : 11PX/150% VERDANA, TAHOMA, 돋움;
+	MARGIN-TOP : 10PX;
+	TEXT-ALIGN : RIGHT;
+}
+
+DIV.POST_TAIL A:LINK {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:VISITED {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:HOVER {COLOR: #006699; TEXT-DECORATION: NONE; border-bottom:1px dotted #cc0000}
+
+DIV.COMMENT
+{
+	BORDER : 1PX #D3D3D3 SOLID;
+	BACKGROUND : #F7F7F7;
+	PADDING : 15PX;
+	MARGIN : 20PX 0PX;
+}
+
+DIV.COMMENT_BODY
+{
+	MARGIN-BOTTOM : 20PX;
+}
+
+DIV.COMMENT_TAIL
+{
+	MARGIN : 8PX 0PX 5PX;
+	FONT : 8PT/150% VERDANA, TAHOMA, 돋움;
+	COLOR : #777;
+}
+
+DIV.COMMENT_INPUT
+{
+	MARGIN-TOP : 20PX;
+	BORDER-TOP : 1PX #AAA DOTTED;
+	PADDING-TOP : 20PX;
+}
+
+DIV.COMMENT_LINE
+{
+	BORDER-TOP : 1PX #AAA DOTTED;
+	MARGIN : 10PX 0PX 15PX;
+}
+DIV.POST_BODY IMG
+{
+	filter:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	border:1px #000 solid;
+}
+
+DIV.VERSION
+{
+  font-weight: bold;
+  color: white;
+  background: #525d76;
+  border: 1px solid silver;
+#  margin: 0.5em 10% 0.5em 1em;
+  padding: 0.5em;
+}
+
+DIV.SOURCE
+{
+  font-family: monospace, Courier New, Seoul;
+#  margin: 0.5em 10% 0.5em 1em;
+  margin: 1em;
+  color: navy;
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+BLOCKQUOTE
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD dotted;
+	padding:5px;
+	color:#000;
+	margin:20px;
+}
+
+/* begin style of emphasis */
+.BOX1
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#00FF00;
+	background:#000;
+	margin:20px;
+}
+
+.BOX2
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#FFC000;
+	background:#000;
+	margin:20px;
+}
+
+.EM1
+{
+	background : #FFFF80;
+}
+
+.EM2
+{
+	background : #F0C0FF;
+}
+/* end style of emphasis */
+
+#RIGHTMAIN{ POSITION: ABSOLUTE; RIGHT:300px; LEFT:40px;}
+
+#LEFTSIDE
+{
+	POSITION: ABSOLUTE;
+	TOP:60PX;
+	RIGHT: 20PX;
+	FONT: 9PT;
+	WIDTH:200PX;
+	BORDER-LEFT: 2PX #BCBDC4 DASHED;
+	PADDING: 20PX;
+}
+
+#LEFTSHOW
+{
+	TOP:60PX;
+	RIGHT: 0PX;
+	FONT: 7PT/150%;
+	WIDTH:7px;
+	HEIGHT:200px;
+	BACKGROUND:#DDDDDD;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	BORDER-TOP: 3PX #7598A3 SOLID;
+	BORDER-LEFT: 2PX #7598A3 DASHED;
+	BORDER-BOTTOM: 3PX #7598A3 SOLID;
+}
+
+#LEFTHIDE
+{
+	TOP:63PX;
+	RIGHT: 23PX;
+	FONT: 7PT/150%;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	WIDTH:18px;
+	HEIGHT:18px;
+	TEXT-ALIGN:CENTER;
+}
+#BOTTOMBANNER
+{
+	TEXT-ALIGN=CENTER;
+	WIDTH=100%;
+}
+
+IMG.IMG_DECO
+{
+	TEXT-ALIGN:CENTER;BORDER:1px #000 SOLID;
+	filter:progid:DXImageTransform.Microsoft.DropShadow(color=#AAAAAA,offX=3, offY=3)
+}
+
+#LOGO
+{
+	WIDTH=200;
+	TEXT-ALIGN=CENTER;
+	FILTER:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	progid:DXImageTransform.Microsoft.Glow(Color=#AAAAAA, strength=5)
+}
+
+/* 여기서 부터는 시스템에관한 클래스 이므로 변경하지 않으시는 것이 좋습니다. */
+
+DIV.TRACK_TOP { LINE-HEIGHT : 170%; }
+DIV.ARCHIVE_HEAD { FONT-WEIGHT : BOLD; MARGIN-BOTTOM : 10PX; }
+DIV.ARCHIVE_BODY { MARGIN : 20PX 0PX; LINE-HEIGHT : 160%; PADDING-BOTTOM : 100PX; }
+
+IMG.IMAGE_TOP	{ MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_LEFT	{ MARGIN-RIGHT : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_MID	{ MARGIN-TOP : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.BOOKMK		{ MARGIN : 10PX; BORDER : 0PX; }
+IMG.USERMENU	{ MARGIN-LEFT : 8PX; }
+IMG.LOGO
+{
+BORDER: 1PX #000 SOLID;
+}
+
+DIV.BANNER	{ MARGIN-TOP : 30PX; }
+
+.SMALL		{ FONT-SIZE : 11PX; }
+.DATE		{ FONT : BOLD 8PT/150% VERDANA, TAHOMA, 돋움; }
+.TIME		{ FONT : 8PT/150% VERDANA, TAHOMA, 돋움; TEXT-ALIGN : LEFT; }
+.AUTHOR		{ FONT : BOLD 9PT; }
+.TXTFLD		{ FONT-SIZE:9PT;COLOR:#000; BORDER:1PX SOLID #666678; BACKGROUND:#FFF; }
+
+
+
+/* 여기서 부터는 달력 및 XML에 관련된 클래스입니다. */
+
+
+DIV.CAL_TOP { }
+DIV.CAL { MARGIN : 20PX 0PX 20PX; WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_HEAD { WIDTH : 150PX; FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; PADDING : 4PX 0PX; MARGIN-BOTTOM : 10PX;}
+DIV.CAL_BODY { WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_BOTTOM { }
+
+.CAL
+{
+	FONT : 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+}
+
+.CAL_DAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SUN
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #D36654;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SAT
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #3572A1;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_TODAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	BACKGROUND : #E3E3E3;
+	COLOR : #3D5586;
+	TEXT-ALIGN : CENTER;
+	BORDER : 1px #AAA SOLID;
+}
+
+.CAL_TR
+{
+	BACKGROUND:#EFEFEF;
+}
+
+DIV.XML { FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; }
+   div.memobody {
+       width : 200px;
+       overflow : hidden;
+       }
+   </style>
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloo_navibar.css?ver=1.2" media="screen" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/popup.css?ver=2.00" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/button.css" />
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.Center.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/page/blog/Modal.BookmarkDlg.js?ver=1.002"></script>
+<script type="text/javascript">
+//<![CDATA[
+Event.observe(window, 'load', function() {
+    new Modal.BookmarkDlg('egloo_bookmark', {overlay: true,
+                'groupURL'     : "/exec/egloo_bookmark_group.php",
+                'remoteURL'    : "/exec/egloo_insbookmark_exec.php"});
+    if(''==''){
+	    	copy_contents('studyfoss.egloos.com','namhyung','0');
+    }
+});
+//]]>
+</script></head>
+<body>
+<iframe name="cmtviewfrm" id="cmtviewfrm" src="about:blank" width="0" height="0" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" style="display:block;border:0px;"></iframe>
+<DIV CLASS=USERMENU>  
+<a href="http://www.egloos.com">Egloos</a> | <a href="http://sec.egloos.com/login.php?returnurl=http%3A%2F%2Fstudyfoss.egloos.com%2Fpage%2F126">Log-in</a> </DIV>
+
+<DIV ID=RIGHTMAIN>
+<DIV CLASS=HEADER><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<DIV ID=HEADER_SHADOW><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<!--		<DIV CLASS=URL><a href="http://studyfoss.egloos.com" name="egloo_url">studyfoss.egloos.com</a></DIV>-->
+		<!-- egloos content start -->
+<div class='hentry'><span class='copyright_entry' style='display:none;' title='[compiler] Lazy Code Motion (Partial Redundancy Elimination)@@**@@http://studyfoss.egloos.com/5100842'></span><DIV CLASS=POST>
+	<DIV CLASS=POST_HEAD>
+	<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=100%>
+	<TR><TD WIDTH=80%><DIV CLASS=POST_TTL><img src=http://md.egloos.com/img/vl/ico_star_o.gif> <a name="5100842" title="[compiler] Lazy Code Motion (Partial Redundancy Elimination)">[compiler] Lazy Code Motion (Partial Redundancy Elimination)</a></DIV></TD>
+		<TD WIDTH=20% ALIGN=RIGHT></TD></TR>
+	</TABLE>
+	</DIV>
+	<DIV CLASS=POST_BODY>
+	partial redundancy elimination (PRE)는 중복된 계산을 없애기 위한 기법이다.<br/>그냥 redundancy가 아니라 partial redundancy라고 쓴 것은<br/>해당 계산식(expression)이 control flow에 따라 중복될 수도 있고 아닐 수도 있다는 것을 말한다.<br/><br/>PRE를 수행하는 방법은 Morel과 Renvoise의 논문에서 발표하였는데<br/>이는 bidirectional data flow analysis(DFA)를 수행하여 복잡할 뿐 아니라<br/>올바로 동작하지 않는 경우를 포함하고 있어서 적절하지 않으므로<br/>ACDI에서 소개한 lazy code motion (LCM)이라는 기법을 살펴보기로 한다.<br/><br/>LCM을 수행하기 전에는 먼저 critical edge를 제거해야 한다.<br/>critical edge는 여러 successor를 가지는 노드와 여러 predecessor를 가지는 노드를 연결하는 edge이다.<br/>여기서는 이미 critical edge를 제거했다고 가정하고 설명할 것이다.<br/><br/>LCM은 원 PRE에서 수행하는 DFA를 여러 과정으로 나누어서 unidirectional DFA로 만든 것이므로<br/>여러 단계를 거치게 되며 수식 만으로 이해하기에는 머리가 복잡해 질 수 있으므로<br/>Knoop, Ruthing, Steffen의 논문에 수록된 그림을 통해 살펴보기로 하자. (스크롤 압박 주의)<br/><br/>먼저 예제로 살펴볼 procedure의 flow graph는 다음과 같다.<br/>(여기서는 a+b라는 expression 만을 살펴볼 것이므로 그와 관계없는 모든 코드는 무시한다.)<br/><br/><div style="text-align:center"><img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds16.egloos.com/pds/200909/02/35/c0098335_4a9e409987b55.png" width="317" height="400" onclick="Control.Modal.openDialog(this, event, 'http://pds16.egloos.com/pds/200909/02/35/c0098335_4a9e409987b55.png');" /></div>위의 graph에서 3, 10, 15, 16, 17번 노드에서 a+b라는 expression이 계산되고 있는 것을 볼 수 있다.<br/>이 중 16번 노드는 8 -&gt; 11 -&gt; 14번 노드를 거쳐 오는 경우가 있으므로 partially redundant하다.<br/>또한 10번 노드는 loop 내에 있으므로 몇 번이고 반복 계산될 수 있다!<br/><br/>이를 간단히 해결하려면 3번 노드야 그렇다 치더라도<br/>이후의 노드들에서 중복 계산되는 식을 5번 노드로 옮기거나<br/>어차피 7 -&gt; 18 path는 고려하지 않아도 되므로 6번 노드로 옮기면 될 것 같다.<br/><br/>사실 이 방법이 PRE의 기본 개념과 같지만<br/>만약 이 algorithm을 실제 컴파일러에 적용한다면<br/>(possibly many) 중복된 계산이 공통 노드에서 수행될 것이므로<br/>(적어도 해당 시점에서는) 불필요한 overhead (register pressure)를 낳게 되고<br/>이는 컴파일러의 성능에 무시할 수 없는 영향을 미치게 된다.<br/><br/>따라서 가능하다면 해당 expression의 값이 정말로 필요해지는 시점까지<br/>최대한 계산을 미루는 것이 좋으며 이것이 바로 LCM의 기본 개념이다.<br/><br/>시작하기 위해 먼저 다음과 같은 두 가지 개념을 정의한다.<br/>(이는 data flow analysis의 flow function에 해당하는 것으로<br/>해당 basic block에서 영향을 받는 모든 expression의 집합(set)을 다루어야 하지만<br/>위의 예제에서는 a+b 하나의 <img src="file:///tmp/moz-screenshot.jpg" alt="">expression에 대해서만 고려하고 있으므로<br/>설명의 편의를 위해 true/false 중의 하나의 값을 갖는 predicate처럼 다룰 것이다.)<br/><ul><li><span style="font-weight: bold;">TRANS</span> (Transparent) : 해당 노드에서 a 혹은 b의 값을 바꾸지 않는다.</li><li><span style="font-weight: bold;">USED</span> : 해당 노드에서 a+b를 계산한다. (이는 PRE의 locally anticipatable과 비슷한 개념이다.)</li></ul>이 둘은 각각의 노드의 내용을 보면 바로 알 수 있는 값들이다.<br/>이제 이를 이용하여 다음과 같은 개념을 정의한다.<br/><ul><li><span style="font-weight: bold;">D-SAFE</span> (Down Safe) : USED가 참이거나, 모든 successor들이 D-SAFE하고 TRANS가 참이다. (이는 PRE의 globally anticaipatable과 같은 개념이다.) 다시 말하면 현재 노드에서 a+b를 계산하거나, 해당 노드에서 exit 노드까지 연결된 모든 경로 상에서 a+b를 계산하고 해당 노드에서는 a나 b의 값을 바꾸지 않는다. 이는 backward problem이며 초기값은 exit 노드에서 FALSE이다. D-SAFE의 의미는 a+b의 계산이 해당 노드 혹은 이후의 노드에서 이루어지는데 그 사이에 다른 side-effect가 없으므로 계산을 앞으로 당겨서 현재 노드에서 수행해도 문제가 없다는 뜻이다.<br/></li><li><span style="font-weight: bold;">EARLIEST</span> : predecessor 중에서 TRANS가 거짓이거나,  EARLIEST이지만 D-SAFE하지 않은 것이 있다. 다시 말하면 바로 앞의 노드 중 하나에서 a나 b 값을 바꾸었거나, entry 노드부터 해당 노드 사이의 어떤 노드에서 a+b를 계산하지 않았고 바로 앞의 노드는 D-SAFE하지 않다. 이는 forward problem이며 초기값은 entry 노드에서 TRUE이다. EARLIEST의 의미는 해당 노드에서 a+b를 계산하는 것과 동일한 a+b 계산이 아직 수행되지 않았으므로, 현재 노드에서 계산하면 가장 먼저 계산하는 것이 된다는 뜻이다.<br/></li></ul>벌써부터 마구 헷갈리기 시작하니 그림을 보기로 하자..<br/><br/><div style="text-align:center"><img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds16.egloos.com/pds/200909/03/35/c0098335_4a9f0e6dbb0de.png" width="337" height="434" onclick="Control.Modal.openDialog(this, event, 'http://pds16.egloos.com/pds/200909/03/35/c0098335_4a9f0e6dbb0de.png');" /></div>먼저 D-SAFE의 경우를 살펴보면,<br/>D-SAFE는 이후의 모든 경로에서 해당 expression (여기서는 a+b)을 계산해야 하는데<br/>7 -&gt; 18의 경로는 해당하지 않으므로 1 ~ 5번 노드는 D-SAFE하지 않지만<br/>3번 노드의 경우에는 자체적으로 a+b를 계산하고 있으므로 예외이다.<br/>6 ~ 17번 노드는 16번 노드와 17번 노드 중 하나를 거쳐야 하므로 모두 D-SAFE이다.<br/><br/>EARLIEST의 경우는,<br/>해당 노드보다 먼저 해당 expression을 계산하는 것이 없어야 하는데<br/>5번 노드의 경우는 3번에서 이미 계산을 하긴 했지만 4번을 통해서 오는 경로가 있으므로 EARLIEST이다.<br/>따라서 6번 노드도 EARLIEST이지만, (위에서 보듯이) D-SAFE이므로<br/>그 아래의 8번과 9번 노드는 더이상 EARLIEST가 아니고, 그 아래도 마찬가지이다.<br/><br/>그림을 잘 살펴보면 D-SAFE와 EARLIEST를 동시에 만족하는 노드만 찾아도 PRE 문제가 해결될 수 있을 것 같다.<br/>하지만 이는 위에서 말했듯이 computationally optimal한 위치가 아니다.<br/>이를 해결하기 위해 위의 두 개념을 이용하여 다음과 같은 개념을 새로 정의한다.<br/><ul><li><span style="font-weight: bold;">DELAY</span> : D-SAFE하고 EARLIEST이거나, 모든 predecessor들이 DELAY이고 USED가 거짓이다. 다시 말하면 해당 노드가 D-SAFE와 EARLIEST 조건을 만족하거나, 바로 앞의 모든 노드들이 DELAY이고 아직 a+b를 계산하지 않았다. 이는 forward problem이며 초기값은 entry 노드의 D-SAFE 여부에 달렸다.</li><li><span style="font-weight: bold;">LATEST</span> : DELAY이고, USED이거나 모든 successor들이 DELAY가 아니다. 다시 말하면 연결된 DELAY 노드 중에서 제일 마지막에 있거나 해당 노드에서 a+b를 계산한다.<br/></li></ul>역시 그림을 살펴보는 것이 이해에 도움이 될 것이다.<br/><br/><div style="text-align:center"><img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds17.egloos.com/pds/200909/03/35/c0098335_4a9f17dcad922.png" width="348" height="429" onclick="Control.Modal.openDialog(this, event, 'http://pds17.egloos.com/pds/200909/03/35/c0098335_4a9f17dcad922.png');" /></div>DELAY의 경우를 먼저 살펴보면<br/>기본적으로 DELAY가 참이 되려면 D-SAFE하고 EARLIEST여야 한다.<br/>이를 만족하는 것은 더 위의 그림에서 찾아보면 3번과 6번 노드이며, 이는 a+b가 계산되기 전까지 계속 이어진다.<br/>(사실 12, 13번 노드가 DELAY 조건을 만족하는 것에 대해서는 약간 의문이 남아있다.)<br/><br/>LATEST의 경우는 간단하다.<br/>경로 상에서 연결된 DELAY인 노드 중 a+b를 계산했거나,<br/>계산하지 않았더라도 가장 마지막에 있는 노드가 LATEST가 된다.<br/><br/>이제 거의 다 왔다.<br/>LATEST 지점에서 해당 expression을 계산하는 것은 computationally optimal하다!!<br/>마지막으로 LATEST의 경우 중 가려내야 할 것을 찾기 위해 다음과 같은 개념을 새로 정의한다.<br/><ul><li><span style="font-weight: bold;">ISOLATED</span> : 모든 successor들이 LATEST이거나, ISOLATED이고 USED가 거짓이다. 다시 말하면 바로 뒤의 모든 노드들이 LATEST이거나, ISOLATED면서 a+b를 계산하지 않아야 한다. 이는 backward problem이지만, 초기값이 확실치 않다. ACDI에서는 exit 노드에서 FALSE라고 표기되어 있고, (논문에 정확히 나와있지는 않지만) 아래의 그림을 보면 초기값이 TRUE라고 가정하는 것 같다. ISOLATED의 의미는 해당 노드의 바로 다음에서 시작하는 모든 경로에서 a+b의 계산은 LATEST이거나 LATEST보다 뒤에 나온다는 뜻이다.</li></ul>마찬가지로 그림을 살펴보자.<br/><br/><div style="text-align:center"><img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds17.egloos.com/pds/200909/03/35/c0098335_4a9f22e13ba9c.png" width="333" height="431" onclick="Control.Modal.openDialog(this, event, 'http://pds17.egloos.com/pds/200909/03/35/c0098335_4a9f22e13ba9c.png');" /></div>일단 18번 노드는 ISOLATED가 참이라고 하고,<br/>USED가 거짓이니 그 위의 노드들도 ISOLATED를 만족한다.<br/>17번 노드는 a+b를 계산하고 있지만 그 자체로 LATEST이니 상관없고, (3번 노드도 마찬가지이다)<br/>16번 노드는 a+b를 계산하고 LATEST가 거짓이니 그 위의 노드들은 더이상 ISOLATED를 만족하지 않는다.<br/>단 8번과 15번 노드는 LATEST이므로 그 위로는 다시 ISOLATED를 만족한다.<br/><br/>다른 관점에서 보면<br/>6번 노드의 successor는 8번과 9번인데<br/>8번에서 시작하는 경로는 8번 자체가 LATEST이므로 모든 계산이 LATEST보다 뒤에 나오고<br/>9번에서 시작하는 경로는 15, 16, 17번 노드에서 계산이 이루어지는데<br/>15번과 17번은 자체로 LATEST이고 16번은 15번 뒤에 나오므로<br/>6번 노드는 ISOLATED가 참이 된다.<br/><br/>8번 노드를 보면,<br/>successor는 11번이고 계산은 10번과 16번에서 이루어지는데<br/>11, 10, 14, 16, 18번 노드에서 LATEST 노드가 없으므로<br/>8번 노드는 ISOLATED가 거짓이 된다.<br/><br/>LATEST와 ISOLATED를 구했다면 LCM을 수행할 위치를 찾은 것이다.<br/>LATEST이면서 동시에 ISOLATED인 노드는<br/>그 자체로 최적의 위치이면서 다른 중복된 계산이 없으므로,<br/>그냥 원래와 같이 계산하면 되고 별도로 코드를 이동 (code motion)할 필요가 없다.<br/>LATEST이면서 ISOLATED가 아닌 노드는<br/>계산에 적합한 위치이므로 (필요한 경우) expression을 이 노드로 옮기고 그 결과를 저장하여 이후에 사용한다.<br/><br/>중복된 계산이 일어나는 위치는<br/>USED이면서 LATEST가 아니거나 ISOLATED가 아닌 노드이다.<br/>이러한 노드들은 expression을 계산할 필요없이 위에서 계산한 결과를 바로 사용하면 된다.<br/><br/>최종적으로 LCM이 적용된 형태는 다음 그림과 같다.<br/><br/><div style="text-align:center"><img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds16.egloos.com/pds/200909/03/35/c0098335_4a9f2841998c6.png" width="357" height="409" onclick="Control.Modal.openDialog(this, event, 'http://pds16.egloos.com/pds/200909/03/35/c0098335_4a9f2841998c6.png');" /></div>3번과 17번 노드는 LATEST이면서 ISOLATED이므로 그냥 둔다.<br/>8번과 15번 노드는 LATEST이면서 ISOLATED가 아니므로 a+b를 계산하여 h에 저장한다.<br/>10번과 16번 노드에서는 h 값을 그냥 사용하면 된다.<br/><div style="clear:both; _display: none;"></div><div class="posttaglist"><a href="/tag/compiler" rel="tag">compiler</a>,&nbsp;<a href="/tag/optimization" rel="tag">optimization</a>,&nbsp;<a href="/tag/algorithm" rel="tag">algorithm</a></div>
+       <!--
+       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+		    xmlns:dc="http://purl.org/dc/elements/1.1/"
+		    xmlns:trackback="http://madskills.com/public/xml/rss/module/trackback/">
+       <rdf:Description
+	        rdf:about="http://studyfoss.egloos.com/5100842"
+	        dc:identifier="http://studyfoss.egloos.com/5100842"
+	        dc:title="[compiler] Lazy Code Motion (Partial Redundancy Elimination)"
+	        trackback:ping="http://studyfoss.egloos.com/tb/5100842"/>
+       </rdf:RDF>
+       -->
+
+	</DIV>
+	<DIV CLASS=POST_TAIL ALIGN=RIGHT><span class="TIME"> <a href="/5100842" class="permalink" title="[compiler] Lazy Code Motion (Partial Redundancy Elimination)" rel="bookmark">#</a> by <span class="AUTHOR">namhyung</span> | <a href="/5100842" class="time"  title="[compiler] Lazy Code Motion (Partial Redundancy Elimination)" rel="bookmark">2009/09/02 19:09</a></span> | <a href="/category/General" class="category">General</a> | <span class="linkback"><a href="#trb" onclick="trbview('5100842','c0098335','0'); return false;" class="tail_trb">트랙백(<span id="trbcnt5100842">1</span>)</a></span> | <span class="linkback"><a href="#cmt" onclick="cmtview('5100842','c0098335','0'); return false;" class="tail_cmt">덧글(<span id="cmtcnt5100842">2</span>)</a></span></DIV>
+		<span id="cmt5100842"></span>
+</DIV>
+</div><!-- egloos content end -->
+<span style="float: left"><a href="/page/125">◀ 이전 페이지</a></a></span>
+<span style="float: right"><a href="/page/127">다음 페이지 ▶</a></span>
+<BR><BR>
+<DIV ID='BOTTOMBANNER' style="display:none;">	<div class="BANNER"><a href="http://www.egloos.com"><img src="http://md.egloos.com/img/edt/banner_ffffff_1.gif" width="150" height="50" border="0" alt="Powered by egloos" /></a></div>
+<BR><BR></DIV>
+</DIV>
+<DIV ID=LEFTSIDE style="display:block;">
+	<DIV ID=LOGO></DIV>
+	     <script language="javascript" type="text/javascript">
+     <!--
+     var s_calendar = new Array();
+     s_calendar = [];
+	  calendar("","");
+     -->
+     </script>
+
+	
+<DIV CLASS=MNTTL>카테고리</DIV>
+<DIV CLASS=MNBODY>
+<a href="/category/General">General</a><br/><a href="/category/Application">Application</a><br/><a href="/category/System">System</a><br/><a href="/category/Kernel">Kernel</a><br/><a href="/category/Book">Book</a><br/><a href="/category/Tips">Tips</a><br/>
+</DIV>
+
+<DIV CLASS=MNTTL>태그</DIV>
+<DIV CLASS=MNBODY><a href="/tag/git" class="tlevel2"> git</a>
+<a href="/tag/perf" class="tlevel1"> perf</a>
+<a href="/tag/synchronization" class="tlevel3"> synchronization</a>
+<a href="/tag/memory" class="tlevel3"> memory</a>
+<a href="/tag/documentation" class="tlevel1"> documentation</a>
+<a href="/tag/glibc" class="tlevel3"> glibc</a>
+<a href="/tag/scm" class="tlevel1"> scm</a>
+<a href="/tag/vcs" class="tlevel1"> vcs</a>
+<a href="/tag/C" class="tlevel3"> C</a>
+<a href="/tag/compiler" class="tlevel3"> compiler</a>
+<a href="/tag/script" class="tlevel1"> script</a>
+<a href="/tag/linux" class="tlevel3"> linux</a>
+<a href="/tag/block-layer" class="tlevel2"> block-layer</a>
+<a href="/tag/bash" class="tlevel2"> bash</a>
+<a href="/tag/algorithm" class="tlevel3"> algorithm</a>
+<a href="/tag/CAaQA3" class="tlevel3"> CAaQA3</a>
+<a href="/tag/kernel" class="tlevel3"> kernel</a>
+<a href="/tag/patch" class="tlevel3"> patch</a>
+<a href="/tag/SMP" class="tlevel2"> SMP</a>
+<a href="/tag/awk" class="tlevel1"> awk</a>
+<a href="/tag/binutils" class="tlevel2"> binutils</a>
+<a href="/tag/gcc" class="tlevel3"> gcc</a>
+<a href="/tag/blktrace" class="tlevel1"> blktrace</a>
+<a href="/tag/elf" class="tlevel3"> elf</a>
+<a href="/tag/x86" class="tlevel3"> x86</a>
+<a href="/tag/emacs" class="tlevel3"> emacs</a>
+<a href="/tag/sed" class="tlevel1"> sed</a>
+<a href="/tag/build" class="tlevel3"> build</a>
+<a href="/tag/computer-architecture" class="tlevel3"> computer-architecture</a>
+<a href="/tag/CARM" class="tlevel1"> CARM</a>
+<div style="text-align:right;margin-top:5px;"><a href="/tag">전체보기</a></div>
+</DIV>
+
+<DIV CLASS=MNTTL>이글루 파인더</DIV>
+<DIV CLASS=MNBODY><form id="finder" style="margin:0;" name="finder" method="post" action="http://studyfoss.egloos.com/" onsubmit="return go_search(document.finder);"><input type="text" id="srch_kwd" name="srch_kwd" size="10" style="vertical-align: middle;width: 100px;font-size:12px;" maxlength="30"/><input type="image" style="vertical-align: middle;margin-left:3px;" src="http://md.egloos.com/img/fnd/searchb.gif" /><p style="margin:3px 0 0 13px;text-align:left"><a href="http://www.zum.com" target="_blank"><img src="http://md.egloos.com/img/search/txt_power.png"></a></p></form>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 덧글</DIV>
+<DIV CLASS=MNBODY>
+<style type="text/css"> 
+.reply_write {margin:10px 0;}
+.reply_write fieldset {border:none;margin:0;padding:0;}
+.reply_write legend {display:none;}
+.reply_write .comment_info {width:95%;}
+.reply_write .comment_info span.comment_name,
+.reply_write .comment_info span.comment_passwd,
+.reply_write .comment_info span.comment_blog {display:block;padding:0 0 2px 0;clear:both;}
+.reply_write .comment_info span.comment_blog {float:left;}
+.reply_write .comment_info span.comment_name label,
+.reply_write .comment_info span.comment_passwd label,
+.reply_write .comment_info span.comment_blog label {display:block;float:left;width:55px;}
+.reply_write .comment_info input {padding:1px 0 0 1px;vertical-align:middle;}
+.reply_write .comment_info input.name {width:100px;}
+.reply_write .comment_info input.passwd {width:60px;}
+.reply_write .comment_info input.blog {width:200px;font-family:tahoma,sans-serif;font-size:11px;}
+.reply_write .comment_info span.comment_now {display:none;}
+.reply_write .comment_info span.comment_login {float:right;}
+.reply_write textarea {margin:2px 0;padding:0;width:95%;height:100px;margin-left:0 !important;font:normal 12px '돋움',sans-serif;}
+.reply_write .comment_btn {width:95%;height:23px;position:relative;*position:static;*text-align:right;}
+.reply_write .comment_btn .comment_submit {position:absolute;top:0;right:0;*position:static;*text-align:right;}
+</style>     
+
+<a href="http://studyfoss.egloos.com/5129119#12438993">이렇게 좋은 글이 한글로 있다는 것..</a><br/><span class="SMALL">by 프로그라머 at 02/17</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5512112#12419757">흐름을 이해할 수 있는글이라 좋..</a><br/><span class="SMALL">by morenice at 11/26</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#12401092">좋은 글 감사합니다~퍼갑니다~</a><br/><span class="SMALL">by 김석범 at 09/10</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 트랙백</DIV>
+<DIV CLASS=MNBODY>
+<a href="http://studyfoss.egloos.com/5350643#515727">이맥스의 파일 변수 사용하기</a><br/><span class="SMALL">by 개똥이야기</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#512679">asmlinkage modifier in Linux..</a><br/><span class="SMALL">by novum의 공유창고</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5409933#511713">구조체의 패킹에 대한 이야기</a><br/><span class="SMALL">by 김재호의 디지털보단 아날로그</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+
+
+
+
+
+
+
+<DIV style="TEXT-ALIGN:center; width:200px;">
+<div class="XML"><a href="http://rss.egloos.com/blog/studyfoss" target="_new"><img src="http://md.egloos.com/img/skn/rss.gif" alt="rss" border="0" /></a><br /><br /> skin by <a href="http://jiinny.egloos.com">jiinny</a></div>
+<BR /><BR />
+<DIV ID=OHLOH><a href='https://www.ohloh.net/accounts/115130?ref=Detailed'>
+  <img alt='Ohloh profile for Namhyung Kim' height='35' src='https://www.ohloh.net/accounts/115130/widgets/account_detailed.gif' width='191' border='0' />
+</a></DIV>
+</DIV>
+</DIV>
+<DIV ID='LEFTSHOW'  onclick=document.all['RIGHTMAIN'].style.right='300px';document.all['BOTTOMBANNER'].style.display='none';document.all['LEFTSIDE'].style.display='block';document.all['LEFTSHOW'].style.display='none';document.all['LEFTHIDE'].style.display='block';  style='color:red;display:none;'>
+</DIV>
+
+<DIV id='LEFTHIDE' onclick=document.all['RIGHTMAIN'].style.right='20px';document.all['BOTTOMBANNER'].style.display='block';document.all['LEFTSIDE'].style.display='none';document.all['LEFTHIDE'].style.display='none';document.all['LEFTSHOW'].style.display='block';  style='color:red'>X</DIV><iframe src="http://www.egloos.com/estat/stat_logger.php?bid=c0098335&ref=&openflag=" style="width: 0px; height: 0px; border: 0px solid #fff;"></iframe>
+<img width="0" height="0" border="0" src="http://studyfoss.egloos.com/egloo_pds.php?eid=c0098335" alt="" />
+<form id="trackfrom" name="trackfrom" method="post" action="">
+<input type="hidden" name="url" value="" />
+<input type="hidden" name="title" value="" />
+<input type="hidden" name="trburl" value="" />
+</form>
+<div style="z-index:9901;top:764px;left:169px;display:none;" id="egloo_bookmark" class="popupWrap">
+    <div class="popupTitle">이글루링크 추가하기</div>
+    <dl class="popupBody">
+        <dt class="no-arrow" style="background:none;font-size:12px;text-align:center;">
+            <span id="egloo-bookmark-url" style="color:#0F71A1;"></span>
+            (<span id="egloo-bookmark-name"></span>)을(를)</dt>
+        <dd class="notice" style="margin:0;padding:0 0 0 8px;line-height:1.8em;color:#000;font-size:12px;text-align:center;">이글루링크로 추가하시겠습니까? 추가하시려면 그룹선택을 하세요.</dd>
+        <dd class="notice weak" style="margin:0;padding:0 0 0 8px;line-height:1.8em;font-size:11px;color:#666666;text-align:center;">(그룹선택 하지 않는 경우, 최상단 목록에 추가됩니다.)</dd>
+        <dd class="egloo-bookmark-group" style="margin:0;padding:10px 0 8px;line-height:1.8em;text-align:center;color:#333;font-size:12px;text-align:center;">그룹선택 :
+            <select name="groupID" id="egloo-bookmark-groupID" style="font-family:'돋움','dotum','Trebuchet MS',Sans-serif;margin-left:10px;"><option value="000">그룹선택없음</option></select></dd>
+        <dd class="buttons">
+            <input type="button" value="지금 확인" onfocus="blur();" onclick="Modal.insertBookmark(true);" class="button btn24 btn_bold"/>
+            <input type="button" value="나중에 확인" onfocus="blur();" onclick="Modal.insertBookmark(false);" class="button btn24 btn_weak"/>
+        </dd>
+        <dd class="close" onclick="Modal.close();"><img src="http://md.egloos.com/img/www/btn/button_popup_close.gif" alt="이글루링크 취소" title="이글루링크 취소" /></dd>
+    </dl>
+</div>
+</body>
+</html>

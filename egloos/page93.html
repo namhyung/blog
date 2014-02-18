@@ -1,0 +1,612 @@
+<html>
+<head>	<meta http-equiv='pragma' content='no-cache' />
+	<meta http-equiv='cache-control' content='no-cache' />
+	<meta http-equiv='Content-type' content='text/html; charset=utf-8' />
+	<meta name="author" content="namhyung" />
+	<meta name="keywords" content="F/OSS study" />
+	<meta http-equiv="X-XRDS-Location" content="http://namhyung.myid.net/xrds" />
+	<link rel="openid.server" href="http://www.myid.net/server" />
+	<link rel="openid.delegate" href="http://namhyung.myid.net" />
+	<link rel="shortcut icon" href="http://md.egloos.com/img/favicon.ico" />
+	<link rel="pingback" href="https://rpc.egloos.com/rpc1" />
+	<link rel="alternate" type="application/rss+xml" title="F/OSS study" href="http://rss.egloos.com/blog/studyfoss" />
+	<title>F/OSS study</title>
+	<script type="text/javascript" src="http://md.egloos.com/js/ap.js?ver=1.043"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/gd.js?ver=1.002"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/eg.js?ver=1.012"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/cr.js?ver=1.002"></script>
+    <script type="text/javascript" src="http://md.egloos.com/js/page/ins.js?ver=1.4"></script>
+		
+	<script type="text/javascript" src="http://md.egloos.com/js/lib/prototype_v1511.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.ImgModal.js?ver=1.004"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/page/blog/compatible.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/player.js"></script>
+	
+	<script type="text/javascript" src="http://md.egloos.com/js/lazyload.js"></script>
+	
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloos_template.css?ver=1.002" media="screen" />
+<style type="text/css">
+/* jiinny text-only skin
+ */
+
+
+BODY
+{
+	BACKGROUND : #FCFEFF;
+	MARGIN : 0PX;
+	PADDING : 0PX;
+}
+
+BODY,TD,DIV,LI
+{
+	FONT : 9PT/160% Tahoma, SANS-SERIF, Verdana, monaco,굴림,돋움,SANS-SERIF;
+	COLOR : #33455E;
+}
+
+A:LINK		{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:VISITED	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:ACTIVE	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:HOVER		{ COLOR: #C00000; TEXT-DECORATION: UNDERLINE; }
+
+/* filter의 shadow보다 품질을 좋게 하기 위해서*/
+DIV.HEADER
+{
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+	filter:progid:DXImageTransform.Microsoft.Blur;
+}
+
+#HEADER_SHADOW
+{
+	POSITION : relative;
+	top :-50px; right:0px;
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+}
+
+#HEADER_SHADOW A:LINK		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:VISITED		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:HOVER		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+
+DIV.HEADER A:LINK		{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:VISITED	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:HOVER	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+
+DIV.URL			{ FONT : 8PT/100% VERDANA,TAHOMA; }
+DIV.USERMENU
+{
+	POSITION:absolute:
+	left:0px;
+	top:0px;
+	COLOR : #FFFFFF;
+	FONT : bold 7pt;
+	TEXT-ALIGN : RIGHT;
+	MARGIN-BOTTOM : 50px;
+	BACKGROUND : #000060;
+	PADDING : 4px;
+	BORDER-BOTTOM : 2px #336699 SOLID;
+}
+DIV.USERMENU A:LINK {COLOR:#FFF}
+DIV.USERMENU A:VISITED {COLOR:#FFF}
+DIV.USERMENU A:HOVER {COLOR:#FFF}
+
+DIV.PROFILE
+{
+	WIDTH : 200PX;
+	PADDING : 0PX 0PX 10PX;
+	LINE-HEIGHT : 150%;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.MNTTL
+{
+	FONT:BOLD 10pt;
+	WIDTH : 200PX;
+	BORDER-BOTTOM :	1PX #888 DASHED;
+	PADDING : 2PX 0PX 0PX;
+	MARGIN : 25PX 0PX 10PX;
+	TEXT-ALIGN:CENTER;
+}
+
+DIV.MNBODY
+{
+	font:9pt/135%;
+	WIDTH :200PX;
+}
+
+DIV.POST { MARGIN-BOTTOM : 50PX;}
+
+DIV.POST_HEAD
+{
+	MARGIN-BOTTOM : 15PX;
+	PADDING-BOTTOM : 3PX;
+}
+
+DIV.POST_TTL
+{
+	TEXT-DECORATION: UNDERLINE;
+	FONT: BOLD 10pt Georgia ;
+	COLOR: #000;
+}
+
+DIV.POST_BODY
+{
+	FONT:10pt/150%;
+	WIDTH : 100%;
+	MARGIN-BOTTOM : 30PX;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.POST_BODY A:LINK
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION:none;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:VISITED
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:HOVER
+{
+	COLOR: #CF4040;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #CF4040
+}
+
+
+DIV.POST_TAIL {
+	FONT : 11PX/150% VERDANA, TAHOMA, 돋움;
+	MARGIN-TOP : 10PX;
+	TEXT-ALIGN : RIGHT;
+}
+
+DIV.POST_TAIL A:LINK {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:VISITED {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:HOVER {COLOR: #006699; TEXT-DECORATION: NONE; border-bottom:1px dotted #cc0000}
+
+DIV.COMMENT
+{
+	BORDER : 1PX #D3D3D3 SOLID;
+	BACKGROUND : #F7F7F7;
+	PADDING : 15PX;
+	MARGIN : 20PX 0PX;
+}
+
+DIV.COMMENT_BODY
+{
+	MARGIN-BOTTOM : 20PX;
+}
+
+DIV.COMMENT_TAIL
+{
+	MARGIN : 8PX 0PX 5PX;
+	FONT : 8PT/150% VERDANA, TAHOMA, 돋움;
+	COLOR : #777;
+}
+
+DIV.COMMENT_INPUT
+{
+	MARGIN-TOP : 20PX;
+	BORDER-TOP : 1PX #AAA DOTTED;
+	PADDING-TOP : 20PX;
+}
+
+DIV.COMMENT_LINE
+{
+	BORDER-TOP : 1PX #AAA DOTTED;
+	MARGIN : 10PX 0PX 15PX;
+}
+DIV.POST_BODY IMG
+{
+	filter:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	border:1px #000 solid;
+}
+
+DIV.VERSION
+{
+  font-weight: bold;
+  color: white;
+  background: #525d76;
+  border: 1px solid silver;
+#  margin: 0.5em 10% 0.5em 1em;
+  padding: 0.5em;
+}
+
+DIV.SOURCE
+{
+  font-family: monospace, Courier New, Seoul;
+#  margin: 0.5em 10% 0.5em 1em;
+  margin: 1em;
+  color: navy;
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+BLOCKQUOTE
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD dotted;
+	padding:5px;
+	color:#000;
+	margin:20px;
+}
+
+/* begin style of emphasis */
+.BOX1
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#00FF00;
+	background:#000;
+	margin:20px;
+}
+
+.BOX2
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#FFC000;
+	background:#000;
+	margin:20px;
+}
+
+.EM1
+{
+	background : #FFFF80;
+}
+
+.EM2
+{
+	background : #F0C0FF;
+}
+/* end style of emphasis */
+
+#RIGHTMAIN{ POSITION: ABSOLUTE; RIGHT:300px; LEFT:40px;}
+
+#LEFTSIDE
+{
+	POSITION: ABSOLUTE;
+	TOP:60PX;
+	RIGHT: 20PX;
+	FONT: 9PT;
+	WIDTH:200PX;
+	BORDER-LEFT: 2PX #BCBDC4 DASHED;
+	PADDING: 20PX;
+}
+
+#LEFTSHOW
+{
+	TOP:60PX;
+	RIGHT: 0PX;
+	FONT: 7PT/150%;
+	WIDTH:7px;
+	HEIGHT:200px;
+	BACKGROUND:#DDDDDD;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	BORDER-TOP: 3PX #7598A3 SOLID;
+	BORDER-LEFT: 2PX #7598A3 DASHED;
+	BORDER-BOTTOM: 3PX #7598A3 SOLID;
+}
+
+#LEFTHIDE
+{
+	TOP:63PX;
+	RIGHT: 23PX;
+	FONT: 7PT/150%;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	WIDTH:18px;
+	HEIGHT:18px;
+	TEXT-ALIGN:CENTER;
+}
+#BOTTOMBANNER
+{
+	TEXT-ALIGN=CENTER;
+	WIDTH=100%;
+}
+
+IMG.IMG_DECO
+{
+	TEXT-ALIGN:CENTER;BORDER:1px #000 SOLID;
+	filter:progid:DXImageTransform.Microsoft.DropShadow(color=#AAAAAA,offX=3, offY=3)
+}
+
+#LOGO
+{
+	WIDTH=200;
+	TEXT-ALIGN=CENTER;
+	FILTER:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	progid:DXImageTransform.Microsoft.Glow(Color=#AAAAAA, strength=5)
+}
+
+/* 여기서 부터는 시스템에관한 클래스 이므로 변경하지 않으시는 것이 좋습니다. */
+
+DIV.TRACK_TOP { LINE-HEIGHT : 170%; }
+DIV.ARCHIVE_HEAD { FONT-WEIGHT : BOLD; MARGIN-BOTTOM : 10PX; }
+DIV.ARCHIVE_BODY { MARGIN : 20PX 0PX; LINE-HEIGHT : 160%; PADDING-BOTTOM : 100PX; }
+
+IMG.IMAGE_TOP	{ MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_LEFT	{ MARGIN-RIGHT : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_MID	{ MARGIN-TOP : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.BOOKMK		{ MARGIN : 10PX; BORDER : 0PX; }
+IMG.USERMENU	{ MARGIN-LEFT : 8PX; }
+IMG.LOGO
+{
+BORDER: 1PX #000 SOLID;
+}
+
+DIV.BANNER	{ MARGIN-TOP : 30PX; }
+
+.SMALL		{ FONT-SIZE : 11PX; }
+.DATE		{ FONT : BOLD 8PT/150% VERDANA, TAHOMA, 돋움; }
+.TIME		{ FONT : 8PT/150% VERDANA, TAHOMA, 돋움; TEXT-ALIGN : LEFT; }
+.AUTHOR		{ FONT : BOLD 9PT; }
+.TXTFLD		{ FONT-SIZE:9PT;COLOR:#000; BORDER:1PX SOLID #666678; BACKGROUND:#FFF; }
+
+
+
+/* 여기서 부터는 달력 및 XML에 관련된 클래스입니다. */
+
+
+DIV.CAL_TOP { }
+DIV.CAL { MARGIN : 20PX 0PX 20PX; WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_HEAD { WIDTH : 150PX; FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; PADDING : 4PX 0PX; MARGIN-BOTTOM : 10PX;}
+DIV.CAL_BODY { WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_BOTTOM { }
+
+.CAL
+{
+	FONT : 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+}
+
+.CAL_DAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SUN
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #D36654;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SAT
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #3572A1;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_TODAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	BACKGROUND : #E3E3E3;
+	COLOR : #3D5586;
+	TEXT-ALIGN : CENTER;
+	BORDER : 1px #AAA SOLID;
+}
+
+.CAL_TR
+{
+	BACKGROUND:#EFEFEF;
+}
+
+DIV.XML { FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; }
+   div.memobody {
+       width : 200px;
+       overflow : hidden;
+       }
+   </style>
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloo_navibar.css?ver=1.2" media="screen" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/popup.css?ver=2.00" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/button.css" />
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.Center.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/page/blog/Modal.BookmarkDlg.js?ver=1.002"></script>
+<script type="text/javascript">
+//<![CDATA[
+Event.observe(window, 'load', function() {
+    new Modal.BookmarkDlg('egloo_bookmark', {overlay: true,
+                'groupURL'     : "/exec/egloo_bookmark_group.php",
+                'remoteURL'    : "/exec/egloo_insbookmark_exec.php"});
+    if(''==''){
+	    	copy_contents('studyfoss.egloos.com','namhyung','0');
+    }
+});
+//]]>
+</script></head>
+<body>
+<iframe name="cmtviewfrm" id="cmtviewfrm" src="about:blank" width="0" height="0" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" style="display:block;border:0px;"></iframe>
+<DIV CLASS=USERMENU>  
+<a href="http://www.egloos.com">Egloos</a> | <a href="http://sec.egloos.com/login.php?returnurl=http%3A%2F%2Fstudyfoss.egloos.com%2Fpage%2F93">Log-in</a> </DIV>
+
+<DIV ID=RIGHTMAIN>
+<DIV CLASS=HEADER><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<DIV ID=HEADER_SHADOW><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<!--		<DIV CLASS=URL><a href="http://studyfoss.egloos.com" name="egloo_url">studyfoss.egloos.com</a></DIV>-->
+		<!-- egloos content start -->
+<div class='hentry'><span class='copyright_entry' style='display:none;' title='[glibc] ELF symbol visibility@@**@@http://studyfoss.egloos.com/5257309'></span><DIV CLASS=POST>
+	<DIV CLASS=POST_HEAD>
+	<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=100%>
+	<TR><TD WIDTH=80%><DIV CLASS=POST_TTL><img src=http://md.egloos.com/img/vl/ico_star_o.gif> <a name="5257309" title="[glibc] ELF symbol visibility">[glibc] ELF symbol visibility</a></DIV></TD>
+		<TD WIDTH=20% ALIGN=RIGHT></TD></TR>
+	</TABLE>
+	</DIV>
+	<DIV CLASS=POST_BODY>
+	<div class="version">glibc: 2.10.1<br/>gcc: 4.4.1<br/></div><br/><br/>ELF의 symbol visibility 속성은 dynamic linker의 symbol resolution을 도와주는 역할을 한다.<br/>간단히 말하면, 외부로 공개된 전역 심볼들을 찾을 때 특정 심볼을 제외시키거나 먼저 찾도록 지정할 수 있다.<br/>공유 라이브러리 구현 시 이러한 기능을 잘 활용하면 좀 더 좋은 성능을 얻을 수 있다.<br/><br/>실행 파일이나 라이브러리 파일의 dynamic symbol table을 보면 Vis 항목을 볼 수 있는데<br/>이것이 바로 지금 설명하는 ELF visibility 속성에 해당하는 값이다.<br/><br/><div class="source">$ readelf -s a.out | head<br/><br/>Symbol table '.dynsym' contains 10 entries:<br/>&nbsp;&nbsp; Num:&nbsp;&nbsp;&nbsp; Value&nbsp; Size Type&nbsp;&nbsp;&nbsp; Bind&nbsp;&nbsp; Vis&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Ndx Name<br/>&nbsp;&nbsp;&nbsp;&nbsp; 0: 00000000&nbsp;&nbsp;&nbsp;&nbsp; 0 NOTYPE&nbsp; LOCAL&nbsp; DEFAULT&nbsp; UND <br/>&nbsp;&nbsp;&nbsp;&nbsp; 1: 00000000&nbsp;&nbsp;&nbsp;&nbsp; 0 NOTYPE&nbsp; WEAK&nbsp;&nbsp; DEFAULT&nbsp; UND __gmon_start__<br/>&nbsp;&nbsp;&nbsp;&nbsp; 2: 00000000&nbsp;&nbsp;&nbsp;&nbsp; 0 NOTYPE&nbsp; WEAK&nbsp;&nbsp; DEFAULT&nbsp; UND _Jv_RegisterClasses<br/>&nbsp;&nbsp;&nbsp;&nbsp; 3: 00000000&nbsp;&nbsp;&nbsp;&nbsp; 0 FUNC&nbsp;&nbsp;&nbsp; GLOBAL DEFAULT&nbsp; UND __libc_start_main@GLIBC_2.0 (2)<br/>&nbsp;&nbsp;&nbsp;&nbsp; 4: 0804a020&nbsp;&nbsp;&nbsp;&nbsp; 0 NOTYPE&nbsp; GLOBAL DEFAULT&nbsp; ABS _end<br/>&nbsp;&nbsp;&nbsp;&nbsp; 5: 0804a018&nbsp;&nbsp;&nbsp;&nbsp; 0 NOTYPE&nbsp; GLOBAL DEFAULT&nbsp; ABS _edata<br/>&nbsp;&nbsp;&nbsp;&nbsp; 6: 080485ec&nbsp;&nbsp;&nbsp;&nbsp; 4 OBJECT&nbsp; GLOBAL DEFAULT&nbsp;&nbsp; 16 _IO_stdin_used</div><br/>visibility 속성은 다음과 같은 4가지 중의 하나로 설정할 수 있다. [1]<br/><ul><li>default: 기본값이다. visibility는 고려하지 않고 해당 심볼(의 바인딩)이 global인지 static(local)인지 만을 이용한다.</li><li>hidden: 주로 사용되는 속성이다. 해당 심볼을 외부로 공개하지 않게 만든다.</li><li>protected: 잘 사용되지 않는다. 해당 심볼은 공개하지만 다른 모듈에 의해 대체되지 않는다.</li><li>internal: 잘 사용되지 않는다. 해당 심볼을 공개하지 않으며 각 아키텍처 별로 약간씩 다른 효과를 가질 수 있다.<br/></li></ul>하나씩 살펴보자면 (C 언어를 기준으로 설명한다.)<br/>먼저 default에 대해서는 특별한 설명이 필요없을 것이다.<br/>외부로 공개할 심볼은 그냥 전역 변수/함수로, 내부에서만 사용할 심볼은 static으로 선언하면 된다.<br/>참고로 static으로 선언한 심볼은 항상 해당 파일 내의 심볼을 접근하는 것이므로<br/>(PIC 코드에서) GOT 등을 이용한 간접 접근이 필요없이 offset 계산을 통해 직접 접근이 가능하므로<br/>컴파일러가 더 빠른 코드를 만들어 낼 수 있다는 장점을 가진다.<br/>또한 심볼이 외부로 공개되지 않으므로 relocation 및 symbol resolution 시에도 고려해야 할 요소가 적어지므로<br/>추가적인 성능 향상을 얻을 수 있다.<br/><br/>hidden 속성은 전역 심볼도 static과 비슷한 효과를 얻을 수 있게 해 준다.<br/>가급적 공개하지 않을 심볼들은 static으로 선언해서 사용하는 것이 좋지만<br/>프로그램을 작성하다보면 다른 파일에서 사용하는 심볼에 접근해야 할 경우가 반드시 생긴다.<br/>즉, 라이브러리를 작성할 때 해당 라이브러리를 구성하는 여러 파일들 사이에서는 공개되어야 하지만<br/>라이브러리 밖으로는 공개하고 싶지 않은 경우가 있을 것이다.<br/>이 경우 해당 심볼을 전역으로 선언해야 하기 때문에<br/>(hidden 속성이 없다면) 어쩔 수 없이 라이브러리 외부로도 공개되어 버리고 만다.<br/><br/>이 경우 hidden을 사용하면 해당 심볼을 라이브러리 외부로 공개하지 않도록 지정할 수 있다.<br/>추가적으로 위의 static의 경우와 같이 컴파일러가 코드를 최적화할 수 있는 여지를 제공한다.<br/>그래서 라이브러리 구현 시 hidden 속성의 적용은 상당히 권장되는 방식이다.<br/><br/>protected 옵션은 해당 모듈 내의 전역 심볼을 우선적으로 이용하도록 해 준다.<br/>이것이 무슨 의미인지는 dynamic linker의 심볼 해석 방식을 이해해야 알 수 있다.<br/><br/>다음과 같은 상황을 가정해 보자.<br/>a라는 라이브러리는 다음과 같이 구현되어 있다.<br/><br/>a.c:<div class="source">#include &lt;stdio.h&gt;<br/><br/>void somefunc(void)<br/>{<br/>&nbsp; printf("%s in %s\n", __func__, __FILE__);<br/>}<br/><br/>void somefunc_a(void)<br/>{<br/>&nbsp; somefunc();<br/>}</div><br/>application은 somefunc_a()를 호출해서 사용한다.<br/>결과는 다음과 같은 형태가 될 것이다.<br/><br/><div class="source">$ gcc -shared -fPIC -o liba.so a.c<br/>$ gcc main.c -L. -la -Wl,-rpath,.<br/>$ ./a.out <br/>somefunc in a.c</div><br/>그러다가 b라는 다른 라이브러리를 사용하게 되었다.<br/>구현은 a 라이브러리와 거의 동일하다.<br/>여기서 중요한 것은 a 와 b 모두 동일한 이름의 somefunc()을 구현하고 있다는 점이다.<br/><br/>b.c:<div class="source">#include &lt;stdio.h&gt;<br/><br/>void somefunc(void)<br/>{<br/>&nbsp; printf("%s in %s\n", __func__, __FILE__);<br/>}<br/><br/>void somefunc_b(void)<br/>{<br/>&nbsp; somefunc();<br/>}</div><br/>이제 main.c가 아래와 같이 아주 단순하게 구현되어 있다고 할 때<br/>실행 결과는 예상과는 약간 다르게 나타날 것이다.<br/><br/>main.c:<div class="source">extern void somefunc_a(void);<br/>extern void somefunc_b(void);<br/><br/>int main(void)<br/>{<br/>&nbsp; somefunc_a();<br/>&nbsp; somefunc_b();<br/>&nbsp; return 0;<br/>}</div><br/>빌드 후 실행한 결과는 다음과 같다.<br/><br/><div class="source">$ gcc -shared -fPIC -o liba.so a.c<br/>$ gcc -shared -fPIC -o libb.so b.c<br/>$ gcc main.c -L. -la -lb -Wl,-rpath,.<br/>$ ./a.out<br/>somefunc in a.c<br/>somefunc in a.c</div><br/>main에서는 분명히 a와 b를 한 번씩 호출했는데 출력은 두 번 다 a에서 수행되었다.<br/>이는 사실 라이브러리가 링크된 순서에 따른 것이다. (-la -lb)<br/>이를 -lb -la로 바꾸면 두 번 다 b에서 수행된다.<br/><br/><div class="source">$ gcc main.c -L. -lb -la -Wl,-rpath,.<br/>$ ./a.out<br/>somefunc in b.c<br/>somefunc in b.c</div><br/>즉, 동일한 이름의 심볼이 중복 정의된 경우에는<br/>dynamic linker가 먼저 로드한 모듈(즉, 라이브러리)의 심볼이 우선권을 가진다.<br/>이러한 경우를 symbol interposing 혹은 symbol preemption이라고 부른다.<br/><br/>위와 같은 경우로 인해 이러한 심볼 해석 과정이 좀 이상하게 여기질 수도 있겠지만<br/>LD_PRELOAD와 같은 기능은 바로 이러한 symbol preemption을 통해서만 적용될 수 있는 것이다.<br/><br/>이를 방지하는 방법은 사용하는 심벌을 static이나 hidden으로 만드는 것이다.<br/>즉 해당 심벌을 외부로 공개하지 않으면 항상 로컬의 심벌을 참조하도록 코드가 생성된다.<br/>하지만 어떤 이유에서건 이것이 불가능한 상황이 있을 수 있는데 그럴 경우에 protected 속성을 사용할 수 있다.<br/>protected 속성이 사용되면 해당 심볼이 공개되지만 동일한 모듈에서는 자신의 구현을 먼저 참조하게 된다.<br/><br/>이제 a와 b에서 somefunc() 함수의 선언에 protected visibility 속성을 주면 예상대로 동작하는 것을 볼 수 있다.<br/><br/><div class="source">void __attribute__((visibility("protected"))) somefunc(void)<br/>{<br/>&nbsp; printf("%s in %s\n", __func__, __FILE__);<br/>}</div><br/>빌드 후 실행한 결과는 아래와 같다.<br/><br/><div class="source">$ gcc -shared -fPIC -o liba.so a.c<br/>$ gcc -shared -fPIC -o libb.so b.c<br/>$ gcc main.c -L. -la -lb -Wl,-rpath,.<br/>$ ./a.out<br/>somefunc in a.c<br/>somefunc in b.c</div><br/>언뜻 보기에 protected 속성은 굉장히 유용해 보인다.<br/>하지만 C 언어 표준에서 요구하는 함수 포인터에 대한 조건을 만족시키기 위해서<br/>실제 구현은 굉장히 복잡해 질 수 있다고 한다. (실제로 어떤 효과가 있는지는 정확히 모르겠지만..;;)<br/><br/>즉, somefunc()에 대한 포인터를 취할 때 라이브러리 안에서 해당 함수의 주소를 얻는 것과<br/>main 프로그램에서 해당 함수의 주소를 얻는 것이 같은 결과가 나와야 하는데,<br/>main에서는 (당연히) 해당 함수에 대한 PLT 항목의 주소를 얻을테고<br/>라이브러리에서는 실제 함수 주소를 리턴하게 된다면<br/>동일한 함수의 주소를 얻어서 서로 비교했을 때 달라질 수 있는 것이다.<br/><br/>glibc의 dynamic linker는 이러한 상황을 피하기 위해 복잡한 과정을 거쳐 심볼을 해석하다고 한다.<br/>따라서 protected 속성은 사용하지 말 것을 권한다. [2]<br/><br/>마지막으로 internal 속성은 아키텍처 별로<br/>hidden보다 더 강력한 방식으로 심볼을 보호하는 역할을 수행할 수 있게 한다고 한다.<br/>인텔 컴파일러의 경우 (gcc에 대해서는 정확히 모르겠다.. ;;)<br/>internal 속성을 가진 심볼은 외부에서 직접 혹은 간접적인 접근이 전혀 불가능하고,<br/>hidden 속성의 경우 포인터를 넘겨서 간접적인 접근이 가능하도록 구분했다고 한다. [3]<br/><br/>따라서 각 visibility 속성이 적용되는 엄격성의 순서는 다음과 같이 볼 수 있다.<br/><br/>&nbsp;&nbsp; default &lt; protected &lt; hidden &lt; internal<br/><br/>default가 아닌 경우에는 (즉 protected부터는) 항상 동일한 모듈의 심볼을 참조하게 된다.<br/>hidden부터는 외부에서 해당 심볼을 참조하는 것이 불가능해진다.<br/><br/>이제 마지막으로 이러한 속성을 지정하는 방법을 살펴보자.<br/>가장 간단하고 직접적인 방법은<br/>위의 예제에서처럼 심볼의 선언부에 __attribute__((visibility))를 추가하는 방식이다.<br/>이외에도 #pragma를 이용하면 여러 심볼에 공통적으로 visibility 속성을 간단히 적용할 수 있다.<br/><br/><div class="source">#pragma GCC visibility push(hidden)<br/>void somefunc(void)<br/>{<br/>&nbsp; printf("%s in %s\n", __func__, __FILE__);<br/>}<br/>#pragma GCC visibility pop</div><br/>push/pop은 이전 속성값을 복원하기 위한 목적으로 사용된다.<br/>끝으로 gcc 실행 시 명령행 옵션으로 -fvisibility를 사용하면 특별히 속성이 지정되지 않은 심볼들의<br/>기본 속성을 변경할 수 있다. (기본값은 당연히 default이다.)<br/><br/><div class="source">gcc -fvisibility=hidden -shared -fPIC -o liba.so a.c</div><br/>위와 같이 컴파일하는 경우 공개할 심볼들은 명시적으로 default 속성을 부여해야 한다.<br/><br/><br/>=== 참고 문헌 ===<br/><ol><li><a target="_blank" href="http://www.sco.com/developers/gabi/2003-12-17/ch4.symtab.html#visibility">http://www.sco.com/developers/gabi/2003-12-17/ch4.symtab.html#visibility</a></li><li><a href="#%20http://people.redhat.com/drepper/dsohowto.pdf">http://people.redhat.com/drepper/dsohowto.pdf</a></li><li><a href="#%20http://www.ncsa.illinois.edu/UserInfo/Resources/Software/Intel/Compilers/8.1/f_ug2/cmp_visib.htm">http://www.ncsa.illinois.edu/UserInfo/Resources/Software/Intel/Compilers/8.1/f_ug2/cmp_visib.htm</a></li></ol><br/><div style="clear:both; _display: none;"></div><div class="posttaglist"><a href="/tag/glibc" rel="tag">glibc</a>,&nbsp;<a href="/tag/gcc" rel="tag">gcc</a>,&nbsp;<a href="/tag/elf" rel="tag">elf</a>,&nbsp;<a href="/tag/ld" rel="tag">ld</a></div>
+       <!--
+       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+		    xmlns:dc="http://purl.org/dc/elements/1.1/"
+		    xmlns:trackback="http://madskills.com/public/xml/rss/module/trackback/">
+       <rdf:Description
+	        rdf:about="http://studyfoss.egloos.com/5257309"
+	        dc:identifier="http://studyfoss.egloos.com/5257309"
+	        dc:title="[glibc] ELF symbol visibility"
+	        trackback:ping="http://studyfoss.egloos.com/tb/5257309"/>
+       </rdf:RDF>
+       -->
+
+	</DIV>
+	<DIV CLASS=POST_TAIL ALIGN=RIGHT><span class="TIME"> <a href="/5257309" class="permalink" title="[glibc] ELF symbol visibility" rel="bookmark">#</a> by <span class="AUTHOR">namhyung</span> | <a href="/5257309" class="time"  title="[glibc] ELF symbol visibility" rel="bookmark">2010/02/25 00:56</a></span> | <a href="/category/System" class="category">System</a> | <span class="linkback"><a href="#trb" onclick="trbview('5257309','c0098335','0'); return false;" class="tail_trb">트랙백<span id="trbcnt5257309"></span></a></span> | <span class="linkback"><a href="#cmt" onclick="cmtview('5257309','c0098335','0'); return false;" class="tail_cmt">덧글(<span id="cmtcnt5257309">0</span>)</a></span></DIV>
+		<span id="cmt5257309"></span>
+</DIV>
+</div><!-- egloos content end -->
+<span style="float: left"><a href="/page/92">◀ 이전 페이지</a></a></span>
+<span style="float: right"><a href="/page/94">다음 페이지 ▶</a></span>
+<BR><BR>
+<DIV ID='BOTTOMBANNER' style="display:none;">	<div class="BANNER"><a href="http://www.egloos.com"><img src="http://md.egloos.com/img/edt/banner_ffffff_1.gif" width="150" height="50" border="0" alt="Powered by egloos" /></a></div>
+<BR><BR></DIV>
+</DIV>
+<DIV ID=LEFTSIDE style="display:block;">
+	<DIV ID=LOGO></DIV>
+	     <script language="javascript" type="text/javascript">
+     <!--
+     var s_calendar = new Array();
+     s_calendar = [];
+	  calendar("","");
+     -->
+     </script>
+
+	
+<DIV CLASS=MNTTL>카테고리</DIV>
+<DIV CLASS=MNBODY>
+<a href="/category/General">General</a><br/><a href="/category/Application">Application</a><br/><a href="/category/System">System</a><br/><a href="/category/Kernel">Kernel</a><br/><a href="/category/Book">Book</a><br/><a href="/category/Tips">Tips</a><br/>
+</DIV>
+
+<DIV CLASS=MNTTL>태그</DIV>
+<DIV CLASS=MNBODY><a href="/tag/script" class="tlevel1"> script</a>
+<a href="/tag/synchronization" class="tlevel3"> synchronization</a>
+<a href="/tag/awk" class="tlevel1"> awk</a>
+<a href="/tag/x86" class="tlevel3"> x86</a>
+<a href="/tag/bash" class="tlevel2"> bash</a>
+<a href="/tag/perf" class="tlevel1"> perf</a>
+<a href="/tag/blktrace" class="tlevel1"> blktrace</a>
+<a href="/tag/CAaQA3" class="tlevel3"> CAaQA3</a>
+<a href="/tag/build" class="tlevel3"> build</a>
+<a href="/tag/memory" class="tlevel3"> memory</a>
+<a href="/tag/scm" class="tlevel1"> scm</a>
+<a href="/tag/compiler" class="tlevel3"> compiler</a>
+<a href="/tag/binutils" class="tlevel2"> binutils</a>
+<a href="/tag/emacs" class="tlevel3"> emacs</a>
+<a href="/tag/gcc" class="tlevel3"> gcc</a>
+<a href="/tag/git" class="tlevel2"> git</a>
+<a href="/tag/computer-architecture" class="tlevel3"> computer-architecture</a>
+<a href="/tag/vcs" class="tlevel1"> vcs</a>
+<a href="/tag/patch" class="tlevel3"> patch</a>
+<a href="/tag/block-layer" class="tlevel2"> block-layer</a>
+<a href="/tag/glibc" class="tlevel3"> glibc</a>
+<a href="/tag/CARM" class="tlevel1"> CARM</a>
+<a href="/tag/kernel" class="tlevel3"> kernel</a>
+<a href="/tag/documentation" class="tlevel1"> documentation</a>
+<a href="/tag/elf" class="tlevel3"> elf</a>
+<a href="/tag/C" class="tlevel3"> C</a>
+<a href="/tag/algorithm" class="tlevel3"> algorithm</a>
+<a href="/tag/linux" class="tlevel3"> linux</a>
+<a href="/tag/SMP" class="tlevel2"> SMP</a>
+<a href="/tag/sed" class="tlevel1"> sed</a>
+<div style="text-align:right;margin-top:5px;"><a href="/tag">전체보기</a></div>
+</DIV>
+
+<DIV CLASS=MNTTL>이글루 파인더</DIV>
+<DIV CLASS=MNBODY><form id="finder" style="margin:0;" name="finder" method="post" action="http://studyfoss.egloos.com/" onsubmit="return go_search(document.finder);"><input type="text" id="srch_kwd" name="srch_kwd" size="10" style="vertical-align: middle;width: 100px;font-size:12px;" maxlength="30"/><input type="image" style="vertical-align: middle;margin-left:3px;" src="http://md.egloos.com/img/fnd/searchb.gif" /><p style="margin:3px 0 0 13px;text-align:left"><a href="http://www.zum.com" target="_blank"><img src="http://md.egloos.com/img/search/txt_power.png"></a></p></form>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 덧글</DIV>
+<DIV CLASS=MNBODY>
+<style type="text/css"> 
+.reply_write {margin:10px 0;}
+.reply_write fieldset {border:none;margin:0;padding:0;}
+.reply_write legend {display:none;}
+.reply_write .comment_info {width:95%;}
+.reply_write .comment_info span.comment_name,
+.reply_write .comment_info span.comment_passwd,
+.reply_write .comment_info span.comment_blog {display:block;padding:0 0 2px 0;clear:both;}
+.reply_write .comment_info span.comment_blog {float:left;}
+.reply_write .comment_info span.comment_name label,
+.reply_write .comment_info span.comment_passwd label,
+.reply_write .comment_info span.comment_blog label {display:block;float:left;width:55px;}
+.reply_write .comment_info input {padding:1px 0 0 1px;vertical-align:middle;}
+.reply_write .comment_info input.name {width:100px;}
+.reply_write .comment_info input.passwd {width:60px;}
+.reply_write .comment_info input.blog {width:200px;font-family:tahoma,sans-serif;font-size:11px;}
+.reply_write .comment_info span.comment_now {display:none;}
+.reply_write .comment_info span.comment_login {float:right;}
+.reply_write textarea {margin:2px 0;padding:0;width:95%;height:100px;margin-left:0 !important;font:normal 12px '돋움',sans-serif;}
+.reply_write .comment_btn {width:95%;height:23px;position:relative;*position:static;*text-align:right;}
+.reply_write .comment_btn .comment_submit {position:absolute;top:0;right:0;*position:static;*text-align:right;}
+</style>     
+
+<a href="http://studyfoss.egloos.com/5129119#12438993">이렇게 좋은 글이 한글로 있다는 것..</a><br/><span class="SMALL">by 프로그라머 at 02/17</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5512112#12419757">흐름을 이해할 수 있는글이라 좋..</a><br/><span class="SMALL">by morenice at 11/26</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#12401092">좋은 글 감사합니다~퍼갑니다~</a><br/><span class="SMALL">by 김석범 at 09/10</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 트랙백</DIV>
+<DIV CLASS=MNBODY>
+<a href="http://studyfoss.egloos.com/5350643#515727">이맥스의 파일 변수 사용하기</a><br/><span class="SMALL">by 개똥이야기</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#512679">asmlinkage modifier in Linux..</a><br/><span class="SMALL">by novum의 공유창고</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5409933#511713">구조체의 패킹에 대한 이야기</a><br/><span class="SMALL">by 김재호의 디지털보단 아날로그</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+
+
+
+
+
+
+
+<DIV style="TEXT-ALIGN:center; width:200px;">
+<div class="XML"><a href="http://rss.egloos.com/blog/studyfoss" target="_new"><img src="http://md.egloos.com/img/skn/rss.gif" alt="rss" border="0" /></a><br /><br /> skin by <a href="http://jiinny.egloos.com">jiinny</a></div>
+<BR /><BR />
+<DIV ID=OHLOH><a href='https://www.ohloh.net/accounts/115130?ref=Detailed'>
+  <img alt='Ohloh profile for Namhyung Kim' height='35' src='https://www.ohloh.net/accounts/115130/widgets/account_detailed.gif' width='191' border='0' />
+</a></DIV>
+</DIV>
+</DIV>
+<DIV ID='LEFTSHOW'  onclick=document.all['RIGHTMAIN'].style.right='300px';document.all['BOTTOMBANNER'].style.display='none';document.all['LEFTSIDE'].style.display='block';document.all['LEFTSHOW'].style.display='none';document.all['LEFTHIDE'].style.display='block';  style='color:red;display:none;'>
+</DIV>
+
+<DIV id='LEFTHIDE' onclick=document.all['RIGHTMAIN'].style.right='20px';document.all['BOTTOMBANNER'].style.display='block';document.all['LEFTSIDE'].style.display='none';document.all['LEFTHIDE'].style.display='none';document.all['LEFTSHOW'].style.display='block';  style='color:red'>X</DIV><iframe src="http://www.egloos.com/estat/stat_logger.php?bid=c0098335&ref=&openflag=" style="width: 0px; height: 0px; border: 0px solid #fff;"></iframe>
+<img width="0" height="0" border="0" src="http://studyfoss.egloos.com/egloo_pds.php?eid=c0098335" alt="" />
+<form id="trackfrom" name="trackfrom" method="post" action="">
+<input type="hidden" name="url" value="" />
+<input type="hidden" name="title" value="" />
+<input type="hidden" name="trburl" value="" />
+</form>
+<div style="z-index:9901;top:764px;left:169px;display:none;" id="egloo_bookmark" class="popupWrap">
+    <div class="popupTitle">이글루링크 추가하기</div>
+    <dl class="popupBody">
+        <dt class="no-arrow" style="background:none;font-size:12px;text-align:center;">
+            <span id="egloo-bookmark-url" style="color:#0F71A1;"></span>
+            (<span id="egloo-bookmark-name"></span>)을(를)</dt>
+        <dd class="notice" style="margin:0;padding:0 0 0 8px;line-height:1.8em;color:#000;font-size:12px;text-align:center;">이글루링크로 추가하시겠습니까? 추가하시려면 그룹선택을 하세요.</dd>
+        <dd class="notice weak" style="margin:0;padding:0 0 0 8px;line-height:1.8em;font-size:11px;color:#666666;text-align:center;">(그룹선택 하지 않는 경우, 최상단 목록에 추가됩니다.)</dd>
+        <dd class="egloo-bookmark-group" style="margin:0;padding:10px 0 8px;line-height:1.8em;text-align:center;color:#333;font-size:12px;text-align:center;">그룹선택 :
+            <select name="groupID" id="egloo-bookmark-groupID" style="font-family:'돋움','dotum','Trebuchet MS',Sans-serif;margin-left:10px;"><option value="000">그룹선택없음</option></select></dd>
+        <dd class="buttons">
+            <input type="button" value="지금 확인" onfocus="blur();" onclick="Modal.insertBookmark(true);" class="button btn24 btn_bold"/>
+            <input type="button" value="나중에 확인" onfocus="blur();" onclick="Modal.insertBookmark(false);" class="button btn24 btn_weak"/>
+        </dd>
+        <dd class="close" onclick="Modal.close();"><img src="http://md.egloos.com/img/www/btn/button_popup_close.gif" alt="이글루링크 취소" title="이글루링크 취소" /></dd>
+    </dl>
+</div>
+</body>
+</html>

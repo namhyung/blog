@@ -1,0 +1,111 @@
+	
+<div class="version">
+hunspell : 1.2.8
+</div>
+
+
+<a target="_blank" href="http://hunspell.sf.net/">hunspell</a>은 Firefox3, OpenOffice.org 등에서 사용되는 맞춤법 검사 도구이다.
+최근 진행되고 있는 <a target="_blank" href="http://code.google.com/p/spellcheck-ko/">한글 맞춤법 검사 프로젝트</a>도
+hunspell에 적용할 수 있는 사전 데이터를 제공하기 때문에
+이들 소프트웨어를 이용한다면 한글 맞춤법 검사 기능을 사용할 수 있다.
+(단 hunspell 버전이 1.2.8 이상인지 먼저 검사해 볼 필요가 있다.)
+
+hunspell은 단어의 기본형을 저장하는 dic 파일과 활용 규칙을 정의하는 aff 파일을 이용하여
+맞춤법 검사를 수행하며 공통적인 활용 규칙을 가지는 그룹은 플래그로 구분한다.
+여기서는 간단히 aff 파일의 기본적인 형식에 대해서 살펴볼 것이다.
+
+일반적인 옵션은 다음과 같은 것들이 있다.
+
+<ul>
+  <li>VERSION : 사전의 버전</li>
+  <li>SET : 사전 파일에서 사용한 character set</li>
+  <li>LANG : 사전의 언어</li>
+  <li>FLAG : flag를 정의하는 방법 ('long', 'UTF-8', 'num')</li>
+</ul>FLAG 옵션을 num으로 설정하면 각 플래그는 1부터 65000 사이의 정수로 표현되며
+각각의 플래그는 comma (,) 기호로 분리한다.
+
+활용 규칙은 다음과 같은 옵션을 이용하여 정의한다.
+REP 옵션은 잘못된 맞춤법을 발견한 경우 우선적으로 찾아 볼 대치어의 목록을 가지고 있는데
+첫 줄은 헤더로 REP 규칙의 개수를 나타내며
+그 다음 줄부터는 각 규칙 당 한 줄씩 원래의 문자와 바꿀 문자의 쌍이 나온다.
+
+TRY 옵션은 순서대로 시도해 볼 문자로 하나의 문자 만을 처리한다.
+
+PFX, SFX 옵션은 각각 접두어(prefix), 접미어(suffix)를 나타내며
+REP 옵션과 비슷하게 헤더와 규칙으로 이루어진다.
+헤더는 '플래그 + PFX,SFX 동시 적용 여부 (Y/N) + 규칙의 개수'로 구성되며
+규칙은 '플래그 + 적용 시 제거해야 할 문자 + 추가할 문자 + 조건'으로 구성된다.
+
+hunspell 문서에 포함된 기본 예제를 약간 수정하여 사용법을 알아보자.
+(FLAG 옵션의 값은 기본값이 'long'이라고 가정한다: 8-bit 확장 ASCII 코드 사용)
+
+test.aff:
+
+<div class="source">
+SET UTF-8
+TRY esianrtolcdugmphbyfvkwzESIANRTOLCDUGMPHBYFVKWZ’
+
+REP 2       # replacement: 규칙은 2개
+REP f ph    # f가 나오면 ph로 바꾸어 시도
+REP ph f    # ph가 나오면 f로 바꾸어 시도
+
+PFX A Y 1     # prefix: flag = A, suffix 적용 가능 (Y). 규칙은 1개
+PFX A 0 re .  # 모든 경우에 (.) 아무 것도 지우지 않고 (0) re 추가
+
+SFX B Y 2        # suffix: flag = B. prefix 적용 가능 (Y). 규칙은 2개
+SFX B 0 ed [^y]  # y로 끝나지 않는 경우 아무 것도 지우지 않고 (0) ed 추가
+SFX B y ied y    # y로 끝나는 경우 y를 지우고 ied 추가
+</div>
+
+test.dic:
+
+<div class="source">
+3
+hello
+try/A
+work/AB
+</div>
+
+위의 경우 test 사전을 이용하면 다음과 같은 단어를 올바로 인식할 것이다:
+hello, try, retry (= try/A), work, rework (= work/A), worked (= work/B), reworked (= work/AB)
+
+만약 test.dic 파일에 laugh를 추가한 후에 (이 경우 첫 줄의 숫자는 4가 되어야 한다.)
+laup라는 단어를 검사하면 hunspell이 laugh라는 단어를 추천해 주게 된다.
+
+이 밖에도 키보드 상의 자판 배치에 따른 오타를 처리하기 위한 KEY 옵션과
+비슷하거나 서로 연관된 문자로 인한 오타를 처리하기 위한 MAP 옵션등을 이용하여
+올바른 단어를 추천하도록 할 수 있다.
+
+또한 dic 파일에서 단어에 적용가능한 affix의 목록이 긴 경우
+이를 간단히 나타내기 위해 aff 파일에서 AF 옵션을 정의할 수 있다.
+AF 옵션 헤더는 규칙의 개수를 포함하며
+규칙은 단지 공통으로 적용 가능한 affix들의 목록이다.
+
+위의 예제에서 test.aff 파일에 다음과 같은 내용이 들어있었다면
+
+<div class="source">
+AF 2    # alias of flag vector
+AF A    # 1
+AF AB   # 2
+</div>
+
+test.dic 파일을 다음과 같이 작성해도 동일한 결과를 얻을 수 있다.
+
+<div class="source">
+3
+hello
+try/1
+work/2
+</div>
+
+* 참고:
+ man 4 hunspell
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/hunspell" rel="tag">hunspell</a>, <a href="/tag/spell-check" rel="tag">spell-check</a>
+</div>
+

@@ -1,0 +1,117 @@
+	
+<div class="version">
+Linux: 2.6.32
+</div>
+
+이전 글 보기 : <a href="http://studyfoss.egloos.com/5194196" title="">[Linux] priority search tree (1)</a>
+
+
+이번에는 PST에서 노드를 삭제하는 과정을 살펴보도록 하자.
+특정한 노드를 삭제할 때 해당 노드가 leaf라면 그냥 삭제하고 부모 노드에서 포인터 만 끊어주면 된다.
+leaf가 아니라면 child 노드 중에서 heap index가 큰 쪽을 끌어올린다.
+마찬가지로 두 child의 heap index가 동일하다면 (radix index가 작은) 왼쪽 자식 노드를 끌어올리면 되겠다.
+child 노드가 하나 뿐이라면 해당 노드를 끌어올리면 된다.
+이런 식으로 leaf 노드까지 이어지면 삭제가 완료된다.
+
+앞에서 살펴보았던 PST에서 root node를 삭제하는 경우를 살펴보면
+[1 ,6] 노드를 제거할 때 두 자식 노드 중 오른쪽 자식 노드의 heap index가 더 크므로
+[5, 6] 노드가 올라와서 root node가 되며 [5, 6] 노드는 하나의 자식 노드만 가지므로
+[4, 4] 노드가 원래의 [5, 6] 노드의 자리로 올라오게 된다.
+삭제되고 난 후의 트리는 다음과 같은 구조를 이룰 것이다.
+
+
+<div style="text-align:center">
+<img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds16.egloos.com/pds/200912/12/35/c0098335_4b2262fa5914e.png" width="257" height="214" onclick="Control.Modal.openDialog(this, event, 'http://pds16.egloos.com/pds/200912/12/35/c0098335_4b2262fa5914e.png');" />
+</div>
+
+실제 삭제 연산을 수행하는 prio_tree_remove() 함수를 살펴보기로 하자.
+이 함수는 앞서 설명한 순서와는 반대로 먼저 삭제할 노드를 대체할 경로를 다 찾은 후에
+leaf를 지우고 순서대로 올라가면서 원래 노드를 자식 노드로 바꾼다.
+
+
+<div class="source">
+void prio_tree_remove(struct prio_tree_root *root, struct prio_tree_node *node)
+{
+    struct prio_tree_node *cur;
+    unsigned long r_index, h_index_right, h_index_left;
+
+    /* 삭제할 노드부터 검색을 시작한다 */
+    cur = node;
+
+    /* 현재 검사 중인 노드가 자식 노드를 하나라도 가지고 있다면 아래를 반복한다 */
+    while (!prio_tree_left_empty(cur) || !prio_tree_right_empty(cur)) {
+        /* 왼쪽 자식 노드가 있으면 index를 읽는다 */
+        if (!prio_tree_left_empty(cur))
+            get_index(root, cur-&gt;left, &amp;r_index, &amp;h_index_left);
+        /* 왼쪽 자식 노드가 없으면 오른쪽 자식을 선택하고 검사를 계속한다 */
+        else {
+            cur = cur-&gt;right;
+            continue;
+        }
+
+        /* 오른쪽 자식 노드가 있으면 index를 읽는다 */
+        if (!prio_tree_right_empty(cur))
+            get_index(root, cur-&gt;right, &amp;r_index, &amp;h_index_right);
+        /* 오른쪽 자식 노드가 없으면 왼쪽 자식을 선택하고 검사를 계속한다 */
+        else {
+            cur = cur-&gt;left;
+            continue;
+        }
+
+        /*
+         * 두 자식 노드가 모두 있는 경우이다.
+         * 둘 중 heap index가 큰 노드를 선택한다.
+         * heap index가 같다면 (radix index가 작은) 왼쪽 자식을 선택한다.
+         */
+        /* both h_index_left and h_index_right cannot be 0 */
+        if (h_index_left &gt;= h_index_right)
+            cur = cur-&gt;left;
+        else
+            cur = cur-&gt;right;
+    }
+
+    /*
+     * 여기까지 왔다면 cur는 leaf node를 가리키는 것이다.
+     * 만약 cur 노드가 root 노드라면 트리를 (빈 상태로) 초기화한다.
+     */
+    if (prio_tree_root(cur)) {
+        BUG_ON(root-&gt;prio_tree_node != cur);
+        __INIT_PRIO_TREE_ROOT(root, root-&gt;raw);
+        return;
+    }
+
+    /*
+     * cur 노드의 부모 노드에서 cur에 대한 포인터를 끊는다.
+     * 이것은 더 이상 cur 노드를 참조하지 못하게 하므로
+     * 트리에서 해당 leaf 노드를 제거하는 역할을 한다.
+     */
+    if (cur-&gt;parent-&gt;right == cur)
+        cur-&gt;parent-&gt;right = cur-&gt;parent;
+    else
+        cur-&gt;parent-&gt;left = cur-&gt;parent;
+
+    /*
+     * cur 노드로부터 원래의 node까지 올라가면서
+     * 부모 노드를 cur 노드로 대체한다.
+     * 참고로 prio_tree_replace()는 삭제된 (부모) 노드의 포인터를 반환한다.
+     */
+    while (cur != node)
+        cur = prio_tree_replace(root, cur-&gt;parent, cur);
+}
+</div>
+
+위에서 볼 수 있듯이 이 함수는 삭제된 노드의 포인터를 반환하거나
+해당 노드의 메모리 영역을 해지하는 일 등은 하지 않는다.
+이 함수를 호출하는 시점에서 이미 삭제할 노드의 포인터를 가지고 있으므로 (인자로 넘어왔다)
+필요한 작업이 있다면 함수를 호출한 후 외부에서 수행하면 된다.
+
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/algorithm" rel="tag">algorithm</a>
+</div>
+

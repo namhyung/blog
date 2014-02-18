@@ -1,0 +1,115 @@
+	
+<div class="version">
+Linux kernel: 2.6.30
+</div>
+
+
+시스템의 /boot 디렉토리를 살펴본 적이 있거나
+부트로더 메뉴를 자세히 살펴본 적이 있다면
+커널 이미지가 vmlinuz라는 형태로 구성되는 것을 알고 있을 것이다.
+
+원래 커널을 컴파일했을 때 생성되는 ELF 이미지 파일의 이름은 vmlinux이다.
+vmlinuz라는 이름은 vmlinux를 압축했다는 것을 의미하며
+커널이 로드된 후 압축된 이미지를 해제하는 루틴이 이미지 앞에 추가된다.
+(최초에는 zlib을 이용하여 압축하였고, 지금은 추가적으로 bzip2와 lzma 방식도 지원한다.)
+
+또한 real-mode로 부팅해야 하는 BIOS 환경에서
+protected-mode로 전환하기 전에 초기화 및 정보 수집을 위한
+setup (aka. real-mode kernel) 헤더 및 섹터들이 그 앞에 추가된다.
+
+이를 그림으로 나타내면 다음과 같다.
+
+
+<div style="text-align:center">
+<img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds12.egloos.com/pds/200906/25/35/c0098335_4a42f11b0e75f.png" width="500" height="117.5" onclick="Control.Modal.openDialog(this, event, 'http://pds12.egloos.com/pds/200906/25/35/c0098335_4a42f11b0e75f.png');" />
+</div>
+
+real-mode kernel header라고 부르는 이 정보는
+setup 헤더의 0x1f1 오프셋에서 시작하며
+부트 프로토콜 버전에 따라 의미와 크기가 조금씩 달라진다.
+(이에 대한 자세한 정보는 커널 소스의 Documentation/x86/boot.txt 문서를 참조하기 바란다.)
+
+이 헤더의 내용은 arch/x86/boot/header.S 파일에 다음과 같이 정의되어 있으며
+여기에 빠진 내용들은 커널 이미지 생성 시 boot/tools/build 프로그램에 의해 채워진다.
+
+
+<div class="source">
+    # Kernel attributes; used by setup.  This is part 1 of the
+    # header, from the old boot sector.
+
+    .section ".header", "a"
+    .globl    hdr
+hdr:
+setup_sects:    .byte 0            /* Filled in by build.c */
+root_flags:    .word ROOT_RDONLY
+syssize:    .long 0            /* Filled in by build.c */
+ram_size:    .word 0            /* Obsolete */
+vid_mode:    .word SVGA_MODE
+root_dev:    .word 0            /* Filled in by build.c */
+boot_flag:    .word 0xAA55
+
+    # offset 512, entry point
+
+    .globl    _start
+_start:
+        # Explicitly enter this as bytes, or the assembler
+        # tries to generate a 3-byte jump here, which causes
+        # everything else to push off to the wrong offset.
+        .byte    0xeb        # short (2-byte) jump
+        .byte    start_of_setup-1f
+1:
+
+    # Part 2 of the header, from the old setup.S
+
+        .ascii    "HdrS"        # header signature
+        .word    0x0209        # header version number (&gt;= 0x0105)
+                    # or else old loadlin-1.5 will fail)
+</div>
+
+setup 이미지를 빌드할 때 사용하는 setup.ld 스크립트에서
+이 헤더 정보가 0x1f1 (=497) 오프셋에 존재하도록 설정한다.
+
+
+<div class="source">
+SECTIONS
+{
+    . = 0;
+    .bstext        : { *(.bstext) }
+    .bsdata        : { *(.bsdata) }
+
+    . = 497;
+    .header        : { *(.header) }
+    .inittext    : { *(.inittext) }
+    .initdata    : { *(.initdata) }
+    .text        : { *(.text) }
+    .text32        : { *(.text32) }
+</div>
+
+부트로더는 커널 이미지의 첫 섹터를 읽어들인 후
+setup_sects 필드의 값을 확인하여 얼마나 더 많은 setup 섹터를
+읽어들어야 할 지 결정할 수 있다.
+
+(setup 헤더를 제외한 setup 섹터의 첫 위치인)
+0x200 오프셋에 있는 jump 명령은 (위의 코드 중 _start 부분에 해당)
+setup 이미지가 실행될 때 최초로 실행되는 부분인데
+헤더 이후의 실제 명령어가 있는 곳으로 제어를 넘기는 역할을 한다.
+
+부트로더는 setup 이미지로 제어를 넘겨 (0x200으로 점프하여)
+부팅에 필요한 정보들을 수집한 후 (32비트 protected-mode) 커널을 부팅하게 하거나
+혹은 직접 이러한 정보를 채워넣은 후 setup 과정을 건너뛰고
+바로 커널을 부팅하게 할 수 있다. (grub2의 경우)
+
+부팅에 필요한 정보들은 boot_params 구조체에 정의되어 있으며
+이는 역사적인 이유로 '제로(zero) 페이지'라고 부른다. (물론 4KB 크기이다.)
+(이에 대한 정보는 Documentation/x86/zero-page.txt 문서를 참조하기 바란다.)
+부팅 시 수집한 커널 헤더 정보도 제로 페이지의 일부로 포함된다.
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/x86" rel="tag">x86</a>, <a href="/tag/boot" rel="tag">boot</a>
+</div>
+

@@ -1,0 +1,612 @@
+<html>
+<head>	<meta http-equiv='pragma' content='no-cache' />
+	<meta http-equiv='cache-control' content='no-cache' />
+	<meta http-equiv='Content-type' content='text/html; charset=utf-8' />
+	<meta name="author" content="namhyung" />
+	<meta name="keywords" content="F/OSS study" />
+	<meta http-equiv="X-XRDS-Location" content="http://namhyung.myid.net/xrds" />
+	<link rel="openid.server" href="http://www.myid.net/server" />
+	<link rel="openid.delegate" href="http://namhyung.myid.net" />
+	<link rel="shortcut icon" href="http://md.egloos.com/img/favicon.ico" />
+	<link rel="pingback" href="https://rpc.egloos.com/rpc1" />
+	<link rel="alternate" type="application/rss+xml" title="F/OSS study" href="http://rss.egloos.com/blog/studyfoss" />
+	<title>F/OSS study</title>
+	<script type="text/javascript" src="http://md.egloos.com/js/ap.js?ver=1.043"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/gd.js?ver=1.002"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/eg.js?ver=1.012"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/cr.js?ver=1.002"></script>
+    <script type="text/javascript" src="http://md.egloos.com/js/page/ins.js?ver=1.4"></script>
+		
+	<script type="text/javascript" src="http://md.egloos.com/js/lib/prototype_v1511.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.ImgModal.js?ver=1.004"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/page/blog/compatible.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/player.js"></script>
+	
+	<script type="text/javascript" src="http://md.egloos.com/js/lazyload.js"></script>
+	
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloos_template.css?ver=1.002" media="screen" />
+<style type="text/css">
+/* jiinny text-only skin
+ */
+
+
+BODY
+{
+	BACKGROUND : #FCFEFF;
+	MARGIN : 0PX;
+	PADDING : 0PX;
+}
+
+BODY,TD,DIV,LI
+{
+	FONT : 9PT/160% Tahoma, SANS-SERIF, Verdana, monaco,굴림,돋움,SANS-SERIF;
+	COLOR : #33455E;
+}
+
+A:LINK		{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:VISITED	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:ACTIVE	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:HOVER		{ COLOR: #C00000; TEXT-DECORATION: UNDERLINE; }
+
+/* filter의 shadow보다 품질을 좋게 하기 위해서*/
+DIV.HEADER
+{
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+	filter:progid:DXImageTransform.Microsoft.Blur;
+}
+
+#HEADER_SHADOW
+{
+	POSITION : relative;
+	top :-50px; right:0px;
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+}
+
+#HEADER_SHADOW A:LINK		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:VISITED		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:HOVER		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+
+DIV.HEADER A:LINK		{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:VISITED	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:HOVER	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+
+DIV.URL			{ FONT : 8PT/100% VERDANA,TAHOMA; }
+DIV.USERMENU
+{
+	POSITION:absolute:
+	left:0px;
+	top:0px;
+	COLOR : #FFFFFF;
+	FONT : bold 7pt;
+	TEXT-ALIGN : RIGHT;
+	MARGIN-BOTTOM : 50px;
+	BACKGROUND : #000060;
+	PADDING : 4px;
+	BORDER-BOTTOM : 2px #336699 SOLID;
+}
+DIV.USERMENU A:LINK {COLOR:#FFF}
+DIV.USERMENU A:VISITED {COLOR:#FFF}
+DIV.USERMENU A:HOVER {COLOR:#FFF}
+
+DIV.PROFILE
+{
+	WIDTH : 200PX;
+	PADDING : 0PX 0PX 10PX;
+	LINE-HEIGHT : 150%;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.MNTTL
+{
+	FONT:BOLD 10pt;
+	WIDTH : 200PX;
+	BORDER-BOTTOM :	1PX #888 DASHED;
+	PADDING : 2PX 0PX 0PX;
+	MARGIN : 25PX 0PX 10PX;
+	TEXT-ALIGN:CENTER;
+}
+
+DIV.MNBODY
+{
+	font:9pt/135%;
+	WIDTH :200PX;
+}
+
+DIV.POST { MARGIN-BOTTOM : 50PX;}
+
+DIV.POST_HEAD
+{
+	MARGIN-BOTTOM : 15PX;
+	PADDING-BOTTOM : 3PX;
+}
+
+DIV.POST_TTL
+{
+	TEXT-DECORATION: UNDERLINE;
+	FONT: BOLD 10pt Georgia ;
+	COLOR: #000;
+}
+
+DIV.POST_BODY
+{
+	FONT:10pt/150%;
+	WIDTH : 100%;
+	MARGIN-BOTTOM : 30PX;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.POST_BODY A:LINK
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION:none;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:VISITED
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:HOVER
+{
+	COLOR: #CF4040;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #CF4040
+}
+
+
+DIV.POST_TAIL {
+	FONT : 11PX/150% VERDANA, TAHOMA, 돋움;
+	MARGIN-TOP : 10PX;
+	TEXT-ALIGN : RIGHT;
+}
+
+DIV.POST_TAIL A:LINK {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:VISITED {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:HOVER {COLOR: #006699; TEXT-DECORATION: NONE; border-bottom:1px dotted #cc0000}
+
+DIV.COMMENT
+{
+	BORDER : 1PX #D3D3D3 SOLID;
+	BACKGROUND : #F7F7F7;
+	PADDING : 15PX;
+	MARGIN : 20PX 0PX;
+}
+
+DIV.COMMENT_BODY
+{
+	MARGIN-BOTTOM : 20PX;
+}
+
+DIV.COMMENT_TAIL
+{
+	MARGIN : 8PX 0PX 5PX;
+	FONT : 8PT/150% VERDANA, TAHOMA, 돋움;
+	COLOR : #777;
+}
+
+DIV.COMMENT_INPUT
+{
+	MARGIN-TOP : 20PX;
+	BORDER-TOP : 1PX #AAA DOTTED;
+	PADDING-TOP : 20PX;
+}
+
+DIV.COMMENT_LINE
+{
+	BORDER-TOP : 1PX #AAA DOTTED;
+	MARGIN : 10PX 0PX 15PX;
+}
+DIV.POST_BODY IMG
+{
+	filter:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	border:1px #000 solid;
+}
+
+DIV.VERSION
+{
+  font-weight: bold;
+  color: white;
+  background: #525d76;
+  border: 1px solid silver;
+#  margin: 0.5em 10% 0.5em 1em;
+  padding: 0.5em;
+}
+
+DIV.SOURCE
+{
+  font-family: monospace, Courier New, Seoul;
+#  margin: 0.5em 10% 0.5em 1em;
+  margin: 1em;
+  color: navy;
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+BLOCKQUOTE
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD dotted;
+	padding:5px;
+	color:#000;
+	margin:20px;
+}
+
+/* begin style of emphasis */
+.BOX1
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#00FF00;
+	background:#000;
+	margin:20px;
+}
+
+.BOX2
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#FFC000;
+	background:#000;
+	margin:20px;
+}
+
+.EM1
+{
+	background : #FFFF80;
+}
+
+.EM2
+{
+	background : #F0C0FF;
+}
+/* end style of emphasis */
+
+#RIGHTMAIN{ POSITION: ABSOLUTE; RIGHT:300px; LEFT:40px;}
+
+#LEFTSIDE
+{
+	POSITION: ABSOLUTE;
+	TOP:60PX;
+	RIGHT: 20PX;
+	FONT: 9PT;
+	WIDTH:200PX;
+	BORDER-LEFT: 2PX #BCBDC4 DASHED;
+	PADDING: 20PX;
+}
+
+#LEFTSHOW
+{
+	TOP:60PX;
+	RIGHT: 0PX;
+	FONT: 7PT/150%;
+	WIDTH:7px;
+	HEIGHT:200px;
+	BACKGROUND:#DDDDDD;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	BORDER-TOP: 3PX #7598A3 SOLID;
+	BORDER-LEFT: 2PX #7598A3 DASHED;
+	BORDER-BOTTOM: 3PX #7598A3 SOLID;
+}
+
+#LEFTHIDE
+{
+	TOP:63PX;
+	RIGHT: 23PX;
+	FONT: 7PT/150%;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	WIDTH:18px;
+	HEIGHT:18px;
+	TEXT-ALIGN:CENTER;
+}
+#BOTTOMBANNER
+{
+	TEXT-ALIGN=CENTER;
+	WIDTH=100%;
+}
+
+IMG.IMG_DECO
+{
+	TEXT-ALIGN:CENTER;BORDER:1px #000 SOLID;
+	filter:progid:DXImageTransform.Microsoft.DropShadow(color=#AAAAAA,offX=3, offY=3)
+}
+
+#LOGO
+{
+	WIDTH=200;
+	TEXT-ALIGN=CENTER;
+	FILTER:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	progid:DXImageTransform.Microsoft.Glow(Color=#AAAAAA, strength=5)
+}
+
+/* 여기서 부터는 시스템에관한 클래스 이므로 변경하지 않으시는 것이 좋습니다. */
+
+DIV.TRACK_TOP { LINE-HEIGHT : 170%; }
+DIV.ARCHIVE_HEAD { FONT-WEIGHT : BOLD; MARGIN-BOTTOM : 10PX; }
+DIV.ARCHIVE_BODY { MARGIN : 20PX 0PX; LINE-HEIGHT : 160%; PADDING-BOTTOM : 100PX; }
+
+IMG.IMAGE_TOP	{ MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_LEFT	{ MARGIN-RIGHT : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_MID	{ MARGIN-TOP : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.BOOKMK		{ MARGIN : 10PX; BORDER : 0PX; }
+IMG.USERMENU	{ MARGIN-LEFT : 8PX; }
+IMG.LOGO
+{
+BORDER: 1PX #000 SOLID;
+}
+
+DIV.BANNER	{ MARGIN-TOP : 30PX; }
+
+.SMALL		{ FONT-SIZE : 11PX; }
+.DATE		{ FONT : BOLD 8PT/150% VERDANA, TAHOMA, 돋움; }
+.TIME		{ FONT : 8PT/150% VERDANA, TAHOMA, 돋움; TEXT-ALIGN : LEFT; }
+.AUTHOR		{ FONT : BOLD 9PT; }
+.TXTFLD		{ FONT-SIZE:9PT;COLOR:#000; BORDER:1PX SOLID #666678; BACKGROUND:#FFF; }
+
+
+
+/* 여기서 부터는 달력 및 XML에 관련된 클래스입니다. */
+
+
+DIV.CAL_TOP { }
+DIV.CAL { MARGIN : 20PX 0PX 20PX; WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_HEAD { WIDTH : 150PX; FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; PADDING : 4PX 0PX; MARGIN-BOTTOM : 10PX;}
+DIV.CAL_BODY { WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_BOTTOM { }
+
+.CAL
+{
+	FONT : 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+}
+
+.CAL_DAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SUN
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #D36654;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SAT
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #3572A1;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_TODAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	BACKGROUND : #E3E3E3;
+	COLOR : #3D5586;
+	TEXT-ALIGN : CENTER;
+	BORDER : 1px #AAA SOLID;
+}
+
+.CAL_TR
+{
+	BACKGROUND:#EFEFEF;
+}
+
+DIV.XML { FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; }
+   div.memobody {
+       width : 200px;
+       overflow : hidden;
+       }
+   </style>
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloo_navibar.css?ver=1.2" media="screen" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/popup.css?ver=2.00" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/button.css" />
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.Center.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/page/blog/Modal.BookmarkDlg.js?ver=1.002"></script>
+<script type="text/javascript">
+//<![CDATA[
+Event.observe(window, 'load', function() {
+    new Modal.BookmarkDlg('egloo_bookmark', {overlay: true,
+                'groupURL'     : "/exec/egloo_bookmark_group.php",
+                'remoteURL'    : "/exec/egloo_insbookmark_exec.php"});
+    if(''==''){
+	    	copy_contents('studyfoss.egloos.com','namhyung','0');
+    }
+});
+//]]>
+</script></head>
+<body>
+<iframe name="cmtviewfrm" id="cmtviewfrm" src="about:blank" width="0" height="0" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" style="display:block;border:0px;"></iframe>
+<DIV CLASS=USERMENU>  
+<a href="http://www.egloos.com">Egloos</a> | <a href="http://sec.egloos.com/login.php?returnurl=http%3A%2F%2Fstudyfoss.egloos.com%2Fpage%2F26">Log-in</a> </DIV>
+
+<DIV ID=RIGHTMAIN>
+<DIV CLASS=HEADER><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<DIV ID=HEADER_SHADOW><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<!--		<DIV CLASS=URL><a href="http://studyfoss.egloos.com" name="egloo_url">studyfoss.egloos.com</a></DIV>-->
+		<!-- egloos content start -->
+<div class='hentry'><span class='copyright_entry' style='display:none;' title='크로스 컴파일@@**@@http://studyfoss.egloos.com/5506854'></span><DIV CLASS=POST>
+	<DIV CLASS=POST_HEAD>
+	<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=100%>
+	<TR><TD WIDTH=80%><DIV CLASS=POST_TTL><img src=http://md.egloos.com/img/vl/ico_star_o.gif> <a name="5506854" title="크로스 컴파일">크로스 컴파일</a></DIV></TD>
+		<TD WIDTH=20% ALIGN=RIGHT></TD></TR>
+	</TABLE>
+	</DIV>
+	<DIV CLASS=POST_BODY>
+	<div class="version">이 글은 Ian Lance Taylor님의 블로그에 실린 글을 저자의 동의를 거쳐 번역한 것입니다.<br/>참고로 Ian님은 gcc 및 binutils의 핵심 개발자로 활동하고 있으며<br/>최근에는 binutils의 새 링커인 gold와 gcc의 go 언어 지원 기능을 개발하신 분입니다.</div><br/>원문 보기:<br/>&nbsp;&nbsp;  <a title="" href="http://www.airs.com/blog/archives/492" target="_blank">http://www.airs.com/blog/archives/492</a><br/><br/>GCC는 크로스 컴파일에 대한 지원 기능을 모두 갖추고 있다.<br/>크로스 컴파일이란 이 후에 다른 머신 상에서 동작할 프로그램을 빌드하는 것을 말한다.<br/>하지만 컴파일러, 라이브러리 및 기타 도구들을 포함한 완전한 크로스 툴체인을 새로 빌드하는 것은 꽤나 고통스런 작업이다.<br/>크로스 툴체인을 빌드하는 과정에 익숙치 않은 많은 사람들은 항상 같은 반응을 보인다:<br/>"이렇게까지 어려울 필요가 있을까?". 하지만 실제로 그렇다.<br/><br/>기본적인 문제는, 크로스 툴체인은 서로 다른 여러 구성 요소들로 이루어지며,<br/>그러한 각 구성 요소들은 별개의 프로젝트로 진행되기 때문에<br/>서로 다른 배포 주기, 서로 다른 개발자, 서로 다른 목표를 가진다는 것이다.<br/><br/>이와 비슷한 문제는 (규모가 더 크긴 하지만) 운영 체제 전체를 만드는 경우에도 일어나게 된다.<br/>이 경우 운영 체제 혹은 배포판 제작 작업은 별도의 프로젝트로 진행되며,<br/>그 프로젝트에서는 단지 여러 프로젝트들을 조정하고 상호 협력해 나갈 수 있도록 총괄하는 역할 만을 수행한다.<br/>하지만 크로스 툴체인에 대해서는 이러한 총괄 프로젝트가 존재하지 않는다.<br/>(좀 더 정확히 말하면, 몇몇 회사에서 이러한 작업을 총괄하여 제작한 툴체인을 구매할 수는 있을테지만,<br/>이러한 작업을 해 주는 F/OSS 프로젝트는 존재하지 않는다.)<br/><br/>만약 여러분이 크로스 툴체인을 빌드하고 싶다면 먼저 이러한 상황을 이해해야 한다.<br/>크로스 툴체인을 만드는 것은 힘들고 지저분(?)한 작업이다.<br/>일반적으로 작업이 제대로 이루어지지 않는다면, 작업이 잘못된 방향으로 진행되고 있는 것은 아닌가 생각하게 될 것이다.<br/>하지만 크로스 툴체인의 세계에서는 반드시 그렇지는 않다.<br/>물론 정말로 여러분이 잘못된 방향으로 작업을 진행하고 있을 수도 있지만,<br/>단지 진행 중인 작업이 잘 이루어지지 않는다고 해서 방향 자체가 잘못된 것이라고 가정하지 않기를 바란다.<br/><br/>다음으로 알아두어야 할 것은 용어이다.<br/><ul><li> host 시스템은 컴파일러 및 기타 도구들이 동작하는 환경을 말한다.</li><li> target 시스템은 크로스 툴체인을 이용해 빌드한 프로그램이 실행될 환경을 말하는 것이다.</li><li> 흔치 않은 경우이지만) build 시스템도 다른 경우 (역주: 일반적으로는 크로스 툴체인을 빌드하는 경우에도 host 시스템과 build 시스템은 같다) 이는 실제로 (크로스) 컴파일러를 빌드하고 있는 환경을 말한다.</li></ul><br/>GCC 및 다른 도구들은 이러한 시스템 환경을 configure 스크립트 실행 시에<br/>--host, --target, --build 옵션을 통해 지정할 수 있다.<br/>host와 target 시스템이 동일하다면 이는 native 툴체인이라고 말한다.<br/><br/>세상에는 많은 종류의 target 시스템이 존재한다.<br/>이들은 모두 특정한 종류의 시스템 라이브러리 (일반적으로 libc라고 한다)를 필요로 한다.<br/>GCC 자체로는 시스템 라이브러리를 제공하지 않는다.<br/>따라서 스스로 자신의 target 시스템에 적합한 시스템 라이브러리가 무엇인지 알아내야 한다.<br/><ul><li>만약 target 시스템 상에 GNU/Linux를 사용해야 한다면 아마 glibc 혹은 uClibc가 필요할 것이다. 하지만 안드로이드의 경우 bionic 라이브러리를 사용하며, 그 외에도 이용할 수 있는 몇 가지 시스템 라이브러리가 존재한다. glibc는 대부분의 일반적인 native 시스템에서 사용된다. uClibc는 임베디드 환경을 위해 설계되었으며 크로스 컴파일에 관한 문서화가 잘 되어 있다.</li><li>만약 target 시스템 상에 Windows를 사용해야 한다면 MinGW 혹은 Cygwin이 필요할 것이다. 이들은 크로스 컴파일 작업이 꽤나 간단하다.</li><li>만약 target 시스템 상에 다른 (완전한 기능을 갖춘) 운영체제를 사용해야 한다면 (예: Solaris) 기존에 동작 중인 시스템에서 시스템 라이브러리와 모든 헤더 파일들을 복사해 와야 할 것이다.</li><li>만약 target 시스템 상에 RTEMS나 eCos와 같은 임베디드 운영체제을 사용해야 한다면 해당 운영체제에서 시스템을 구축하는 법을 설명한 문서를 제공할 것이다.</li><li>마지막으로 기존 운영체제의 도움 없이 처음부터 시스템을 새로 구축하는 경우라면, GCC와 함께 newlib이라는 시스템 라이브러리가 종종 사용된다. newlib을 사용하려면 시스템의 I/O를 처리하기 위한 몇 가지 BSP (Board Support Package - 역주: 간단히 드라이버라고 생각해도 무방할 듯)가 필요하다. libgloss 디렉터리에 몇몇 예제가 포함되어 있다.</li></ul><br/>위의 선택에 따라 크로스 툴체인을 빌드하기 위한 방식이 달라질 수 있으며,<br/>여기서 모든 경우에 대한 완전한 레시피를 다루지는 않을 것이다.<br/>또한 완전한 레시피를 작성해 두었다 하더라도 시간이 흘러감에 따라 그 내용이 변경될 수 밖에 없다.<br/><br/>기본적으로는 통합 트리(one-tree) 빌드와 개별 트리(separate-tree) 빌드라는 두 가지 접근 방식이 존재한다.<br/><br/>통합 트리 빌드 방식은 Cygnus 사에서 근무하던 K. Richard Pixley님과 David Zuhn님이 개발하였다.<br/>이 방식의 기본 아이디어는 모든 소스 코드를 하나의 디렉터리로 합치는 것이다.<br/>실제로 gcc, binutils, gdb, newlib, cygwin/MinGW의 소스 트리를 하나의 디렉터리로 복사하여 빌드할 수 있다.<br/>이 프로젝트들은 모두 동일한 최상위 configure 스크립트와 Makefile을 공유한다.<br/><br/>하지만 이 방식을 사용하기 위해서는 모든 소스들이 동일한 날짜/시간을 갖도록 맞춰주어야 한다.<br/>여기에는 (libiberty와 같은) 여러 공유 라이브러리들이 (중복하여?) 포함되어 있으며 이들은 모두 동일해야 한다.<br/>만약 서로 다른 시간으로 설정된 소스 트리를 섞어서 사용한다면<br/>(이를테면 각각의 프로젝트 별로 따로 제공하는 공식 버전을 사용한다면) 여러 복잡한 문제들을 겪게 될 것이다.<br/>개인적으로 이 방식을 이용하는 것을 그리 권장하지 않는다.<br/><br/>통합 트리 빌드 방식은 glibc에는 사용할 수 없다. glibc를 사용하기 위해서는 개별 트리 빌드 방식을 사용해야 한다.<br/>필자는 약 20년 전에 Cygnus 사의 release manager로 근무했었지만, 요즘은 보통 개별 트리 빌드 방식을 이용한다.<br/>개별 트리 빌드 방식을 사용하면 서로 다른 프로젝트들을 별도로 빌드하면 된다.<br/>하지만 이 때 모든 프로젝트에 대해 동일한 configure 옵션을 사용해야 한다는 것을 반드시 기억하자.<br/>일반적인 과정은 다음과 같다.<br/><ol><li>GNU binutils을 설정 (configure), 빌드 (make), 설치 (make install)</li><li>GCC 설정. "make all-gcc" 실행 (이 명령은 기타 라이브러리를 제외한 컴파일러 자체만을 빌드하는 명령이다). 설치 ("make install-gcc" 실행)</li><li>시스템 라이브러리 설정, 빌드, 설치</li><ul><li>  만약 기존의 시스템에서 라이브러리를 복사해 오는 경우라면 특별히 해야할 일은 없다. 대신 라이브러리와 헤더 파일들을 특정한 디렉터리에 복사한 후, 다른 도구들을 설정할 때 --with-sysroot 옵션을 통해 해당 디렉터리를 가리키도록 해야 한다.</li><li>  newlib이나 cygwin 라이브러리를 빌드하는 경우는 별 문제가 없을 것이다. 이들은 앞서 빌드한 크로스 컴파일러를 통해 잘 빌드될 것이다.</li><li>  만약 glibc를 빌드하는 경우라면 configure 스크립트 실행 시에 주의를 기울여야 한다. 아직 우리가 빌드한 컴파일러가 완전한 프로그램을 빌드하지 못하는 상태이기 때문이다. 불행히도 이 단계에서 발생할 수 있는 문제들에 대해서는 필자도 그리 익숙하지가 않다. 이에 대한 자세한 이슈 및 보조 스크립트들에 대해서는 <a target="_blank" href="http://ymorin.is-a-geek.org/dokuwiki/projects/crosstool">crosstool-ng</a> 프로젝트를 살펴보도록 하자.</li></ul><li>GCC의 다른 구성 요소들 (주로 보조 라이브러리들)을 빌드하고 설치</li></ol><br/>이 단계에서 본다면, 아마도 크로스 툴체인을 만드는 일이 별 것 아니라고 생각할 수도 있을 것이다. 하지만 다음을 생각해 보자.<br/>만약 (여러분이 원하는) 특정 host 및 target 환경에서 동작하는 특정 (버전의) 크로스 툴체인을 빌드하고자 하는 경우<br/>해당 조합에 대해서 세계에서 가장 첫 번째로 시도하고 있는 사람이 될 수 있는 약간의 가능성이 존재한다.<br/>또한 (여러분이) 빌드를 시도하고 있는 특정 조합에 대해서 개별 프로젝트의 주요 개발자들 중 어느 누구도 이를 시도해보지<br/>않았을 가능성이 농후하다. 이는 빌드 과정에서 몇몇 미묘한 문제들을 겪게될 가능성이 아주 크다는 의미이며,<br/>즉 어떤 프로젝트 (소스)는 빌드되지 않을 수도 있다는 것을 말한다.<br/><br/>필자가 Cygnus 사에서 release manager로 근무하던 당시, Cygnus에서는 3개월마다 새로운 버전(release)을 빌드했었다.<br/>필자의 주요 업무는 빌드 과정에서 발생하는 모든 미묘한 문제들을 해결하는 일이었다.<br/>이러한 도구들을 이용해 업무를 수행했던 경험은 필자에게는 매우 좋은 훈련이 되었다.<br/><br/>여러분은 아마도 시간이 흘러감에 따라 상황이 더 좋아졌을 것이라고 생각할 것이다.<br/>하지만 실상은 그렇지 않다. 왜냐하면 아직 이러한 통합 과정의 개선 자체를 목적으로 하는 (dedicated)<br/>프로젝트가 존재하지 않기 때문이다. 각각의 (개별) 프로젝트들은 항상 호환성을 해치는 방향으로 변경되며<br/>이는 어떤 (잠재적인) 조합의 빌드를 불가능하게 만들 것이지만 아무도 이를 인식하지 못한다.<br/><br/>이 부분은 누군가가 (혜성처럼?) 나타나서 말끔히 정리해 주었으면 하는 분야이다.<br/>하지만 그런 일은 쉽지 않다. 이러한 작업은 꾸준한 테스트와 패치 작업이 반복되어야 한다.<br/>즉, 문제를 찾아내고 이 문제가 해결될 때까지 관련 개발자들을 계속 괴롭혀야하는 일의 연속이다.<br/>또한 각 버전 사이를 넘나들거나 아직 배포되지 않은 코드들을 신뢰할 수 있는 방법을 통해 사용할 수 있어야 하고<br/>이 모든 프로그램들을 알고 있어야 하며, 각각의 목표와 내부 구조를 이해하고 있어야 함을 뜻한다.<br/><br/>이러한 작업은 아무도 알아주지 않는 (혹은 고마워하지 않는) 일은 아니지만<br/>거의 대부분의 프로그래머들은 크로스 툴체인을 사용하지 않으며<br/>크로스 툴체인을 사용하는 개발자들도 대부분은 특정 업체에서 제공하는 툴체인을 사용하기 때문에<br/>실제로 이러한 작업에 대해 고마움을 표현하는 사람을 만나기는 힘들 것이다.<br/>하지만 누군가가 (GCC를 위해) 이러한 작업을 맡아준다면 매우 고맙겠다.<br/><div style="clear:both; _display: none;"></div><div class="posttaglist"><a href="/tag/gcc" rel="tag">gcc</a>,&nbsp;<a href="/tag/glibc" rel="tag">glibc</a>,&nbsp;<a href="/tag/binutils" rel="tag">binutils</a>,&nbsp;<a href="/tag/build" rel="tag">build</a></div>
+       <!--
+       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+		    xmlns:dc="http://purl.org/dc/elements/1.1/"
+		    xmlns:trackback="http://madskills.com/public/xml/rss/module/trackback/">
+       <rdf:Description
+	        rdf:about="http://studyfoss.egloos.com/5506854"
+	        dc:identifier="http://studyfoss.egloos.com/5506854"
+	        dc:title="크로스 컴파일"
+	        trackback:ping="http://studyfoss.egloos.com/tb/5506854"/>
+       </rdf:RDF>
+       -->
+
+	</DIV>
+	<DIV CLASS=POST_TAIL ALIGN=RIGHT><span class="TIME"> <a href="/5506854" class="permalink" title="크로스 컴파일" rel="bookmark">#</a> by <span class="AUTHOR">namhyung</span> | <a href="/5506854" class="time"  title="크로스 컴파일" rel="bookmark">2011/04/03 23:04</a></span> | <a href="/category/System" class="category">System</a> | <span class="linkback"><a href="#trb" onclick="trbview('5506854','c0098335','0'); return false;" class="tail_trb">트랙백<span id="trbcnt5506854"></span></a></span> | <span class="linkback"><a href="#cmt" onclick="cmtview('5506854','c0098335','0'); return false;" class="tail_cmt">덧글(<span id="cmtcnt5506854">3</span>)</a></span></DIV>
+		<span id="cmt5506854"></span>
+</DIV>
+</div><!-- egloos content end -->
+<span style="float: left"><a href="/page/25">◀ 이전 페이지</a></a></span>
+<span style="float: right"><a href="/page/27">다음 페이지 ▶</a></span>
+<BR><BR>
+<DIV ID='BOTTOMBANNER' style="display:none;">	<div class="BANNER"><a href="http://www.egloos.com"><img src="http://md.egloos.com/img/edt/banner_ffffff_1.gif" width="150" height="50" border="0" alt="Powered by egloos" /></a></div>
+<BR><BR></DIV>
+</DIV>
+<DIV ID=LEFTSIDE style="display:block;">
+	<DIV ID=LOGO></DIV>
+	     <script language="javascript" type="text/javascript">
+     <!--
+     var s_calendar = new Array();
+     s_calendar = [];
+	  calendar("","");
+     -->
+     </script>
+
+	
+<DIV CLASS=MNTTL>카테고리</DIV>
+<DIV CLASS=MNBODY>
+<a href="/category/General">General</a><br/><a href="/category/Application">Application</a><br/><a href="/category/System">System</a><br/><a href="/category/Kernel">Kernel</a><br/><a href="/category/Book">Book</a><br/><a href="/category/Tips">Tips</a><br/>
+</DIV>
+
+<DIV CLASS=MNTTL>태그</DIV>
+<DIV CLASS=MNBODY><a href="/tag/patch" class="tlevel3"> patch</a>
+<a href="/tag/elf" class="tlevel3"> elf</a>
+<a href="/tag/linux" class="tlevel3"> linux</a>
+<a href="/tag/x86" class="tlevel3"> x86</a>
+<a href="/tag/vcs" class="tlevel1"> vcs</a>
+<a href="/tag/bash" class="tlevel2"> bash</a>
+<a href="/tag/SMP" class="tlevel2"> SMP</a>
+<a href="/tag/awk" class="tlevel1"> awk</a>
+<a href="/tag/blktrace" class="tlevel1"> blktrace</a>
+<a href="/tag/sed" class="tlevel1"> sed</a>
+<a href="/tag/build" class="tlevel3"> build</a>
+<a href="/tag/git" class="tlevel2"> git</a>
+<a href="/tag/emacs" class="tlevel3"> emacs</a>
+<a href="/tag/CARM" class="tlevel1"> CARM</a>
+<a href="/tag/documentation" class="tlevel1"> documentation</a>
+<a href="/tag/kernel" class="tlevel3"> kernel</a>
+<a href="/tag/block-layer" class="tlevel2"> block-layer</a>
+<a href="/tag/script" class="tlevel1"> script</a>
+<a href="/tag/compiler" class="tlevel3"> compiler</a>
+<a href="/tag/memory" class="tlevel3"> memory</a>
+<a href="/tag/scm" class="tlevel1"> scm</a>
+<a href="/tag/perf" class="tlevel1"> perf</a>
+<a href="/tag/synchronization" class="tlevel3"> synchronization</a>
+<a href="/tag/algorithm" class="tlevel3"> algorithm</a>
+<a href="/tag/gcc" class="tlevel3"> gcc</a>
+<a href="/tag/binutils" class="tlevel2"> binutils</a>
+<a href="/tag/computer-architecture" class="tlevel3"> computer-architecture</a>
+<a href="/tag/glibc" class="tlevel3"> glibc</a>
+<a href="/tag/C" class="tlevel3"> C</a>
+<a href="/tag/CAaQA3" class="tlevel3"> CAaQA3</a>
+<div style="text-align:right;margin-top:5px;"><a href="/tag">전체보기</a></div>
+</DIV>
+
+<DIV CLASS=MNTTL>이글루 파인더</DIV>
+<DIV CLASS=MNBODY><form id="finder" style="margin:0;" name="finder" method="post" action="http://studyfoss.egloos.com/" onsubmit="return go_search(document.finder);"><input type="text" id="srch_kwd" name="srch_kwd" size="10" style="vertical-align: middle;width: 100px;font-size:12px;" maxlength="30"/><input type="image" style="vertical-align: middle;margin-left:3px;" src="http://md.egloos.com/img/fnd/searchb.gif" /><p style="margin:3px 0 0 13px;text-align:left"><a href="http://www.zum.com" target="_blank"><img src="http://md.egloos.com/img/search/txt_power.png"></a></p></form>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 덧글</DIV>
+<DIV CLASS=MNBODY>
+<style type="text/css"> 
+.reply_write {margin:10px 0;}
+.reply_write fieldset {border:none;margin:0;padding:0;}
+.reply_write legend {display:none;}
+.reply_write .comment_info {width:95%;}
+.reply_write .comment_info span.comment_name,
+.reply_write .comment_info span.comment_passwd,
+.reply_write .comment_info span.comment_blog {display:block;padding:0 0 2px 0;clear:both;}
+.reply_write .comment_info span.comment_blog {float:left;}
+.reply_write .comment_info span.comment_name label,
+.reply_write .comment_info span.comment_passwd label,
+.reply_write .comment_info span.comment_blog label {display:block;float:left;width:55px;}
+.reply_write .comment_info input {padding:1px 0 0 1px;vertical-align:middle;}
+.reply_write .comment_info input.name {width:100px;}
+.reply_write .comment_info input.passwd {width:60px;}
+.reply_write .comment_info input.blog {width:200px;font-family:tahoma,sans-serif;font-size:11px;}
+.reply_write .comment_info span.comment_now {display:none;}
+.reply_write .comment_info span.comment_login {float:right;}
+.reply_write textarea {margin:2px 0;padding:0;width:95%;height:100px;margin-left:0 !important;font:normal 12px '돋움',sans-serif;}
+.reply_write .comment_btn {width:95%;height:23px;position:relative;*position:static;*text-align:right;}
+.reply_write .comment_btn .comment_submit {position:absolute;top:0;right:0;*position:static;*text-align:right;}
+</style>     
+
+<a href="http://studyfoss.egloos.com/5129119#12438993">이렇게 좋은 글이 한글로 있다는 것..</a><br/><span class="SMALL">by 프로그라머 at 02/17</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5512112#12419757">흐름을 이해할 수 있는글이라 좋..</a><br/><span class="SMALL">by morenice at 11/26</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#12401092">좋은 글 감사합니다~퍼갑니다~</a><br/><span class="SMALL">by 김석범 at 09/10</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 트랙백</DIV>
+<DIV CLASS=MNBODY>
+<a href="http://studyfoss.egloos.com/5350643#515727">이맥스의 파일 변수 사용하기</a><br/><span class="SMALL">by 개똥이야기</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#512679">asmlinkage modifier in Linux..</a><br/><span class="SMALL">by novum의 공유창고</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5409933#511713">구조체의 패킹에 대한 이야기</a><br/><span class="SMALL">by 김재호의 디지털보단 아날로그</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+
+
+
+
+
+
+
+<DIV style="TEXT-ALIGN:center; width:200px;">
+<div class="XML"><a href="http://rss.egloos.com/blog/studyfoss" target="_new"><img src="http://md.egloos.com/img/skn/rss.gif" alt="rss" border="0" /></a><br /><br /> skin by <a href="http://jiinny.egloos.com">jiinny</a></div>
+<BR /><BR />
+<DIV ID=OHLOH><a href='https://www.ohloh.net/accounts/115130?ref=Detailed'>
+  <img alt='Ohloh profile for Namhyung Kim' height='35' src='https://www.ohloh.net/accounts/115130/widgets/account_detailed.gif' width='191' border='0' />
+</a></DIV>
+</DIV>
+</DIV>
+<DIV ID='LEFTSHOW'  onclick=document.all['RIGHTMAIN'].style.right='300px';document.all['BOTTOMBANNER'].style.display='none';document.all['LEFTSIDE'].style.display='block';document.all['LEFTSHOW'].style.display='none';document.all['LEFTHIDE'].style.display='block';  style='color:red;display:none;'>
+</DIV>
+
+<DIV id='LEFTHIDE' onclick=document.all['RIGHTMAIN'].style.right='20px';document.all['BOTTOMBANNER'].style.display='block';document.all['LEFTSIDE'].style.display='none';document.all['LEFTHIDE'].style.display='none';document.all['LEFTSHOW'].style.display='block';  style='color:red'>X</DIV><iframe src="http://www.egloos.com/estat/stat_logger.php?bid=c0098335&ref=&openflag=" style="width: 0px; height: 0px; border: 0px solid #fff;"></iframe>
+<img width="0" height="0" border="0" src="http://studyfoss.egloos.com/egloo_pds.php?eid=c0098335" alt="" />
+<form id="trackfrom" name="trackfrom" method="post" action="">
+<input type="hidden" name="url" value="" />
+<input type="hidden" name="title" value="" />
+<input type="hidden" name="trburl" value="" />
+</form>
+<div style="z-index:9901;top:764px;left:169px;display:none;" id="egloo_bookmark" class="popupWrap">
+    <div class="popupTitle">이글루링크 추가하기</div>
+    <dl class="popupBody">
+        <dt class="no-arrow" style="background:none;font-size:12px;text-align:center;">
+            <span id="egloo-bookmark-url" style="color:#0F71A1;"></span>
+            (<span id="egloo-bookmark-name"></span>)을(를)</dt>
+        <dd class="notice" style="margin:0;padding:0 0 0 8px;line-height:1.8em;color:#000;font-size:12px;text-align:center;">이글루링크로 추가하시겠습니까? 추가하시려면 그룹선택을 하세요.</dd>
+        <dd class="notice weak" style="margin:0;padding:0 0 0 8px;line-height:1.8em;font-size:11px;color:#666666;text-align:center;">(그룹선택 하지 않는 경우, 최상단 목록에 추가됩니다.)</dd>
+        <dd class="egloo-bookmark-group" style="margin:0;padding:10px 0 8px;line-height:1.8em;text-align:center;color:#333;font-size:12px;text-align:center;">그룹선택 :
+            <select name="groupID" id="egloo-bookmark-groupID" style="font-family:'돋움','dotum','Trebuchet MS',Sans-serif;margin-left:10px;"><option value="000">그룹선택없음</option></select></dd>
+        <dd class="buttons">
+            <input type="button" value="지금 확인" onfocus="blur();" onclick="Modal.insertBookmark(true);" class="button btn24 btn_bold"/>
+            <input type="button" value="나중에 확인" onfocus="blur();" onclick="Modal.insertBookmark(false);" class="button btn24 btn_weak"/>
+        </dd>
+        <dd class="close" onclick="Modal.close();"><img src="http://md.egloos.com/img/www/btn/button_popup_close.gif" alt="이글루링크 취소" title="이글루링크 취소" /></dd>
+    </dl>
+</div>
+</body>
+</html>

@@ -1,0 +1,280 @@
+	
+<div class="version">
+linux: 2.6.31
+arch: x86
+</div>
+
+
+signal은 특정 프로세스에게 어떤 메시지를 전달할 수 있는 가장 기본적인 수단이다.
+signal은 다른 (user-level) 프로세스로부터 직접적으로 받거나
+혹은 (주로 문제가 될 만한 동작으로인해) 커널로부터 받을 수 있다.
+
+이러한  signal은 kernel-mode에서 처리가 되는데
+주로 시스템 콜이나 인터럽트 처리 등을 마치고 user-mode로 돌아오기 직전에
+해당 프로세스에게 전달된 signal이 있는지 검사하여 실행된다.
+(SMP 커널에서는 user-mode에서 실행 중인 프로세스가 signal을 처리해야하면
+강제로 scheduling하도록 IPI를 보내서 kernel-mode로 들어오게 만들기도 한다.)
+
+signal을 받은 프로세스의 기본적인 반응 (동작?)은
+거의 대부분 해당 프로세스의 실행을 종료하는 것이며,
+이 밖에 signal의 종류에 따라 실행을 중지하거나 그냥 무시하는 경우도 있다.
+
+응용 프로그램은 커널에서 제공하는 몇 가지 시스템 콜을 이용하여
+특정한 signal을 받았을 때 기본 동작을 수행하는 대신
+사용자가 원하는 동작을 수행하는 signal handler를 등록해 둘 수 있다.
+(물론 이런 식으로 처리할 수 없는 강제적인 signal도 있다.)
+
+우선 다음과 같은 예제를 살펴보기로 하자.
+
+sighandler.c: 
+<div class="source">
+#include &lt;stdio.h&gt;
+#include &lt;signal.h&gt;
+
+static void unused_func(void)
+{
+  printf("%s\n", __FUNCTION__);
+}
+
+static void sighandler(int sig)
+{
+  printf("%s\n", __FUNCTION__);
+}
+
+int main(void)
+{
+  struct sigaction sa;
+
+  /* set up signal handler */
+  sa.sa_handler = sighandler;
+  sigaction(SIGUSR1, &amp;sa, NULL);
+
+  /* send signal to myself */
+  printf("before raise()\n");
+  raise(SIGUSR1);
+  printf("after  raise()\n");
+  
+  return 0;
+}
+</div>
+
+하지만 이러한 signal handler은 user-mode에서 실행되어야 한다는 문제가 있다.
+앞서 말했다시피 signal에 대한 처리를 수행하는 것은 커널인데
+signal handler는 잠시 user-mode에서 실행하고 실행이 끝나면 다시 커널로 돌아와야 하는 것이다.
+리눅스는 kernel-mode로 진입 시 kernel stack에 user-mode에서 실행 중이던 context를 저장하는데
+일단 kernel-mode를 벗어나면 kernel stack은 초기화되어버리기 때문에
+signal handler를 마치고 다시 kernel-mode로 돌아가게되면
+원래 돌아가야 할 user-mode에 대한 정보를 잃어버리게 된다!!
+
+이를 해결하기 위해서는 signal handler를 실행하기 전에
+원래의 kernel-stack에 있는 user context 정보를 (frame이라고 부른다.)
+signal handler를 실행할 user stack에 임시로 저장해 두었다가
+signal handler가 마치고 kernel mode로 돌아오면 임시로 저장해 둔 정보를 이용하여
+kernel stack을 다시 복구하는 방법을 사용한다. (linux/arch/x86/kernel/signal.c::__setup_frame() 함수 참조)
+이제 모든 signal을 처리하고 user mode로 돌아가게 되면
+원래 signal이 발생했던 시점부터 다시 실행을 시작할 수 있게 된다.
+
+실제로 이러한 frame  정보는 커널 내에 다음과 같이 정의되어 있다.
+(알아보기 쉽도록 약간 정리하였다.)
+
+linux/arch/x86/include/asm/sigframe.h:
+<div class="source">
+struct sigframe
+{
+    char *pretcode;
+    int sig;
+    struct sigcontext sc;
+    struct _fpstate fpstate;
+    unsigned long extramask[1];
+    char retcode[8];
+};
+</div>
+
+여기서 sigcontext 구조체에 각종 레지스터들의 현재 값을 저장해둔다.
+sigcontext 및 _fpstate 구조체는 /usr/include/signal.h 파일 어딘가?에 정의되어 있다.
+
+그렇다면 signal handler가 실행을 마치고 kernel로 돌아간다는 것을 kernel이 알아야 한다.
+이것이 어떻게 가능할까??
+
+user-mode에서 kernel-mode로 전환하기 위해서는 system call을 이용해야 한다.
+따라서 signal handler의 복귀를 위한 특별한 system call이 존재하며 (sigreturn과 rt_sigreturn)
+커널은 signal handler를 실행하기 전에 return address가
+해당 system call을 호출하는 코드(__kernel_sigreturn)를 가리키도록 미리 설정한다.
+(여기서 vdso 방식의 vsyscall 페이지를 이용하는데, 이는 나중에 자세히 다루도록 하겠다.
+간단히 커널과 응용 프로그램이 공유하는 user-level 코드라고 생각해도 될 것이다.)
+따라서 signal handler에서 명시적으로 커널로 복귀하는 코드가 없어도
+수행을 마치면 커널로 돌아갈 수가 있는 것이다.
+
+__kernel_sigreturn의 코드는 아주 단순하다.
+stack에서 4byte를 pop하고 sigreturn 시스템 콜을 호출하는 것이 전부다.
+(참고로 __NR_sigreturn은 x86에서 119로 정의되어 있다.)
+
+linux/arch/x86/vdso/vdso32/sigreturn.S:
+<div class="source">
+...
+__kernel_sigreturn:
+    popl %eax        /* XXX does this mean it needs unwind info? */
+    movl $__NR_sigreturn, %eax
+    int $0x80
+...
+</div>
+
+이 sigreturn이라는 시스템 콜은 커널이 signal handler를 수행한 후에 간접적으로 호출하도록 만들어진 것이므로
+user-level에서는 직접적인 사용을 금지하고 있다.
+예를 들어 signal handler에서 직접 sigreturn()을 호출하도록 프로그램을 작성해도
+libc가 이를 무시하고 실제 시스템 콜을 호출하지 않는다.
+실제로 glibc-2.9의 sigreturn() 구현은 아래와 같다.
+
+glibc/signal/sigreturn.c:
+<div class="source">
+#include &lt;signal.h&gt;
+#include &lt;errno.h&gt;
+
+int
+__sigreturn (context)
+     struct sigcontext *context;
+{
+  __set_errno (ENOSYS);
+  return -1;
+}
+stub_warning (sigreturn)
+
+weak_alias (__sigreturn, sigreturn)
+#include &lt;stub-tag.h&gt;
+</div>
+
+위의 예제에서 sighandler() 함수 내에 sigreturn((void *) 0); 을 추가한 후 컴파일하면 다음과 같이 출력된다.
+
+
+<div class="source">
+$ gcc sighandler.c 
+/tmp/ccEOGoWm.o: In function `sighandler':
+sighandler.c:(.text+0x50): warning: warning: sigreturn is not implemented and will always fail
+</div>
+
+한 마디로 sigreturn은 쓰지 말라는 얘기이다.
+하지만 (포기하지 말자!) __kernel_sigreturn에서와 같이
+asm 코드로 직접 시스템 콜을 호출하면 동일한 효과를 얻을 수 있다.
+
+한 가지 주의할 것은 (위의 sigreturn 함수의 prototype으로부터 얻을 수 있는 정보이기도 하다!)
+sigreturn 시스템 콜이 호출되는 시점에는 esp 레지스터가
+sigframe의 sigcontext 구조체를 가리키고 있어야 한다는 점이다. (frame + 8)
+커널의 sigreturn 서비스 루틴은 esp에서 8을 빼서 sigframe의 위치를 찾는다.
+(offsetof(struct sigframe, sc) = 8이다!)
+
+이제 대강 얘기를 풀어놓았으니 실제 예제를 가지고 몇가지 장난을 좀 쳐보자.
+먼저 위의 예제를 그냥 컴파일 후 실행하면 다음과 같은 결과를 얻는다.
+
+
+<div class="source">
+$ ./a.out
+before raise()
+sighandler
+after  raise()
+</div>
+
+이제 sighandler에서 sigframe 정보를 추출하고,
+(sigframe은 함수의 return address부분부터 시작하므로 parameter 바로 아래의 주소에서 시작한다.)
+위에서 호출하지 않았던 unused_func으로 eip를 설정하면
+signal handler가 수행된 후에 커널로 제어가 넘어가고 다시 user-mode로 복귀할 때
+unused_func()이 호출되는 것을 볼 수 있다.
+
+
+<div class="source">
+static void sighandler(int sig)
+{
+  struct sigframe *frame = (struct sigframe *) (&amp;sig - 1);
+  printf("%s\n", __FUNCTION__);
+  frame-&gt;sc.eip = (unsigned long) unused_func;
+}
+</div>
+
+다음은 위의 실행 결과이다.
+
+<div class="source">
+$ gcc sighandler.c
+$ ./a.out
+before raise()
+sighandler
+&lt;--------------------------- 여기서 user-mode로 return됨
+unused_func
+after  raise()
+</div>
+
+이번에는 sigreturn() 시스템 콜을 직접 호출하여 커널로 복귀해 보자.
+먼저 sighandler() 함수에서는 기존의 return address를 unused_func()의 주소로 바꾼다.
+
+
+<div class="source">
+static void sighandler(int sig)
+{
+  struct sigframe *frame = (struct sigframe *) (&amp;sig - 1);
+  printf("%s\n", __FUNCTION__);
+  /* frame-&gt;sc.eip = (unsigned long) unused_func; */
+  frame-&gt;sc.pretcode = (void *) unused_func;
+}
+</div>
+
+unused_func에서는 esp (stack pointer)을 앞서 말한대로 &amp;frame-&gt;sc와 맞춰야한다.
+이제 esp 값에 대해서 한 번 살펴보자.
+우선 signal handler가 호출되는 순간 커널은 esp가 frame을 가리키도록 설정한다.
+frame의 처음 두 필드는 return address와 parameter로 사용되는 signal 번호이므로
+이는 일반적인 함수 호출 시의 스택 구성과 완전히 동일하다.
+signal handler가 수행을 마치고 ret instruction을 수행하면 스택에서 return address를 pop하므로
+이제 esp는 &amp;frame-&gt;sig 값을 가진다. (= frame + 4)
+
+다음으로는 바로 unused_func() 함수가 수행되는데
+(다른 함수들과 마찬가지로) 이 함수가 제일 먼저 수행하는 일은
+ebp를 스택에 push, esp를 ebp에 저장, 로컬 변수 및 함수 호출에 필요한 스택 영역 확보 순이다.
+
+
+<div class="source">
+$ objdump -d a.out | grep -A 5 unused
+08048484 &lt;unused_func&gt;:
+ 8048484:    55                       push   %ebp
+ 8048485:    89 e5                    mov    %esp,%ebp
+ 8048487:    83 ec 18                 sub    $0x18,%esp
+ 804848a:    c7 04 24 39 86 04 08     movl   $0x8048639,(%esp)
+ 8048491:    e8 26 ff ff ff           call   80483bc &lt;puts@plt&gt;
+</div>
+
+즉 ebp에 (이전의 esp 값 - 4) 값이 들어있다는 것을 알 수 있다.
+따라서 ebp 값 + 8하면 &amp;frame-&gt;sc 값을 얻을 수 있다.
+이제 unused_func()을 다음과 같이 수정한다.
+
+
+<div class="source">
+static void unused_func(void)
+{
+  printf("%s\n", __FUNCTION__);
+  asm volatile("leal 8(%ebp), %esp; movl $119, %eax; int $0x80");
+}
+</div>
+
+"leal 8(%ebp)" 부분은 "movl %ebp, %esp; addl $8, %esp" 명령과 동일하다.
+이제 sigreturn의 시스템 콜 번호인 119를 eax에 저장하고 시스템 콜을 호출한다. (int $0x80)
+아쉽게도? 출력 결과는 앞의 프로그램과 동일하다. (추가한 설명 부분의 위치만 약간 바뀌었다.)
+
+
+<div class="source">
+$ gcc sighandler.c
+$ ./a.out
+before raise()
+sighandler
+unused_func
+&lt;--------------------------- 여기서 user-mode로 return됨
+after  raise()
+</div>
+
+signal handler 등록 시 SA_INFO flag를 설정하여 sa_sigaction 핸들러를 이용하는 경우에도
+sigframe의 구성과 sigreturn 대신 rt_sigreturn이 사용되는 몇 가지 차이 만 있을 뿐
+동작하는 방식은 동일하므로 약간만 변형하여 같은 결과를 얻을 수 있다.
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/x86" rel="tag">x86</a>, <a href="/tag/signal" rel="tag">signal</a>
+</div>
+

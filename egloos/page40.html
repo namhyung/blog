@@ -1,0 +1,612 @@
+<html>
+<head>	<meta http-equiv='pragma' content='no-cache' />
+	<meta http-equiv='cache-control' content='no-cache' />
+	<meta http-equiv='Content-type' content='text/html; charset=utf-8' />
+	<meta name="author" content="namhyung" />
+	<meta name="keywords" content="F/OSS study" />
+	<meta http-equiv="X-XRDS-Location" content="http://namhyung.myid.net/xrds" />
+	<link rel="openid.server" href="http://www.myid.net/server" />
+	<link rel="openid.delegate" href="http://namhyung.myid.net" />
+	<link rel="shortcut icon" href="http://md.egloos.com/img/favicon.ico" />
+	<link rel="pingback" href="https://rpc.egloos.com/rpc1" />
+	<link rel="alternate" type="application/rss+xml" title="F/OSS study" href="http://rss.egloos.com/blog/studyfoss" />
+	<title>F/OSS study</title>
+	<script type="text/javascript" src="http://md.egloos.com/js/ap.js?ver=1.043"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/gd.js?ver=1.002"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/eg.js?ver=1.012"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/cr.js?ver=1.002"></script>
+    <script type="text/javascript" src="http://md.egloos.com/js/page/ins.js?ver=1.4"></script>
+		
+	<script type="text/javascript" src="http://md.egloos.com/js/lib/prototype_v1511.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.ImgModal.js?ver=1.004"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/page/blog/compatible.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/player.js"></script>
+	
+	<script type="text/javascript" src="http://md.egloos.com/js/lazyload.js"></script>
+	
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloos_template.css?ver=1.002" media="screen" />
+<style type="text/css">
+/* jiinny text-only skin
+ */
+
+
+BODY
+{
+	BACKGROUND : #FCFEFF;
+	MARGIN : 0PX;
+	PADDING : 0PX;
+}
+
+BODY,TD,DIV,LI
+{
+	FONT : 9PT/160% Tahoma, SANS-SERIF, Verdana, monaco,굴림,돋움,SANS-SERIF;
+	COLOR : #33455E;
+}
+
+A:LINK		{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:VISITED	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:ACTIVE	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:HOVER		{ COLOR: #C00000; TEXT-DECORATION: UNDERLINE; }
+
+/* filter의 shadow보다 품질을 좋게 하기 위해서*/
+DIV.HEADER
+{
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+	filter:progid:DXImageTransform.Microsoft.Blur;
+}
+
+#HEADER_SHADOW
+{
+	POSITION : relative;
+	top :-50px; right:0px;
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+}
+
+#HEADER_SHADOW A:LINK		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:VISITED		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:HOVER		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+
+DIV.HEADER A:LINK		{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:VISITED	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:HOVER	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+
+DIV.URL			{ FONT : 8PT/100% VERDANA,TAHOMA; }
+DIV.USERMENU
+{
+	POSITION:absolute:
+	left:0px;
+	top:0px;
+	COLOR : #FFFFFF;
+	FONT : bold 7pt;
+	TEXT-ALIGN : RIGHT;
+	MARGIN-BOTTOM : 50px;
+	BACKGROUND : #000060;
+	PADDING : 4px;
+	BORDER-BOTTOM : 2px #336699 SOLID;
+}
+DIV.USERMENU A:LINK {COLOR:#FFF}
+DIV.USERMENU A:VISITED {COLOR:#FFF}
+DIV.USERMENU A:HOVER {COLOR:#FFF}
+
+DIV.PROFILE
+{
+	WIDTH : 200PX;
+	PADDING : 0PX 0PX 10PX;
+	LINE-HEIGHT : 150%;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.MNTTL
+{
+	FONT:BOLD 10pt;
+	WIDTH : 200PX;
+	BORDER-BOTTOM :	1PX #888 DASHED;
+	PADDING : 2PX 0PX 0PX;
+	MARGIN : 25PX 0PX 10PX;
+	TEXT-ALIGN:CENTER;
+}
+
+DIV.MNBODY
+{
+	font:9pt/135%;
+	WIDTH :200PX;
+}
+
+DIV.POST { MARGIN-BOTTOM : 50PX;}
+
+DIV.POST_HEAD
+{
+	MARGIN-BOTTOM : 15PX;
+	PADDING-BOTTOM : 3PX;
+}
+
+DIV.POST_TTL
+{
+	TEXT-DECORATION: UNDERLINE;
+	FONT: BOLD 10pt Georgia ;
+	COLOR: #000;
+}
+
+DIV.POST_BODY
+{
+	FONT:10pt/150%;
+	WIDTH : 100%;
+	MARGIN-BOTTOM : 30PX;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.POST_BODY A:LINK
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION:none;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:VISITED
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:HOVER
+{
+	COLOR: #CF4040;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #CF4040
+}
+
+
+DIV.POST_TAIL {
+	FONT : 11PX/150% VERDANA, TAHOMA, 돋움;
+	MARGIN-TOP : 10PX;
+	TEXT-ALIGN : RIGHT;
+}
+
+DIV.POST_TAIL A:LINK {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:VISITED {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:HOVER {COLOR: #006699; TEXT-DECORATION: NONE; border-bottom:1px dotted #cc0000}
+
+DIV.COMMENT
+{
+	BORDER : 1PX #D3D3D3 SOLID;
+	BACKGROUND : #F7F7F7;
+	PADDING : 15PX;
+	MARGIN : 20PX 0PX;
+}
+
+DIV.COMMENT_BODY
+{
+	MARGIN-BOTTOM : 20PX;
+}
+
+DIV.COMMENT_TAIL
+{
+	MARGIN : 8PX 0PX 5PX;
+	FONT : 8PT/150% VERDANA, TAHOMA, 돋움;
+	COLOR : #777;
+}
+
+DIV.COMMENT_INPUT
+{
+	MARGIN-TOP : 20PX;
+	BORDER-TOP : 1PX #AAA DOTTED;
+	PADDING-TOP : 20PX;
+}
+
+DIV.COMMENT_LINE
+{
+	BORDER-TOP : 1PX #AAA DOTTED;
+	MARGIN : 10PX 0PX 15PX;
+}
+DIV.POST_BODY IMG
+{
+	filter:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	border:1px #000 solid;
+}
+
+DIV.VERSION
+{
+  font-weight: bold;
+  color: white;
+  background: #525d76;
+  border: 1px solid silver;
+#  margin: 0.5em 10% 0.5em 1em;
+  padding: 0.5em;
+}
+
+DIV.SOURCE
+{
+  font-family: monospace, Courier New, Seoul;
+#  margin: 0.5em 10% 0.5em 1em;
+  margin: 1em;
+  color: navy;
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+BLOCKQUOTE
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD dotted;
+	padding:5px;
+	color:#000;
+	margin:20px;
+}
+
+/* begin style of emphasis */
+.BOX1
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#00FF00;
+	background:#000;
+	margin:20px;
+}
+
+.BOX2
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#FFC000;
+	background:#000;
+	margin:20px;
+}
+
+.EM1
+{
+	background : #FFFF80;
+}
+
+.EM2
+{
+	background : #F0C0FF;
+}
+/* end style of emphasis */
+
+#RIGHTMAIN{ POSITION: ABSOLUTE; RIGHT:300px; LEFT:40px;}
+
+#LEFTSIDE
+{
+	POSITION: ABSOLUTE;
+	TOP:60PX;
+	RIGHT: 20PX;
+	FONT: 9PT;
+	WIDTH:200PX;
+	BORDER-LEFT: 2PX #BCBDC4 DASHED;
+	PADDING: 20PX;
+}
+
+#LEFTSHOW
+{
+	TOP:60PX;
+	RIGHT: 0PX;
+	FONT: 7PT/150%;
+	WIDTH:7px;
+	HEIGHT:200px;
+	BACKGROUND:#DDDDDD;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	BORDER-TOP: 3PX #7598A3 SOLID;
+	BORDER-LEFT: 2PX #7598A3 DASHED;
+	BORDER-BOTTOM: 3PX #7598A3 SOLID;
+}
+
+#LEFTHIDE
+{
+	TOP:63PX;
+	RIGHT: 23PX;
+	FONT: 7PT/150%;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	WIDTH:18px;
+	HEIGHT:18px;
+	TEXT-ALIGN:CENTER;
+}
+#BOTTOMBANNER
+{
+	TEXT-ALIGN=CENTER;
+	WIDTH=100%;
+}
+
+IMG.IMG_DECO
+{
+	TEXT-ALIGN:CENTER;BORDER:1px #000 SOLID;
+	filter:progid:DXImageTransform.Microsoft.DropShadow(color=#AAAAAA,offX=3, offY=3)
+}
+
+#LOGO
+{
+	WIDTH=200;
+	TEXT-ALIGN=CENTER;
+	FILTER:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	progid:DXImageTransform.Microsoft.Glow(Color=#AAAAAA, strength=5)
+}
+
+/* 여기서 부터는 시스템에관한 클래스 이므로 변경하지 않으시는 것이 좋습니다. */
+
+DIV.TRACK_TOP { LINE-HEIGHT : 170%; }
+DIV.ARCHIVE_HEAD { FONT-WEIGHT : BOLD; MARGIN-BOTTOM : 10PX; }
+DIV.ARCHIVE_BODY { MARGIN : 20PX 0PX; LINE-HEIGHT : 160%; PADDING-BOTTOM : 100PX; }
+
+IMG.IMAGE_TOP	{ MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_LEFT	{ MARGIN-RIGHT : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_MID	{ MARGIN-TOP : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.BOOKMK		{ MARGIN : 10PX; BORDER : 0PX; }
+IMG.USERMENU	{ MARGIN-LEFT : 8PX; }
+IMG.LOGO
+{
+BORDER: 1PX #000 SOLID;
+}
+
+DIV.BANNER	{ MARGIN-TOP : 30PX; }
+
+.SMALL		{ FONT-SIZE : 11PX; }
+.DATE		{ FONT : BOLD 8PT/150% VERDANA, TAHOMA, 돋움; }
+.TIME		{ FONT : 8PT/150% VERDANA, TAHOMA, 돋움; TEXT-ALIGN : LEFT; }
+.AUTHOR		{ FONT : BOLD 9PT; }
+.TXTFLD		{ FONT-SIZE:9PT;COLOR:#000; BORDER:1PX SOLID #666678; BACKGROUND:#FFF; }
+
+
+
+/* 여기서 부터는 달력 및 XML에 관련된 클래스입니다. */
+
+
+DIV.CAL_TOP { }
+DIV.CAL { MARGIN : 20PX 0PX 20PX; WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_HEAD { WIDTH : 150PX; FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; PADDING : 4PX 0PX; MARGIN-BOTTOM : 10PX;}
+DIV.CAL_BODY { WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_BOTTOM { }
+
+.CAL
+{
+	FONT : 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+}
+
+.CAL_DAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SUN
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #D36654;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SAT
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #3572A1;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_TODAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	BACKGROUND : #E3E3E3;
+	COLOR : #3D5586;
+	TEXT-ALIGN : CENTER;
+	BORDER : 1px #AAA SOLID;
+}
+
+.CAL_TR
+{
+	BACKGROUND:#EFEFEF;
+}
+
+DIV.XML { FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; }
+   div.memobody {
+       width : 200px;
+       overflow : hidden;
+       }
+   </style>
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloo_navibar.css?ver=1.2" media="screen" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/popup.css?ver=2.00" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/button.css" />
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.Center.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/page/blog/Modal.BookmarkDlg.js?ver=1.002"></script>
+<script type="text/javascript">
+//<![CDATA[
+Event.observe(window, 'load', function() {
+    new Modal.BookmarkDlg('egloo_bookmark', {overlay: true,
+                'groupURL'     : "/exec/egloo_bookmark_group.php",
+                'remoteURL'    : "/exec/egloo_insbookmark_exec.php"});
+    if(''==''){
+	    	copy_contents('studyfoss.egloos.com','namhyung','0');
+    }
+});
+//]]>
+</script></head>
+<body>
+<iframe name="cmtviewfrm" id="cmtviewfrm" src="about:blank" width="0" height="0" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" style="display:block;border:0px;"></iframe>
+<DIV CLASS=USERMENU>  
+<a href="http://www.egloos.com">Egloos</a> | <a href="http://sec.egloos.com/login.php?returnurl=http%3A%2F%2Fstudyfoss.egloos.com%2Fpage%2F40">Log-in</a> </DIV>
+
+<DIV ID=RIGHTMAIN>
+<DIV CLASS=HEADER><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<DIV ID=HEADER_SHADOW><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<!--		<DIV CLASS=URL><a href="http://studyfoss.egloos.com" name="egloo_url">studyfoss.egloos.com</a></DIV>-->
+		<!-- egloos content start -->
+<div class='hentry'><span class='copyright_entry' style='display:none;' title='Dekker&#39;s Algorithm (2)@@**@@http://studyfoss.egloos.com/5455023'></span><DIV CLASS=POST>
+	<DIV CLASS=POST_HEAD>
+	<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=100%>
+	<TR><TD WIDTH=80%><DIV CLASS=POST_TTL><img src=http://md.egloos.com/img/vl/ico_star_o.gif> <a name="5455023" title="Dekker's Algorithm (2)">Dekker's Algorithm (2)</a></DIV></TD>
+		<TD WIDTH=20% ALIGN=RIGHT></TD></TR>
+	</TABLE>
+	</DIV>
+	<DIV CLASS=POST_BODY>
+	이전 글 보기:<br/><ul><li><a href="http://studyfoss.egloos.com/5454726" title="">Dekker's Algorithm (1)</a></li></ul><br/><br/>앞서 글에서 밝힌 대로 이번에는 컴파일러의 최적화에 의해 이전의 예제 프로그램이 어떠한 영향을 받는지 살펴볼 것이다.<br/><br/>우선 앞의 글에서 작성한 예제 프로그램을 최적화 옵션을 켠 후에 다시 컴파일 해 보자.<br/><br/><div class="source">$ gcc -O2 -o dekker-opt main.c dekker.c -pthread<br/>$<br/>$ ./dekker-opt<br/>^C</div><br/>실행시켜보면 십중팔구 무한루프에 빠지게 될 것이다.<br/>무한루프에 빠지는 부분은 (당연하게도) busy-wait를 수행하는 lock 루틴에서 발생한다.<br/>다시 dekker_lock() 함수의 구현을 살펴보자.<br/><br/><div class="source">void dekker_lock(struct dekker *d, int thid)<br/>{<br/>&nbsp;&nbsp;&nbsp; d-&gt;flag[thid] = 1;<br/>&nbsp;&nbsp;&nbsp; barrier();<br/><br/>&nbsp;&nbsp;&nbsp; while (d-&gt;flag[!thid]) {<br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; d-&gt;flag[thid] = 0;<br/><br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; while (d-&gt;turn != thid)<br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; (void) 0; /* do nothing */<br/><br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; d-&gt;flag[thid] = 1;<br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; barrier();<br/>&nbsp;&nbsp;&nbsp; }<br/>}</div><br/>여기에는 2개의 while loop가 존재하며 이 두 loop가 모두 무한히 실행될 가능성이 있다.<br/>각 loop에서 검사하는 조건은 상대방의 flag 값과 turn 값인데<br/>이 두 값은 모두 현재 실행되는 함수 내에서 변경되지 않으며 다른 스레드가 변경해 주어야 하는 것이다.<br/><br/>컴파일러의 최적화 옵션이 켜지지 않았다면 gcc는 우리가 프로그램을 작성한대로 각 변수의 값을 메모리에서 읽어올 것이다.<br/>하지만 최적화를 수행하게 되면 컴파일러는 loop 내에서 불필요하게! 반복되는 연산을 loop 밖으로 꺼내어<br/>loop 내부의 실행 속도를 향상시키려고 한다. (이를 LICM: Loop Invariant Code Motion 이라고 한다)<br/>따라서 d-&gt;flag[!thid] 값과 d-&gt;turn != thid 의 결과는 loop 내에서 변경되지 않으므로<br/>매번 메모리에서 읽어오지 않고 최초에 한 번만 읽은/계산한 후 임의의 레지스터 내에 저장해 둔 뒤 사용하므로<br/>항상 같은 결과를 낼 것이며 따라서 무한루프에 빠지게 되는 것이다.<br/><br/>이를 해결하는 방법은 각 변수를 volatile로 선언하는 것이다.<br/>C 언어의 volatile은 바로 이러한 경우를 위해 존재하는 것으로 자신이 해당 변수의 값을 변경하지 않아도<br/>다른 존재 (스레드 혹은 인터럽트 등)로 인해 값이 변경될 수 있으므로 항상 확인해야 한다는 것을 알려주며<br/>이로 인해 컴파일러가 수행할 수 있는 최적화에 많은 제약을 받게 된다.<br/>(마찬가지로 diff -u 형식이다. -로 표시된 줄을 +로 표시된 줄로 바꾸면 된다.)<br/><br/><div class="source">&nbsp;struct dekker {<br/>-&nbsp;&nbsp;&nbsp; char flag[2];<br/>-&nbsp;&nbsp;&nbsp; int turn;<br/>+&nbsp;&nbsp;&nbsp; volatile char flag[2];<br/>+&nbsp;&nbsp;&nbsp; volatile int turn;<br/>&nbsp;};</div><br/>또 한 가지 발생할 수 있는 최적화로 인한 문제는 lock/unlock이 inline되는 경우에 생겨나는데<br/>앞의 예제에서는 main.c 파일과 dekker.c 파일로 나누어서 프로그램을 구현했으므로<br/>thread_routine 내에서 lock/unlock의 구현을 볼 수 없고 따라서 inline이 불가능했다.<br/>하지만 dekker.c 파일을 main.c 파일로 포함시켜서 함수를 static으로 선언한다면<br/>컴파일러가 자유롭게 이를 inline 시켜 버릴 수도 있다.<br/><br/>그 경우 thread_routine은 lock/unlock의 구현을 모두 볼 수 있게 되며<br/>DFA 결과 lock/unlock 내에서 result_sum 변수의 값을 변경하지 않는다는 것을 확신할 수 있으므로<br/>마찬가지로 LICM에 의해 result_sum의 계산이 loop 밖으로 옮겨질 수 있다.<br/><br/>이러한 결과는 소스 코드를 직접 수정하는 대신<br/>gcc에서 다음과 같이 컴파일을 수행해도 동일한 효과를 얻을 수 있다.<br/><br/><div class="source">$ gcc -O2 -o dekker-inline -fwhole-program main.c --combine dekker.c -pthread<br/>$<br/>$ ./dekker-inline<br/>result = 1000000</div><br/>-fwhole-program은 주어진 파일 (정확히는 translation unit - 여기서는 main.c 및 #include된 파일들) 내의<br/>공개된 심볼들을 (main 함수는 제외) 모두 static으로 선언된 것처럼 만들어 주며<br/>--combine 옵션은 dekker.c 파일을 main.c 파일로 합쳐 준다.<br/>이렇게 컴파일 된 후의 thread_routine() 함수는 마치 다음과 같은 함수처럼 동작할 것이다.<br/><br/><div class="source">static void thread_routine(void *arg)<br/>{<br/>&nbsp;&nbsp;&nbsp; int i;<br/>&nbsp;&nbsp;&nbsp; int thid = *(int *) arg;<br/>&nbsp;&nbsp;&nbsp; unsigned long tmp;<br/><br/>&nbsp;&nbsp;&nbsp; tmp = result_sum;<br/>&nbsp;&nbsp;&nbsp; for (i = 0; i &lt; 1000000; i++) {<br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; /* inline된 dekker_lock() */<br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; dlock.flag[thid] = 1;<br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; barrier();<br/><br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; while (dlock.flag[!thid]) {<br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; dlock.flag[thid] = 0;<br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; while (dlock.turn != thid)<br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; (void) 0;<br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; dlock.flag[thid] = 1;<br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; barrier();<br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; }<br/><br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; /* inline된 dekker_unlock() */<br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; dlock.flag[thid] = 0;<br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; dlock.turn = !thid;<br/>&nbsp;&nbsp;&nbsp; }<br/>&nbsp;&nbsp;&nbsp; /* loop invariant code motion */<br/>&nbsp;&nbsp;&nbsp; result_sum = tmp + 1000000;<br/>&nbsp;&nbsp;&nbsp; return NULL;<br/>}</div><br/>이 경우 각 스레드는 result_sum의 초기값 (0)을 읽은 후 loop가 끝날 때 값을 갱신하므로<br/>두 스레드 모두 같은 값을 읽고 쓰게 되며 따라서 위와 같이 잘못된 결과가 나오게 된다.<br/>이를 해결하는 방법도 마찬가지로 volatile 키워드를 이용하는 것이다.<br/><br/><div class="source">-static unsigned long result_sum;<br/>+static volatile unsigned long result_sum;</div><br/>이제는 위와 같이 컴파일 하는 경우도 LICM 없이 loop 내에서 result_sum을 매번 계산할 것이므로<br/>아래와 같이 정상적인 결과를 보여준다.<br/><br/><div class="source">$ gcc -O2 -o dekker-inline -fwhole-program main.c --combine dekker.c -pthread<br/>$<br/>$ ./dekker-inline<br/>result = 2000000</div><br/>마지막으로 살펴볼 문제는 컴파일러 최적화라기 보다는 OS에 의한 스케줄링으로 인한 문제로 보이며<br/>사실 다음 글에서 살펴볼 Dekker의 알고리즘을 3개의 이상의 스레드로 확장시키는 과정에서 발견한 것이다.<br/>이는 알고리즘 자체의 문제가 아닌 초기에 thid를 넘기는 과정에서 생길 수 있는 race로 인한 문제이다.<br/><br/>앞의 main() 함수에서 pthread_create()를 통해 스레드를 새로 생성할 때<br/>thid 값을 전달하기 위해 인덱스로 사용한 지역 변수 i의 값을 전달하는데<br/>pthread_create() 함수의 인자는 void * 타입이므로 불필요한 cast를 없애기 위해<br/>i의 주소를 전달하고 thread_routine() 내에서 이를 역참조하여 thid를 얻는 방식으로 구현하였다.<br/><br/>하지만 (내 경우는 주로 스레드 수가 시스템 내의 CPU 수 보다 많아진 경우) 서로 다른 스레드가<br/>동일한 thid를 얻게되는 경우가 생기게 되어 최종 결과가 비정상적으로 나오는 경우가 있었다.<br/>이는 main thread에서 i의 값을 증가시키는 시점과 생성된 스레드가 i 값을 참조하는 시점이<br/>미묘하게 얽히면서 발생되는 문제이다.<br/><br/>예를 들어 main thread가 loop를 통해 pthread_create() 함수를 두 번 호출하는데<br/>각 호출 시 지역 변수 i의 값은 각각 0과 1이다.<br/>하지만 인자로는 이 값 (0 혹은 1)이 아닌 i의 주소가 전달되므로 스레드가 생성되어<br/>thread_routine() 함수가 실행되어야 i의 주소를 통해 실제 값을 읽을 수 있는데<br/>만약 i 값이 증가되기 전에 해당 스레드가 실행되지 못했다면 thid 값으로 1 혹은 2를 얻게될 수도 있다.<br/>(실제 테스트 결과 대부분은 다음의 pthread_join() 루프로 인해 thid 0을 가지게 되었다.)<br/><br/>이를 해결하기 위해서는 포인터를 이용하여 역참조를 통해 thid 값을 전달하는 대신<br/>값 자체를 (포인터로 cast하여) 인자로 넘기는 것이다.<br/>하지만 x86_64에서 int를 바로 포인터 타입으로 변경하면 컴파일러가 경고를 보여주므로<br/>다음과 같이 long 타입을 이용하여 이를 방지하도록 하였다.<br/>(코드 수정을 최소화 하기 위해 lock/unlock 함수에 전달되는 thid 인자의 타입은 그대로 int로 남겨두었다.)<br/><br/><div class="source"> &nbsp;static void *thread_routine(void *arg)<br/> &nbsp;{<br/> &nbsp;&nbsp;&nbsp;&nbsp; int i;<br/>-&nbsp;&nbsp;&nbsp; int thid = *(int *) arg;<br/>+&nbsp;&nbsp;&nbsp; int thid = (long) arg;<br/><br/> &nbsp;...<br/> <br/> &nbsp;int main(void)<br/> &nbsp;{<br/>-&nbsp;&nbsp;&nbsp; int i;<br/>+&nbsp;&nbsp;&nbsp; long i;<br/> &nbsp;&nbsp;&nbsp;&nbsp; pthread_t pth[NR_THREAD];<br/><br/> &nbsp;&nbsp;&nbsp;&nbsp; for (i = 0; i &lt; NR_THREAD; i++) {<br/>- &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; pthread_create(&amp;pth[i], NULL, thread_routine, &amp;i);<br/>+ &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; pthread_create(&amp;pth[i], NULL, thread_routine, (void *) i);</div><br/>이제 thread_routine()은 (언제 바뀔지 모르는) main thread의 i 값을 읽어보는 대신<br/>스레드 생성 시점에 자신에게 할당된 (유일한) 정수값을 직접 인자로 받으므로 위에서 말한 race는 더 이상 발생하지 않는다.<br/><br/>다음 글에서는 언급한대로 Dekker의 알고리즘을 3개 이상의 스레드에도 적용시키는 방법을 살펴볼 것이다.<br/><br/><div style="clear:both; _display: none;"></div><div class="posttaglist"><a href="/tag/compiler" rel="tag">compiler</a>,&nbsp;<a href="/tag/memory" rel="tag">memory</a>,&nbsp;<a href="/tag/synchronization" rel="tag">synchronization</a>,&nbsp;<a href="/tag/algorithm" rel="tag">algorithm</a></div>
+       <!--
+       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+		    xmlns:dc="http://purl.org/dc/elements/1.1/"
+		    xmlns:trackback="http://madskills.com/public/xml/rss/module/trackback/">
+       <rdf:Description
+	        rdf:about="http://studyfoss.egloos.com/5455023"
+	        dc:identifier="http://studyfoss.egloos.com/5455023"
+	        dc:title="Dekker's Algorithm (2)"
+	        trackback:ping="http://studyfoss.egloos.com/tb/5455023"/>
+       </rdf:RDF>
+       -->
+
+	</DIV>
+	<DIV CLASS=POST_TAIL ALIGN=RIGHT><span class="TIME"> <a href="/5455023" class="permalink" title="Dekker's Algorithm (2)" rel="bookmark">#</a> by <span class="AUTHOR">namhyung</span> | <a href="/5455023" class="time"  title="Dekker's Algorithm (2)" rel="bookmark">2010/12/22 16:33</a></span> | <a href="/category/General" class="category">General</a> | <span class="linkback"><a href="#trb" onclick="trbview('5455023','c0098335','0'); return false;" class="tail_trb">트랙백(<span id="trbcnt5455023">1</span>)</a></span> | <span class="linkback"><a href="#cmt" onclick="cmtview('5455023','c0098335','0'); return false;" class="tail_cmt">덧글(<span id="cmtcnt5455023">0</span>)</a></span></DIV>
+		<span id="cmt5455023"></span>
+</DIV>
+</div><!-- egloos content end -->
+<span style="float: left"><a href="/page/39">◀ 이전 페이지</a></a></span>
+<span style="float: right"><a href="/page/41">다음 페이지 ▶</a></span>
+<BR><BR>
+<DIV ID='BOTTOMBANNER' style="display:none;">	<div class="BANNER"><a href="http://www.egloos.com"><img src="http://md.egloos.com/img/edt/banner_ffffff_1.gif" width="150" height="50" border="0" alt="Powered by egloos" /></a></div>
+<BR><BR></DIV>
+</DIV>
+<DIV ID=LEFTSIDE style="display:block;">
+	<DIV ID=LOGO></DIV>
+	     <script language="javascript" type="text/javascript">
+     <!--
+     var s_calendar = new Array();
+     s_calendar = [];
+	  calendar("","");
+     -->
+     </script>
+
+	
+<DIV CLASS=MNTTL>카테고리</DIV>
+<DIV CLASS=MNBODY>
+<a href="/category/General">General</a><br/><a href="/category/Application">Application</a><br/><a href="/category/System">System</a><br/><a href="/category/Kernel">Kernel</a><br/><a href="/category/Book">Book</a><br/><a href="/category/Tips">Tips</a><br/>
+</DIV>
+
+<DIV CLASS=MNTTL>태그</DIV>
+<DIV CLASS=MNBODY><a href="/tag/C" class="tlevel3"> C</a>
+<a href="/tag/glibc" class="tlevel3"> glibc</a>
+<a href="/tag/awk" class="tlevel1"> awk</a>
+<a href="/tag/x86" class="tlevel3"> x86</a>
+<a href="/tag/gcc" class="tlevel3"> gcc</a>
+<a href="/tag/vcs" class="tlevel1"> vcs</a>
+<a href="/tag/git" class="tlevel2"> git</a>
+<a href="/tag/synchronization" class="tlevel3"> synchronization</a>
+<a href="/tag/memory" class="tlevel3"> memory</a>
+<a href="/tag/bash" class="tlevel2"> bash</a>
+<a href="/tag/patch" class="tlevel3"> patch</a>
+<a href="/tag/perf" class="tlevel1"> perf</a>
+<a href="/tag/binutils" class="tlevel2"> binutils</a>
+<a href="/tag/algorithm" class="tlevel3"> algorithm</a>
+<a href="/tag/elf" class="tlevel3"> elf</a>
+<a href="/tag/CAaQA3" class="tlevel3"> CAaQA3</a>
+<a href="/tag/documentation" class="tlevel1"> documentation</a>
+<a href="/tag/build" class="tlevel3"> build</a>
+<a href="/tag/script" class="tlevel1"> script</a>
+<a href="/tag/block-layer" class="tlevel2"> block-layer</a>
+<a href="/tag/CARM" class="tlevel1"> CARM</a>
+<a href="/tag/emacs" class="tlevel3"> emacs</a>
+<a href="/tag/SMP" class="tlevel2"> SMP</a>
+<a href="/tag/linux" class="tlevel3"> linux</a>
+<a href="/tag/blktrace" class="tlevel1"> blktrace</a>
+<a href="/tag/kernel" class="tlevel3"> kernel</a>
+<a href="/tag/sed" class="tlevel1"> sed</a>
+<a href="/tag/computer-architecture" class="tlevel3"> computer-architecture</a>
+<a href="/tag/compiler" class="tlevel3"> compiler</a>
+<a href="/tag/scm" class="tlevel1"> scm</a>
+<div style="text-align:right;margin-top:5px;"><a href="/tag">전체보기</a></div>
+</DIV>
+
+<DIV CLASS=MNTTL>이글루 파인더</DIV>
+<DIV CLASS=MNBODY><form id="finder" style="margin:0;" name="finder" method="post" action="http://studyfoss.egloos.com/" onsubmit="return go_search(document.finder);"><input type="text" id="srch_kwd" name="srch_kwd" size="10" style="vertical-align: middle;width: 100px;font-size:12px;" maxlength="30"/><input type="image" style="vertical-align: middle;margin-left:3px;" src="http://md.egloos.com/img/fnd/searchb.gif" /><p style="margin:3px 0 0 13px;text-align:left"><a href="http://www.zum.com" target="_blank"><img src="http://md.egloos.com/img/search/txt_power.png"></a></p></form>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 덧글</DIV>
+<DIV CLASS=MNBODY>
+<style type="text/css"> 
+.reply_write {margin:10px 0;}
+.reply_write fieldset {border:none;margin:0;padding:0;}
+.reply_write legend {display:none;}
+.reply_write .comment_info {width:95%;}
+.reply_write .comment_info span.comment_name,
+.reply_write .comment_info span.comment_passwd,
+.reply_write .comment_info span.comment_blog {display:block;padding:0 0 2px 0;clear:both;}
+.reply_write .comment_info span.comment_blog {float:left;}
+.reply_write .comment_info span.comment_name label,
+.reply_write .comment_info span.comment_passwd label,
+.reply_write .comment_info span.comment_blog label {display:block;float:left;width:55px;}
+.reply_write .comment_info input {padding:1px 0 0 1px;vertical-align:middle;}
+.reply_write .comment_info input.name {width:100px;}
+.reply_write .comment_info input.passwd {width:60px;}
+.reply_write .comment_info input.blog {width:200px;font-family:tahoma,sans-serif;font-size:11px;}
+.reply_write .comment_info span.comment_now {display:none;}
+.reply_write .comment_info span.comment_login {float:right;}
+.reply_write textarea {margin:2px 0;padding:0;width:95%;height:100px;margin-left:0 !important;font:normal 12px '돋움',sans-serif;}
+.reply_write .comment_btn {width:95%;height:23px;position:relative;*position:static;*text-align:right;}
+.reply_write .comment_btn .comment_submit {position:absolute;top:0;right:0;*position:static;*text-align:right;}
+</style>     
+
+<a href="http://studyfoss.egloos.com/5129119#12438993">이렇게 좋은 글이 한글로 있다는 것..</a><br/><span class="SMALL">by 프로그라머 at 02/17</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5512112#12419757">흐름을 이해할 수 있는글이라 좋..</a><br/><span class="SMALL">by morenice at 11/26</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#12401092">좋은 글 감사합니다~퍼갑니다~</a><br/><span class="SMALL">by 김석범 at 09/10</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 트랙백</DIV>
+<DIV CLASS=MNBODY>
+<a href="http://studyfoss.egloos.com/5350643#515727">이맥스의 파일 변수 사용하기</a><br/><span class="SMALL">by 개똥이야기</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#512679">asmlinkage modifier in Linux..</a><br/><span class="SMALL">by novum의 공유창고</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5409933#511713">구조체의 패킹에 대한 이야기</a><br/><span class="SMALL">by 김재호의 디지털보단 아날로그</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+
+
+
+
+
+
+
+<DIV style="TEXT-ALIGN:center; width:200px;">
+<div class="XML"><a href="http://rss.egloos.com/blog/studyfoss" target="_new"><img src="http://md.egloos.com/img/skn/rss.gif" alt="rss" border="0" /></a><br /><br /> skin by <a href="http://jiinny.egloos.com">jiinny</a></div>
+<BR /><BR />
+<DIV ID=OHLOH><a href='https://www.ohloh.net/accounts/115130?ref=Detailed'>
+  <img alt='Ohloh profile for Namhyung Kim' height='35' src='https://www.ohloh.net/accounts/115130/widgets/account_detailed.gif' width='191' border='0' />
+</a></DIV>
+</DIV>
+</DIV>
+<DIV ID='LEFTSHOW'  onclick=document.all['RIGHTMAIN'].style.right='300px';document.all['BOTTOMBANNER'].style.display='none';document.all['LEFTSIDE'].style.display='block';document.all['LEFTSHOW'].style.display='none';document.all['LEFTHIDE'].style.display='block';  style='color:red;display:none;'>
+</DIV>
+
+<DIV id='LEFTHIDE' onclick=document.all['RIGHTMAIN'].style.right='20px';document.all['BOTTOMBANNER'].style.display='block';document.all['LEFTSIDE'].style.display='none';document.all['LEFTHIDE'].style.display='none';document.all['LEFTSHOW'].style.display='block';  style='color:red'>X</DIV><iframe src="http://www.egloos.com/estat/stat_logger.php?bid=c0098335&ref=&openflag=" style="width: 0px; height: 0px; border: 0px solid #fff;"></iframe>
+<img width="0" height="0" border="0" src="http://studyfoss.egloos.com/egloo_pds.php?eid=c0098335" alt="" />
+<form id="trackfrom" name="trackfrom" method="post" action="">
+<input type="hidden" name="url" value="" />
+<input type="hidden" name="title" value="" />
+<input type="hidden" name="trburl" value="" />
+</form>
+<div style="z-index:9901;top:764px;left:169px;display:none;" id="egloo_bookmark" class="popupWrap">
+    <div class="popupTitle">이글루링크 추가하기</div>
+    <dl class="popupBody">
+        <dt class="no-arrow" style="background:none;font-size:12px;text-align:center;">
+            <span id="egloo-bookmark-url" style="color:#0F71A1;"></span>
+            (<span id="egloo-bookmark-name"></span>)을(를)</dt>
+        <dd class="notice" style="margin:0;padding:0 0 0 8px;line-height:1.8em;color:#000;font-size:12px;text-align:center;">이글루링크로 추가하시겠습니까? 추가하시려면 그룹선택을 하세요.</dd>
+        <dd class="notice weak" style="margin:0;padding:0 0 0 8px;line-height:1.8em;font-size:11px;color:#666666;text-align:center;">(그룹선택 하지 않는 경우, 최상단 목록에 추가됩니다.)</dd>
+        <dd class="egloo-bookmark-group" style="margin:0;padding:10px 0 8px;line-height:1.8em;text-align:center;color:#333;font-size:12px;text-align:center;">그룹선택 :
+            <select name="groupID" id="egloo-bookmark-groupID" style="font-family:'돋움','dotum','Trebuchet MS',Sans-serif;margin-left:10px;"><option value="000">그룹선택없음</option></select></dd>
+        <dd class="buttons">
+            <input type="button" value="지금 확인" onfocus="blur();" onclick="Modal.insertBookmark(true);" class="button btn24 btn_bold"/>
+            <input type="button" value="나중에 확인" onfocus="blur();" onclick="Modal.insertBookmark(false);" class="button btn24 btn_weak"/>
+        </dd>
+        <dd class="close" onclick="Modal.close();"><img src="http://md.egloos.com/img/www/btn/button_popup_close.gif" alt="이글루링크 취소" title="이글루링크 취소" /></dd>
+    </dl>
+</div>
+</body>
+</html>

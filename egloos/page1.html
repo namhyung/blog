@@ -1,0 +1,612 @@
+<html>
+<head>	<meta http-equiv='pragma' content='no-cache' />
+	<meta http-equiv='cache-control' content='no-cache' />
+	<meta http-equiv='Content-type' content='text/html; charset=utf-8' />
+	<meta name="author" content="namhyung" />
+	<meta name="keywords" content="F/OSS study" />
+	<meta http-equiv="X-XRDS-Location" content="http://namhyung.myid.net/xrds" />
+	<link rel="openid.server" href="http://www.myid.net/server" />
+	<link rel="openid.delegate" href="http://namhyung.myid.net" />
+	<link rel="shortcut icon" href="http://md.egloos.com/img/favicon.ico" />
+	<link rel="pingback" href="https://rpc.egloos.com/rpc1" />
+	<link rel="alternate" type="application/rss+xml" title="F/OSS study" href="http://rss.egloos.com/blog/studyfoss" />
+	<title>F/OSS study</title>
+	<script type="text/javascript" src="http://md.egloos.com/js/ap.js?ver=1.043"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/gd.js?ver=1.002"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/eg.js?ver=1.012"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/cr.js?ver=1.002"></script>
+    <script type="text/javascript" src="http://md.egloos.com/js/page/ins.js?ver=1.4"></script>
+		
+	<script type="text/javascript" src="http://md.egloos.com/js/lib/prototype_v1511.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.ImgModal.js?ver=1.004"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/page/blog/compatible.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/player.js"></script>
+	
+	<script type="text/javascript" src="http://md.egloos.com/js/lazyload.js"></script>
+	
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloos_template.css?ver=1.002" media="screen" />
+<style type="text/css">
+/* jiinny text-only skin
+ */
+
+
+BODY
+{
+	BACKGROUND : #FCFEFF;
+	MARGIN : 0PX;
+	PADDING : 0PX;
+}
+
+BODY,TD,DIV,LI
+{
+	FONT : 9PT/160% Tahoma, SANS-SERIF, Verdana, monaco,굴림,돋움,SANS-SERIF;
+	COLOR : #33455E;
+}
+
+A:LINK		{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:VISITED	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:ACTIVE	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:HOVER		{ COLOR: #C00000; TEXT-DECORATION: UNDERLINE; }
+
+/* filter의 shadow보다 품질을 좋게 하기 위해서*/
+DIV.HEADER
+{
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+	filter:progid:DXImageTransform.Microsoft.Blur;
+}
+
+#HEADER_SHADOW
+{
+	POSITION : relative;
+	top :-50px; right:0px;
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+}
+
+#HEADER_SHADOW A:LINK		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:VISITED		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:HOVER		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+
+DIV.HEADER A:LINK		{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:VISITED	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:HOVER	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+
+DIV.URL			{ FONT : 8PT/100% VERDANA,TAHOMA; }
+DIV.USERMENU
+{
+	POSITION:absolute:
+	left:0px;
+	top:0px;
+	COLOR : #FFFFFF;
+	FONT : bold 7pt;
+	TEXT-ALIGN : RIGHT;
+	MARGIN-BOTTOM : 50px;
+	BACKGROUND : #000060;
+	PADDING : 4px;
+	BORDER-BOTTOM : 2px #336699 SOLID;
+}
+DIV.USERMENU A:LINK {COLOR:#FFF}
+DIV.USERMENU A:VISITED {COLOR:#FFF}
+DIV.USERMENU A:HOVER {COLOR:#FFF}
+
+DIV.PROFILE
+{
+	WIDTH : 200PX;
+	PADDING : 0PX 0PX 10PX;
+	LINE-HEIGHT : 150%;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.MNTTL
+{
+	FONT:BOLD 10pt;
+	WIDTH : 200PX;
+	BORDER-BOTTOM :	1PX #888 DASHED;
+	PADDING : 2PX 0PX 0PX;
+	MARGIN : 25PX 0PX 10PX;
+	TEXT-ALIGN:CENTER;
+}
+
+DIV.MNBODY
+{
+	font:9pt/135%;
+	WIDTH :200PX;
+}
+
+DIV.POST { MARGIN-BOTTOM : 50PX;}
+
+DIV.POST_HEAD
+{
+	MARGIN-BOTTOM : 15PX;
+	PADDING-BOTTOM : 3PX;
+}
+
+DIV.POST_TTL
+{
+	TEXT-DECORATION: UNDERLINE;
+	FONT: BOLD 10pt Georgia ;
+	COLOR: #000;
+}
+
+DIV.POST_BODY
+{
+	FONT:10pt/150%;
+	WIDTH : 100%;
+	MARGIN-BOTTOM : 30PX;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.POST_BODY A:LINK
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION:none;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:VISITED
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:HOVER
+{
+	COLOR: #CF4040;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #CF4040
+}
+
+
+DIV.POST_TAIL {
+	FONT : 11PX/150% VERDANA, TAHOMA, 돋움;
+	MARGIN-TOP : 10PX;
+	TEXT-ALIGN : RIGHT;
+}
+
+DIV.POST_TAIL A:LINK {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:VISITED {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:HOVER {COLOR: #006699; TEXT-DECORATION: NONE; border-bottom:1px dotted #cc0000}
+
+DIV.COMMENT
+{
+	BORDER : 1PX #D3D3D3 SOLID;
+	BACKGROUND : #F7F7F7;
+	PADDING : 15PX;
+	MARGIN : 20PX 0PX;
+}
+
+DIV.COMMENT_BODY
+{
+	MARGIN-BOTTOM : 20PX;
+}
+
+DIV.COMMENT_TAIL
+{
+	MARGIN : 8PX 0PX 5PX;
+	FONT : 8PT/150% VERDANA, TAHOMA, 돋움;
+	COLOR : #777;
+}
+
+DIV.COMMENT_INPUT
+{
+	MARGIN-TOP : 20PX;
+	BORDER-TOP : 1PX #AAA DOTTED;
+	PADDING-TOP : 20PX;
+}
+
+DIV.COMMENT_LINE
+{
+	BORDER-TOP : 1PX #AAA DOTTED;
+	MARGIN : 10PX 0PX 15PX;
+}
+DIV.POST_BODY IMG
+{
+	filter:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	border:1px #000 solid;
+}
+
+DIV.VERSION
+{
+  font-weight: bold;
+  color: white;
+  background: #525d76;
+  border: 1px solid silver;
+#  margin: 0.5em 10% 0.5em 1em;
+  padding: 0.5em;
+}
+
+DIV.SOURCE
+{
+  font-family: monospace, Courier New, Seoul;
+#  margin: 0.5em 10% 0.5em 1em;
+  margin: 1em;
+  color: navy;
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+BLOCKQUOTE
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD dotted;
+	padding:5px;
+	color:#000;
+	margin:20px;
+}
+
+/* begin style of emphasis */
+.BOX1
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#00FF00;
+	background:#000;
+	margin:20px;
+}
+
+.BOX2
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#FFC000;
+	background:#000;
+	margin:20px;
+}
+
+.EM1
+{
+	background : #FFFF80;
+}
+
+.EM2
+{
+	background : #F0C0FF;
+}
+/* end style of emphasis */
+
+#RIGHTMAIN{ POSITION: ABSOLUTE; RIGHT:300px; LEFT:40px;}
+
+#LEFTSIDE
+{
+	POSITION: ABSOLUTE;
+	TOP:60PX;
+	RIGHT: 20PX;
+	FONT: 9PT;
+	WIDTH:200PX;
+	BORDER-LEFT: 2PX #BCBDC4 DASHED;
+	PADDING: 20PX;
+}
+
+#LEFTSHOW
+{
+	TOP:60PX;
+	RIGHT: 0PX;
+	FONT: 7PT/150%;
+	WIDTH:7px;
+	HEIGHT:200px;
+	BACKGROUND:#DDDDDD;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	BORDER-TOP: 3PX #7598A3 SOLID;
+	BORDER-LEFT: 2PX #7598A3 DASHED;
+	BORDER-BOTTOM: 3PX #7598A3 SOLID;
+}
+
+#LEFTHIDE
+{
+	TOP:63PX;
+	RIGHT: 23PX;
+	FONT: 7PT/150%;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	WIDTH:18px;
+	HEIGHT:18px;
+	TEXT-ALIGN:CENTER;
+}
+#BOTTOMBANNER
+{
+	TEXT-ALIGN=CENTER;
+	WIDTH=100%;
+}
+
+IMG.IMG_DECO
+{
+	TEXT-ALIGN:CENTER;BORDER:1px #000 SOLID;
+	filter:progid:DXImageTransform.Microsoft.DropShadow(color=#AAAAAA,offX=3, offY=3)
+}
+
+#LOGO
+{
+	WIDTH=200;
+	TEXT-ALIGN=CENTER;
+	FILTER:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	progid:DXImageTransform.Microsoft.Glow(Color=#AAAAAA, strength=5)
+}
+
+/* 여기서 부터는 시스템에관한 클래스 이므로 변경하지 않으시는 것이 좋습니다. */
+
+DIV.TRACK_TOP { LINE-HEIGHT : 170%; }
+DIV.ARCHIVE_HEAD { FONT-WEIGHT : BOLD; MARGIN-BOTTOM : 10PX; }
+DIV.ARCHIVE_BODY { MARGIN : 20PX 0PX; LINE-HEIGHT : 160%; PADDING-BOTTOM : 100PX; }
+
+IMG.IMAGE_TOP	{ MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_LEFT	{ MARGIN-RIGHT : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_MID	{ MARGIN-TOP : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.BOOKMK		{ MARGIN : 10PX; BORDER : 0PX; }
+IMG.USERMENU	{ MARGIN-LEFT : 8PX; }
+IMG.LOGO
+{
+BORDER: 1PX #000 SOLID;
+}
+
+DIV.BANNER	{ MARGIN-TOP : 30PX; }
+
+.SMALL		{ FONT-SIZE : 11PX; }
+.DATE		{ FONT : BOLD 8PT/150% VERDANA, TAHOMA, 돋움; }
+.TIME		{ FONT : 8PT/150% VERDANA, TAHOMA, 돋움; TEXT-ALIGN : LEFT; }
+.AUTHOR		{ FONT : BOLD 9PT; }
+.TXTFLD		{ FONT-SIZE:9PT;COLOR:#000; BORDER:1PX SOLID #666678; BACKGROUND:#FFF; }
+
+
+
+/* 여기서 부터는 달력 및 XML에 관련된 클래스입니다. */
+
+
+DIV.CAL_TOP { }
+DIV.CAL { MARGIN : 20PX 0PX 20PX; WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_HEAD { WIDTH : 150PX; FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; PADDING : 4PX 0PX; MARGIN-BOTTOM : 10PX;}
+DIV.CAL_BODY { WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_BOTTOM { }
+
+.CAL
+{
+	FONT : 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+}
+
+.CAL_DAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SUN
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #D36654;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SAT
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #3572A1;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_TODAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	BACKGROUND : #E3E3E3;
+	COLOR : #3D5586;
+	TEXT-ALIGN : CENTER;
+	BORDER : 1px #AAA SOLID;
+}
+
+.CAL_TR
+{
+	BACKGROUND:#EFEFEF;
+}
+
+DIV.XML { FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; }
+   div.memobody {
+       width : 200px;
+       overflow : hidden;
+       }
+   </style>
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloo_navibar.css?ver=1.2" media="screen" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/popup.css?ver=2.00" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/button.css" />
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.Center.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/page/blog/Modal.BookmarkDlg.js?ver=1.002"></script>
+<script type="text/javascript">
+//<![CDATA[
+Event.observe(window, 'load', function() {
+    new Modal.BookmarkDlg('egloo_bookmark', {overlay: true,
+                'groupURL'     : "/exec/egloo_bookmark_group.php",
+                'remoteURL'    : "/exec/egloo_insbookmark_exec.php"});
+    if(''==''){
+	    	copy_contents('studyfoss.egloos.com','namhyung','0');
+    }
+});
+//]]>
+</script></head>
+<body>
+<iframe name="cmtviewfrm" id="cmtviewfrm" src="about:blank" width="0" height="0" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" style="display:block;border:0px;"></iframe>
+<DIV CLASS=USERMENU>  
+<a href="http://www.egloos.com">Egloos</a> | <a href="http://sec.egloos.com/login.php?returnurl=http%3A%2F%2Fstudyfoss.egloos.com%2Fpage%2F1">Log-in</a> </DIV>
+
+<DIV ID=RIGHTMAIN>
+<DIV CLASS=HEADER><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<DIV ID=HEADER_SHADOW><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<!--		<DIV CLASS=URL><a href="http://studyfoss.egloos.com" name="egloo_url">studyfoss.egloos.com</a></DIV>-->
+		<!-- egloos content start -->
+<div class='hentry'><span class='copyright_entry' style='display:none;' title='[glibc] System V data structure functions@@**@@http://studyfoss.egloos.com/5743917'></span><DIV CLASS=POST>
+	<DIV CLASS=POST_HEAD>
+	<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=100%>
+	<TR><TD WIDTH=80%><DIV CLASS=POST_TTL><img src=http://md.egloos.com/img/vl/ico_star_o.gif> <a name="5743917" title="[glibc] System V data structure functions">[glibc] System V data structure functions</a></DIV></TD>
+		<TD WIDTH=20% ALIGN=RIGHT></TD></TR>
+	</TABLE>
+	</DIV>
+	<DIV CLASS=POST_BODY>
+	<div class="version">glibc: 2.17</div><br/><br/>glibc에는 SVR4 시절부터 제공되는 몇가지 자료구조 함수가 포함되어 있는데,<br/>(대부분 이미 POSIX 표준으로도 정의되어 있다.) 그리 널리 알려지지 않은 듯 하여<br/>이번 기회에 간단히 소개하는 기회를 가지려고 한다.<br/><br/>가장 단순하게는 정렬되지 않은 배열에 대해서 검색(linear search)을 수행하는<br/>lfind()와 lsearch() 함수가 있는데 이들의 차이점은 검색에 실패한 경우<br/>lfind()는 NULL을 반환하지만, lsearch()는 배열의 맨 뒤에 주어진 원소를<br/>추가한다는 점이다. (이 때 해당 배열에 이미 이를 위한 공간이 할당되어 있어야 한다.)<br/>이러한 이름 규칙은 다른 비슷한 류의 함수들에도 적용되니 참고하도록 하자.<br/><br/>/usr/include/search.h:<br/><div class="source">void * lfind (const void *key, void *base, size_t *nmemb, size_t size, comparison_fn_t compar);<br/>void * lsearch (const void *key, void *base, size_t *nmemb, size_t size, comparison_fn_t compar);</div><br/>배열의 어떠한 타입의 원소로 구성될 수 있도록 void * 타입으로 지정되며<br/>배열 내의 원소의 수는 nmemb 인자에, 배열 원소 하나의 크기는 size 인자에 저장된다.<br/>따라서 검색을 위해서는 해당 배열의 자료구조 특성에 맞는 비교함수가 존재해야 하며<br/>이를 위해 마지막 인자로 다음과 같이 정의된 함수의 포인터를 받게된다.<br/><br/><div class="source">typedef int (*__compar_fn_t)(const void *, const void *);<br/><br/># ifdef&nbsp;&nbsp; &nbsp;__USE_GNU<br/>typedef __compar_fn_t comparison_fn_t;<br/># endif</div><br/>비교함수는 주어진 두 개의 인자 (편의상 a 와 b로 부르기로 한다)를 비교하여<br/>a가 더 작으면 음수, a와 b가 같으면 0, a가 더 크면 양수를 반환해야 한다.<br/>참고로 검색함수에서 주어진 key 값이 a가 되며, 배열의 각 원소가 차례로 b로 주어진다.<br/><br/>위의 함수들은 배열이 정렬되지 않은 경우 (혹은 어떠한 이유로든 정렬할 수 없는 경우)에나 유용하며<br/>사실 그냥 loop로 검색하는 것과 다를 바 없으므로 크게 사용할 일은 없을 것이라 생각된다.<br/><br/>하지만 만약 정렬을 할 수 있다고 한다면 훨씬 효율적인 이진검색을 할 수 있으며<br/>이를 위해 다음과 같은 함수를 정의한다. (사실 이 함수들은 이미 C 표준에 포함되어 있다.)<br/><br/>/usr/include/stdlib.h:<br/><div class="source">void qsort (void *array, size_t count, size_t size, comparison_fn_t compare);<br/>void * bsearch (const void *key, const void *array, size_t count, size_t size, comparison_fn_t compare);</div><br/>qsort()는 이름에서 알 수 있듯이 quick sort 알고리즘을 구현한 함수이지만,<br/>더 빠른 속도를 위해 내부적으로 임시 메모리 공간을 할당하여 사용할 수도 있다.<br/>(물론 정렬이 완료되면 해당 메모리 공간을 해제한다)<br/>bsearch() 함수는 binary search 알고리즘을 구현하며 qsort()와 마찬가지로<br/>count는 배열의 원소 수, size는 원소 하나의 크기 (바이트 단위)를 나타내며<br/>compare 인자는 위와 동일한 특성을 가지는 검색함수이다.<br/><br/>이 외에도 hash와 binary tree와 같은 고급 자료구조에 대한 함수도 제공하는데<br/>먼저 hash의 경우를 살펴보면 다음과 같다.<br/><br/>/usr/include/search.h:<br/><div class="source">typedef enum<br/>&nbsp; {<br/>&nbsp;&nbsp;&nbsp; FIND,<br/>&nbsp;&nbsp;&nbsp; ENTER<br/>&nbsp; }<br/>ACTION;<br/><br/>typedef struct entry<br/>&nbsp; {<br/>&nbsp;&nbsp;&nbsp; char *key;<br/>&nbsp;&nbsp;&nbsp; void *data;<br/>&nbsp; }<br/>ENTRY;<br/><br/>int hcreate (size_t nel);<br/>ENTRY *hsearch (ENTRY item, ACTION action);<br/>void hdestroy (void)</div><br/>먼저 hcreate() 함수는 nel 인자로 주어진 수 만큼의 항목을 저장할 수 있는<br/>해시 테이블을 내부적으로(!) 생성한다. 이는 hdestroy() 함수를 통해 삭제할 수 있다.<br/><br/>hsearch() 함수가 핵심인데, 먼저 ENTRY 타입은 해시 테이블 내에서 사용하는 데이터 타입이며,<br/>data 필드는 실제 데이터 영역을 가리키고, key는 이 데이터를 구분하기 위한 문자열(!)이다.<br/>따라서 이 해시 테이블을 이용하기 위해서는 항상 데이터마다 고유한 문자열이 존재해야 한다.<br/>두 번째 인자인 action은 테이블 내에서 원하는 데이터를 찾지 못했을 때 수행할 행동을 나타내며,<br/>FIND인 경우 NULL을 리턴하고, ENTER인 경우 item에 해당하는 데이터를 새로 추가한다.<br/>(따라서 별도의 hfind() 함수는 존재하지 않는다)<br/><br/>이 해시 테이블의 구현은 double hashing을 이용한 open-addressing 방식이므로,<br/>최초에 hcreate() 함수로 생성한 크기의 이상의 인자를 추가할 수 없다.<br/>(하지만 구현 상의 이유로 테이블 크기는 가장 가까운 크기의 소수로 높여지기 때문에<br/>운 좋게 성공할 수도 있다!) 하지만 man 페이지에 따르면 일반적으로 좋은 성능을 얻기 위해<br/>실제로 사용될 최대 크기보다 약 25% 정도 더 큰 크기로 테이블을 생성하는 것이 좋다고 한다.<br/>또한 앞서 말한 대로 key 비교를 위해 문자열 비교 함수인 strcmp() 함수가 사용되는데<br/>이는 key 값이 길수록 오래 걸릴 수 있기 때문에 불필요한 호출 횟수를 줄이고자<br/>key 값을 특정한 방식으로 계산하여 저장해두는 트릭을 사용한다.<br/><br/>이 해시 테이블 구현의 가장 큰 문제 중의 하나는 앞서 말한 것처럼<br/>프로그램 내에서 오직 하나의 테이블 만을 사용할 수 있다는 점이다.<br/>따라서 glibc에서는 여러 테이블을 이용할 수 있는 _r (reentrant) 버전을 제공하며<br/>이를 사용하기 위해서는 소스 코드에서 search.h 파일을 #include 하기 전에<br/>_GNU_SOURCE 매크로가 정의되어 있어야 한다.<br/><br/><div class="source">int hcreate_r(size_t nel, struct hsearch_data *htab);<br/>int hsearch_r(ENTRY item, ACTION action, ENTRY **retval,<br/>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp; struct hsearch_data *htab);<br/>void hdestroy_r(struct hsearch_data *htab);</div><br/>이 함수들은 opaque type인 struct hsearch_data 구조체의 포인터를 통해<br/>여러 테이블을 생성하여 사용할 수 있으며 다른 점은 모두 동일하다.<br/><br/>마지막으로 binary tree를 구현한 함수들을 살펴보도록 하자.<br/>(이는 내부적으로 red-black tree로 구현된다)<br/><br/><div class="source">void * tfind (const void *key, void *const *rootp, comparison_fn_t compar);<br/>void * tsearch (const void *key, void **rootp, comparison_fn_t compar);</div><br/>앞서 살펴본 것처럼 tfind() 함수는 rootp가 가리키는 트리에서 비교함수를 통해 key를 검색하며<br/>검색이 실패한 경우 NULL을 반환하고, tsearch()는 해당 key 데이터를 트리에 추가한다.<br/>새로운 데이터가 추가될 때 마다 트리 관리를 위해 필요한 공간이 내부적으로 (동적으로) 할당된다.<br/>rootp는 단순히 void * 타입의 변수를 하나 선언하여 NULL로 초기화한 후 그 포인터를 넘기면 된다.<br/><br/>따라서 다른 준비 작업없이 tsearch()를 계속 호출하는 것 만으로 트리를 구성할 수 있다.<br/>다만 트리를 사용하고 나면 이러한 내부 자료구조를 해제하기 위해 tdelete() 함수를 호출해야 한다.<br/><br/><div class="source">void * tdelete (const void *key, void **rootp, comparison_fn_t compar);</div><br/>주의할 것인 이 tdelete() 함수는 트리 내부 자료구조 만을 해제할 뿐이지<br/>사용자가 직접 넘겨준 key에 해당하는 데이터는 자동으로 해제되지 않는다는 점이다.<br/>필요한 경우 사용자는 직접 (free() 함수 등을 통해) 해당 영역을 해지해야 한다.<br/><br/>만약 (모든 사용이 끝나서) 트리 전체를 해지하려는 경우라면<br/>glibc의 확장 기능으로 제공되는 (따라서 앞서와 마찬가지로 _GNU_SOURCE 매크로가 필요하다)<br/>아래와 같은 tdestroy() 함수를 이용할 수도 있다.<br/><br/><div class="source">void tdestroy (void *root, void (*free_node)(void *nodep));</div><br/>여기서 두 번째 인자로 주어진 free_node 함수는 트리 내의 각각의 노드에 대해 불리게 되며<br/>이 때 인자로 해당 노드에 저장된 실제 데이터를 가리키는 포인터가 넘어오게 되므로<br/>적절한 방식으로 사용자가 할당한 메모리를 해지할 수 있다.<br/><br/>끝으로 흥미로운 함수 중에 twalk() 라는 함수가 있는데<br/>이는 트리 내의 각 노드를 순회하며 특정한 작업을 하고 싶을 때 유용하게 사용할 수 있다.<br/><br/><div class="source">typedef enum<br/>{<br/>&nbsp; preorder,<br/>&nbsp; postorder,<br/>&nbsp; endorder,<br/>&nbsp; leaf<br/>}<br/>VISIT;<br/><br/>typedef void (*__action_fn_t) (const void *nodep, VISIT value, int level);<br/><br/>void twalk (const void *root, __action_fn_t action);</div><br/>twalk() 함수의 두 번째 인자로 전해지는 action() 함수는<br/>non-leaf node인 경우 각 노드에 대해 3번씩 호출되며 leaf node의 경우 한 번만 호출된다.<br/>action() 함수의 두 번째 인자로 주어지는 VISIT 타입의 값은 leaf node의 경우 leaf이고<br/>non-leaf node인 경우 left child를 순회하기 전에는 preorder,<br/>left child를 모두 순회하였지만 아직 right child를 순회하기 전에는 postorder,<br/>right child도 모두 순회하였다면 endorder라는 값이 각각 전달된다.<br/>action() 함수는 이 인자로 받은 값에 따라 어느 시점에서 어떤 작업을 할 지<br/>결정할 수 있을 것이다. 세 번째 인자인 level은 root node로부터 현재 노드까지<br/>이르는 데 필요한 최소 거리를 뜻하며, root의 경우는 0이고 자식 노드로 갈수록 1씩 증가한다.<br/><br/><br/>=== 참고 문헌 ===<br/>* <a target="_blank" href="http://linux.die.net/man/3/tsearch">man [lbht]search</a><br/>* <a href="http://www.gnu.org/software/libc/manual/html_node/Searching-and-Sorting.html" target="_blank">www.gnu.org/software/libc/manual/html_node/Searching-and-Sorting.html</a><br/>* Introduction to Algorithms, CLRS<br/><br/><div style="clear:both; _display: none;"></div><div class="posttaglist"><a href="/tag/glibc" rel="tag">glibc</a>,&nbsp;<a href="/tag/C" rel="tag">C</a>,&nbsp;<a href="/tag/algorithm" rel="tag">algorithm</a></div>
+       <!--
+       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+		    xmlns:dc="http://purl.org/dc/elements/1.1/"
+		    xmlns:trackback="http://madskills.com/public/xml/rss/module/trackback/">
+       <rdf:Description
+	        rdf:about="http://studyfoss.egloos.com/5743917"
+	        dc:identifier="http://studyfoss.egloos.com/5743917"
+	        dc:title="[glibc] System V data structure functions"
+	        trackback:ping="http://studyfoss.egloos.com/tb/5743917"/>
+       </rdf:RDF>
+       -->
+
+	</DIV>
+	<DIV CLASS=POST_TAIL ALIGN=RIGHT><span class="TIME"> <a href="/5743917" class="permalink" title="[glibc] System V data structure functions" rel="bookmark">#</a> by <span class="AUTHOR">namhyung</span> | <a href="/5743917" class="time"  title="[glibc] System V data structure functions" rel="bookmark">2013/05/14 00:31</a></span> | <a href="/category/Tips" class="category">Tips</a> | <span class="linkback"><a href="#trb" onclick="trbview('5743917','c0098335','0'); return false;" class="tail_trb">트랙백<span id="trbcnt5743917"></span></a></span> | <span class="linkback"><a href="#cmt" onclick="cmtview('5743917','c0098335','0'); return false;" class="tail_cmt">덧글(<span id="cmtcnt5743917">0</span>)</a></span></DIV>
+		<span id="cmt5743917"></span>
+</DIV>
+</div><!-- egloos content end -->
+<span style="float: left">◀ 이전 페이지</a></span>
+<span style="float: right"><a href="/page/2">다음 페이지 ▶</a></span>
+<BR><BR>
+<DIV ID='BOTTOMBANNER' style="display:none;">	<div class="BANNER"><a href="http://www.egloos.com"><img src="http://md.egloos.com/img/edt/banner_ffffff_1.gif" width="150" height="50" border="0" alt="Powered by egloos" /></a></div>
+<BR><BR></DIV>
+</DIV>
+<DIV ID=LEFTSIDE style="display:block;">
+	<DIV ID=LOGO></DIV>
+	     <script language="javascript" type="text/javascript">
+     <!--
+     var s_calendar = new Array();
+     s_calendar = [];
+	  calendar("","");
+     -->
+     </script>
+
+	
+<DIV CLASS=MNTTL>카테고리</DIV>
+<DIV CLASS=MNBODY>
+<a href="/category/General">General</a><br/><a href="/category/Application">Application</a><br/><a href="/category/System">System</a><br/><a href="/category/Kernel">Kernel</a><br/><a href="/category/Book">Book</a><br/><a href="/category/Tips">Tips</a><br/>
+</DIV>
+
+<DIV CLASS=MNTTL>태그</DIV>
+<DIV CLASS=MNBODY><a href="/tag/kernel" class="tlevel3"> kernel</a>
+<a href="/tag/computer-architecture" class="tlevel3"> computer-architecture</a>
+<a href="/tag/C" class="tlevel3"> C</a>
+<a href="/tag/blktrace" class="tlevel1"> blktrace</a>
+<a href="/tag/patch" class="tlevel3"> patch</a>
+<a href="/tag/elf" class="tlevel3"> elf</a>
+<a href="/tag/emacs" class="tlevel3"> emacs</a>
+<a href="/tag/script" class="tlevel1"> script</a>
+<a href="/tag/sed" class="tlevel1"> sed</a>
+<a href="/tag/documentation" class="tlevel1"> documentation</a>
+<a href="/tag/scm" class="tlevel1"> scm</a>
+<a href="/tag/build" class="tlevel3"> build</a>
+<a href="/tag/git" class="tlevel2"> git</a>
+<a href="/tag/bash" class="tlevel2"> bash</a>
+<a href="/tag/SMP" class="tlevel2"> SMP</a>
+<a href="/tag/memory" class="tlevel3"> memory</a>
+<a href="/tag/CAaQA3" class="tlevel3"> CAaQA3</a>
+<a href="/tag/gcc" class="tlevel3"> gcc</a>
+<a href="/tag/glibc" class="tlevel3"> glibc</a>
+<a href="/tag/linux" class="tlevel3"> linux</a>
+<a href="/tag/block-layer" class="tlevel2"> block-layer</a>
+<a href="/tag/vcs" class="tlevel1"> vcs</a>
+<a href="/tag/perf" class="tlevel1"> perf</a>
+<a href="/tag/CARM" class="tlevel1"> CARM</a>
+<a href="/tag/compiler" class="tlevel3"> compiler</a>
+<a href="/tag/x86" class="tlevel3"> x86</a>
+<a href="/tag/awk" class="tlevel1"> awk</a>
+<a href="/tag/binutils" class="tlevel2"> binutils</a>
+<a href="/tag/synchronization" class="tlevel3"> synchronization</a>
+<a href="/tag/algorithm" class="tlevel3"> algorithm</a>
+<div style="text-align:right;margin-top:5px;"><a href="/tag">전체보기</a></div>
+</DIV>
+
+<DIV CLASS=MNTTL>이글루 파인더</DIV>
+<DIV CLASS=MNBODY><form id="finder" style="margin:0;" name="finder" method="post" action="http://studyfoss.egloos.com/" onsubmit="return go_search(document.finder);"><input type="text" id="srch_kwd" name="srch_kwd" size="10" style="vertical-align: middle;width: 100px;font-size:12px;" maxlength="30"/><input type="image" style="vertical-align: middle;margin-left:3px;" src="http://md.egloos.com/img/fnd/searchb.gif" /><p style="margin:3px 0 0 13px;text-align:left"><a href="http://www.zum.com" target="_blank"><img src="http://md.egloos.com/img/search/txt_power.png"></a></p></form>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 덧글</DIV>
+<DIV CLASS=MNBODY>
+<style type="text/css"> 
+.reply_write {margin:10px 0;}
+.reply_write fieldset {border:none;margin:0;padding:0;}
+.reply_write legend {display:none;}
+.reply_write .comment_info {width:95%;}
+.reply_write .comment_info span.comment_name,
+.reply_write .comment_info span.comment_passwd,
+.reply_write .comment_info span.comment_blog {display:block;padding:0 0 2px 0;clear:both;}
+.reply_write .comment_info span.comment_blog {float:left;}
+.reply_write .comment_info span.comment_name label,
+.reply_write .comment_info span.comment_passwd label,
+.reply_write .comment_info span.comment_blog label {display:block;float:left;width:55px;}
+.reply_write .comment_info input {padding:1px 0 0 1px;vertical-align:middle;}
+.reply_write .comment_info input.name {width:100px;}
+.reply_write .comment_info input.passwd {width:60px;}
+.reply_write .comment_info input.blog {width:200px;font-family:tahoma,sans-serif;font-size:11px;}
+.reply_write .comment_info span.comment_now {display:none;}
+.reply_write .comment_info span.comment_login {float:right;}
+.reply_write textarea {margin:2px 0;padding:0;width:95%;height:100px;margin-left:0 !important;font:normal 12px '돋움',sans-serif;}
+.reply_write .comment_btn {width:95%;height:23px;position:relative;*position:static;*text-align:right;}
+.reply_write .comment_btn .comment_submit {position:absolute;top:0;right:0;*position:static;*text-align:right;}
+</style>     
+
+<a href="http://studyfoss.egloos.com/5129119#12438993">이렇게 좋은 글이 한글로 있다는 것..</a><br/><span class="SMALL">by 프로그라머 at 02/17</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5512112#12419757">흐름을 이해할 수 있는글이라 좋..</a><br/><span class="SMALL">by morenice at 11/26</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#12401092">좋은 글 감사합니다~퍼갑니다~</a><br/><span class="SMALL">by 김석범 at 09/10</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 트랙백</DIV>
+<DIV CLASS=MNBODY>
+<a href="http://studyfoss.egloos.com/5350643#515727">이맥스의 파일 변수 사용하기</a><br/><span class="SMALL">by 개똥이야기</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#512679">asmlinkage modifier in Linux..</a><br/><span class="SMALL">by novum의 공유창고</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5409933#511713">구조체의 패킹에 대한 이야기</a><br/><span class="SMALL">by 김재호의 디지털보단 아날로그</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+
+
+
+
+
+
+
+<DIV style="TEXT-ALIGN:center; width:200px;">
+<div class="XML"><a href="http://rss.egloos.com/blog/studyfoss" target="_new"><img src="http://md.egloos.com/img/skn/rss.gif" alt="rss" border="0" /></a><br /><br /> skin by <a href="http://jiinny.egloos.com">jiinny</a></div>
+<BR /><BR />
+<DIV ID=OHLOH><a href='https://www.ohloh.net/accounts/115130?ref=Detailed'>
+  <img alt='Ohloh profile for Namhyung Kim' height='35' src='https://www.ohloh.net/accounts/115130/widgets/account_detailed.gif' width='191' border='0' />
+</a></DIV>
+</DIV>
+</DIV>
+<DIV ID='LEFTSHOW'  onclick=document.all['RIGHTMAIN'].style.right='300px';document.all['BOTTOMBANNER'].style.display='none';document.all['LEFTSIDE'].style.display='block';document.all['LEFTSHOW'].style.display='none';document.all['LEFTHIDE'].style.display='block';  style='color:red;display:none;'>
+</DIV>
+
+<DIV id='LEFTHIDE' onclick=document.all['RIGHTMAIN'].style.right='20px';document.all['BOTTOMBANNER'].style.display='block';document.all['LEFTSIDE'].style.display='none';document.all['LEFTHIDE'].style.display='none';document.all['LEFTSHOW'].style.display='block';  style='color:red'>X</DIV><iframe src="http://www.egloos.com/estat/stat_logger.php?bid=c0098335&ref=&openflag=" style="width: 0px; height: 0px; border: 0px solid #fff;"></iframe>
+<img width="0" height="0" border="0" src="http://studyfoss.egloos.com/egloo_pds.php?eid=c0098335" alt="" />
+<form id="trackfrom" name="trackfrom" method="post" action="">
+<input type="hidden" name="url" value="" />
+<input type="hidden" name="title" value="" />
+<input type="hidden" name="trburl" value="" />
+</form>
+<div style="z-index:9901;top:764px;left:169px;display:none;" id="egloo_bookmark" class="popupWrap">
+    <div class="popupTitle">이글루링크 추가하기</div>
+    <dl class="popupBody">
+        <dt class="no-arrow" style="background:none;font-size:12px;text-align:center;">
+            <span id="egloo-bookmark-url" style="color:#0F71A1;"></span>
+            (<span id="egloo-bookmark-name"></span>)을(를)</dt>
+        <dd class="notice" style="margin:0;padding:0 0 0 8px;line-height:1.8em;color:#000;font-size:12px;text-align:center;">이글루링크로 추가하시겠습니까? 추가하시려면 그룹선택을 하세요.</dd>
+        <dd class="notice weak" style="margin:0;padding:0 0 0 8px;line-height:1.8em;font-size:11px;color:#666666;text-align:center;">(그룹선택 하지 않는 경우, 최상단 목록에 추가됩니다.)</dd>
+        <dd class="egloo-bookmark-group" style="margin:0;padding:10px 0 8px;line-height:1.8em;text-align:center;color:#333;font-size:12px;text-align:center;">그룹선택 :
+            <select name="groupID" id="egloo-bookmark-groupID" style="font-family:'돋움','dotum','Trebuchet MS',Sans-serif;margin-left:10px;"><option value="000">그룹선택없음</option></select></dd>
+        <dd class="buttons">
+            <input type="button" value="지금 확인" onfocus="blur();" onclick="Modal.insertBookmark(true);" class="button btn24 btn_bold"/>
+            <input type="button" value="나중에 확인" onfocus="blur();" onclick="Modal.insertBookmark(false);" class="button btn24 btn_weak"/>
+        </dd>
+        <dd class="close" onclick="Modal.close();"><img src="http://md.egloos.com/img/www/btn/button_popup_close.gif" alt="이글루링크 취소" title="이글루링크 취소" /></dd>
+    </dl>
+</div>
+</body>
+</html>

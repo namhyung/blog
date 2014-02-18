@@ -1,0 +1,196 @@
+	
+<div class="version">
+Linux: 3.3-rc5
+</div>
+
+
+perf list 명령은 perf에서 지원하는 "이벤트"의 목록을 보여준다.
+기본적으로 perf의 역할은 하드웨어(PMU)에서 제공하는 성능 카운터를 제어하여 그 값을 읽는 것이지만
+최근 여러가지 기능이 추가되면서 단순한 카운터의 역할을 넘어서는 작업이 가능해 짐에따라
+perf에서 제공하는 기능들의 이름을 이벤트라 칭하게 되었고 내부적인 subsystem 이름도
+performance counter에서 performance event로 변경되었다.
+
+perf를 이용한다는 것은 결국 특정 프로그램이 실행되는 동안 혹은 (지정된 시간 동안) 시스템 전체에서
+우리가 원하는 특정 이벤트가 언제/얼마나/어떻게 발생되었는지를 살펴보는 것이다.
+따라서 현재 시스템에서 제공하는 이벤트가 어떤 것인지를 먼저 알고있어야 한다.
+perf에서 이용가능한 모든 이벤트를 보려면 아무 인자 없이 perf list 명령을 수행한다.
+
+
+<div class="source">
+$ perf list
+
+List of pre-defined events (to be used in -e):
+  cpu-cycles OR cycles                               [Hardware event]
+  stalled-cycles-frontend OR idle-cycles-frontend    [Hardware event]
+  stalled-cycles-backend OR idle-cycles-backend      [Hardware event]
+  instructions                                       [Hardware event]
+  cache-references                                   [Hardware event]
+  cache-misses                                       [Hardware event]
+  branch-instructions OR branches                    [Hardware event]
+  branch-misses                                      [Hardware event]
+  bus-cycles                                         [Hardware event]
+  ref-cycles                                         [Hardware event]
+
+  cpu-clock                                          [Software event]
+  task-clock                                         [Software event]
+  page-faults OR faults                              [Software event]
+  minor-faults                                       [Software event]
+  major-faults                                       [Software event]
+  context-switches OR cs                             [Software event]
+  cpu-migrations OR migrations                       [Software event]
+  alignment-faults                                   [Software event]
+  emulation-faults                                   [Software event]
+
+  L1-dcache-loads                                    [Hardware cache event]
+  L1-dcache-load-misses                              [Hardware cache event]
+  L1-dcache-stores                                   [Hardware cache event]
+  L1-dcache-store-misses                             [Hardware cache event]
+...
+
+  rNNN (see 'perf list --help' on how to encode it)  [Raw hardware event descriptor]
+
+  mem:&lt;addr&gt;[:access]                                [Hardware breakpoint]
+
+  kvmmmu:kvm_mmu_pagetable_walk                      [Tracepoint event]
+  kvmmmu:kvm_mmu_paging_element                      [Tracepoint event]
+...
+</div>
+
+먼저 한가지 말해두고 싶은 것은 git와 마찬가지로 perf도 내부적으로 pager 프로그램을 이용한다는 것이다.
+기본 값으로는 less가 사용되며, 앞/뒤 페이지 이동 및 검색 등도 동작하므로 잘 이용하기 바란다.
+
+perf list의 출력에서 왼쪽은 이벤트의 이름이고 오른쪽은 해당 이벤트의 타입이다.
+가장 처음에 나오는 (그리고 기본값으로 사용되는) cpu-cycles (복수형임에 주의) 이벤트의 경우
+Hardware 타입의 이벤트이며 (위에서 보듯이) 그냥 cycles 라고 짧게 쓸 수도 있다.
+이 후 perf 이용 시 각 하위 명령에서 이벤트를 지정할 때 -e (--event) 옵션을 통해
+이벤트 이름을 하나 이상 지정하여 (컴마(,)로 구분) 사용할 수 있다.
+
+이벤트의 타입은 크게 하드웨어, 소프트웨어, tracepoint로 나눌 수 있는데
+(뭐 굳이 따지고 들자면 tracepoint도 소프트웨어 타입의 하나로 볼 수 있다)
+하드웨어 이벤트는 당연하게도 하드웨어 PMU에서 제공하는 기능들을 말하며
+위에서 출력된 목록 가운데에도 현재 사용 중인 시스템에서 하드웨어 적으로 지원되지 않는다면
+실제로 동작/측정되지 않을 수 있으므로 사용 전에 확인이 필요하다.
+
+하드웨어 이벤트 목록에 속한 이벤트는 대부분의 CPU 아키텍처에서 공통적으로 제공하는 것들이며
+이 외에도 특정 CPU/PMU에서만 지원하는 이벤트가 별도로 존재할 수 있기 때문에
+그러한 이벤트를 사용하기 위해서는 직접 CPU 매뉴얼을 확인해야 할 것이다.
+이러한 타입의 이벤트는 별도로 raw (hardware) event라고 부르며
+CPU 매뉴얼에 지정된 이벤트 번호(?)를 (16진수 형태의) 정수값으로 지정할 수도 있다.
+단 -e 옵션에서 raw event를 지정할 때는 이벤트 번호 앞에 raw event 임을 나타내는 'r'을 붙여야 한다.
+
+일반적으로 사용되는 하드웨어 이벤트에 대해 좀 더 자세히 살펴보면 다음과 같다.
+
+<ul>
+  <li><span style="font-weight: bold;">cpu-cycles</span> : CPU가 정상 동작 중인 (unhalted) 상태일 때 흘러간 클럭 수를 의미하며 프로세서 동작 주파수에 영향을 받는다.</li>
+  <li><span style="font-weight: bold;">stalled-cycles-frontend</span>: CPU가 정상 동작 중이더라도 파이프라인 내에 유효한 명령을 실행하지 못하는 경우를 의미한다. 이 중 frontend는 주로 branch misprediction이나 I-cache miss 등으로 인해 명령어를 fetch/issue하지 못한 경우에 해당한다. 정확한 의미는 CPU 아키텍처 및 구현에 따라 달라질 수 있다.</li>
+  <li><span style="font-weight: bold;">stalled-cycles-backend</span>: 위와 마찬가지이지만 주로 CPU 내부의 연산 장치를 할당받지 못해 실행하지 못한 경우에 해당한다.</li>
+  <li><span style="font-weight: bold;">instructions</span>: CPU가 실행을 완료한 (retired) 명령어의 수를 의미한다.</li>
+  <li><span style="font-weight: bold;">cache-references</span>: 캐시 접근 횟수를 의미한다. 실제 의미는 해당 CPU 아키텍처에 따라 달라지는데 x86에서는 LLC (Last-Level Cache) 접근 횟수이지만, arm에서는 L1 d-cache 접근 횟수에 해당한다. 캐시에 대한 이벤트는 (아래에 설명하듯이) 별도로 존재하므로 상세한 정보를 원한다면 이보다는 별도의 캐시 이벤트를 이용하는 것이 좋을 것이다.</li>
+  <li><span style="font-weight: bold;">cache-misses</span>: 캐시 접근 중 miss가 발생한 횟수를 의미한다. 마찬가지로 별도의 캐시 이벤트를 이용하는 것이 좋다.</li>
+  <li><span style="font-weight: bold;">branches</span>: 전체 실행한 명령어 중에서 branch/jump/call과 같이 다른 위치로 이동하는 분기 명령어의 수를 의미한다.</li>
+  <li><span style="font-weight: bold;">branch-misses</span>: 실행된 분기 명령어 중에서 분기 예측이 실패한 횟수를 의미한다.</li>
+  <li><span style="font-weight: bold;">bus-cycles</span>: CPU 외부 (메모리?) 버스의 클럭 수를 의미하며, 일부 CPU에서는 아래의 ref-cycles와 비슷한 용도(?)로 사용되기도 한다. 상세한 정보는 CPU 마다 달라질 수 있으니 소스와 함께 해당 CPU 매뉴얼을 확인해 보아야 할 것이다.</li>
+  <li><span style="font-weight: bold;">ref-cycles</span>: 위의 cpu-cycle 이벤트와 거의 유사하지만, 프로세서의 동작 주파수가 변경되어도 영향을 받지 않는다는 차이가 있다. 시스템 부하 및 동작 환경에 따른 CPU 주파수 변경 로직이 제대로 동작하는지 검증하는 경우에 유효하다.</li>
+</ul>
+또한 하드웨어 캐시 이벤트가 별도로 존재하는데 이것도 마찬가지로 하드웨어 이벤트이기는 하지만 위에서 언급했듯이
+특별히 캐시 종류 (L1/TLB/LLC ...), 접근 방식 (load/store/prefetch), 접근 결과 (hit/miss) 등에 따라
+이벤트를 세부적으로 분류하여 제공하고 있다. 단 CPU에 따라 지원하지 않는 이벤트도 있을 수 있으므로 확인이 필요하다.
+
+또한 추가적으로 하드웨어 이벤트에는 modifiers를 덧붙여서 그 적용 범위를 제한할 수가 있다.
+물론 이 기능도 하드웨어 적으로 지원되는 것이므로 해당 CPU에서 특정 기능을 제공하는 경우에만 적용할 수 있으니
+사용하기 위해서는 현재 사용 중인 환경에서 실제로 그 기능을 지원하는지 먼저 점검해 보아야 한다.
+현재 지원되는 modifier의 종류로는 다음과 같은 것들이 있다.
+
+<ul>
+  <li><span style="font-weight: bold;">u</span>: 오직 user-level에서 발생하는 이벤트 만을 고려한다.</li>
+  <li><span style="font-weight: bold;">k</span>: 오직 kernel-level에서 발생하는 이벤트 만을 고려한다.</li>
+  <li><span style="font-weight: bold;">h</span>: 오직 hyperviser에서 발생하는 이벤트 만을 고려한다.</li>
+  <li><span style="font-weight: bold;">H</span>: 오직 host machine에서 발생하는 이벤트 만을 고려한다.</li>
+  <li><span style="font-weight: bold;">G</span>: 오직 guest machine에서 발생하는 이벤트 만을 고려한다.</li>
+</ul>
+modifier는 이벤트 이름 뒤에 ':' 기호를 덧붙인 후 지정할 수 있으며 (예: cycles:uH),
+아무런 modifier도 명시하지 않은 경우는 모든 경우를 고려하여 이벤트를 카운팅한다.
+
+그리고 하드웨어 및 커널에서 지원하는 경우 하드웨어 breakpoint 기능을 통해
+(우리가 흔히 디버거에서 watch point라고 부르는 기능과 동일하게)
+메모리 상의 특정 위치를 지정하여 해당 구역에 대한 접근이 일어나는지를 알아볼 수도 있다.
+이러한 이벤트를 지정하는 방식은 mem:주소[:rwx] 이며 rwx는 각각 읽기, 쓰기, 실행에 해당한다.
+주소는 프로세스의 가상 주소이며 커널 주소 공간에 접근하기 위해서는 root 권한이 필요하다.
+접근 권한을 생략한다면 기본적으로 rw를 지정한 것과 동일하게 동작한다.
+
+소프트웨어 이벤트는 커널에서 소프트웨어 적으로 측정한 이벤트를 알려주는 것으로
+CPU/태스크 실행 시간, 페이지 폴트 발생 횟수, 컨텍스트 스위치 및 migration 횟수 등에 해당한다.
+이는 해당 이벤트가 발생할 때마다 커널이 정보를 기록하여 perf에게 전달해준다.
+
+tracepoint 이벤트는 커널의 특정 지점에 포함시켜 놓은 tracepoint를 활용하여
+원하는 것들을 선택적으로 활성화한 뒤 이를 통해 필요한 정보를 얻어낼 수 있는 방법이다.
+소프트웨어 이벤트와 마찬가지로 커널이 해당 이벤트 정보를 기록하여 perf에게 전달해주며
+이미 커널 내의 수많은 위치에 개발자들이 직접 tracepoint들을 추가해 두었으므로
+(event tracing 기법을 재활용하여) perf에서도 이들을 쉽게 접근할 수 있게 해 준다.
+
+tracepoint 이벤트의 경우 이벤트 이름이 subsystem:event의 형태로 나누어지며
+"*" 혹은 "?" 와 같은 wildcard 문자를 이용하면 여러 이벤트를 간단히 나타낼 수도 있다.
+예를 들어 인터럽트와 관련된 모든 이벤트를 보고 싶다면 다음과 같이 실행한다.
+
+
+<div class="source">
+$ perf list irq:*
+  irq:irq_handler_entry                              [Tracepoint event]
+  irq:irq_handler_exit                               [Tracepoint event]
+  irq:softirq_entry                                  [Tracepoint event]
+  irq:softirq_exit                                   [Tracepoint event]
+</div>
+
+tracepoint 이벤트의 경우 추가적으로 filter를 이용하여 조건을 명시할 수 있는데
+자세한 방법에 대해서는 커널 소스 내의 Documentation/trace/events.txt 문서를 참조하기 바란다.
+
+perf list 명령은 이 중에서 원하는 이벤트의 목록 만을 추려서 볼 수 있도록 해주는데
+특정 종류의 이벤트를 보려면 인자로 hw, sw, cache, tracepoint 중의 하나를 넘기면 된다.
+
+
+<div class="source">
+$ perf list sw
+  cpu-clock                                          [Software event]
+  task-clock                                         [Software event]
+  page-faults OR faults                              [Software event]
+  minor-faults                                       [Software event]
+  major-faults                                       [Software event]
+  context-switches OR cs                             [Software event]
+  cpu-migrations OR migrations                       [Software event]
+  alignment-faults                                   [Software event]
+  emulation-faults                                   [Software event]
+</div>
+
+또는 이벤트의 이름 중 일부에 wildcard를 이용하여 원하는 이벤트를 선택할 수도 있다.
+
+
+<div class="source">
+$ perf list *faults
+
+List of pre-defined events (to be used in -e):
+  page-faults OR faults                              [Software event]
+  minor-faults                                       [Software event]
+  major-faults                                       [Software event]
+  alignment-faults                                   [Software event]
+  emulation-faults                                   [Software event]
+$
+$ perf list ???-cycles
+
+List of pre-defined events (to be used in -e):
+  cpu-cycles OR cycles                               [Hardware event]
+  bus-cycles                                         [Hardware event]
+  ref-cycles                                         [Hardware event]
+</div>
+
+이제 perf에서 이용할 수 있는 이벤트들에 대해서 알아보았으니
+본격적으로 perf의 기능들을 살펴보기로 하자.
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/perf" rel="tag">perf</a>
+</div>
+

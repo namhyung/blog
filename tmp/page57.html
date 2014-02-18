@@ -1,0 +1,252 @@
+	
+<div class="version">
+Linux: 2.6.34
+arch: x86_64
+</div>
+
+
+kprobes는 커널 코드에 원하는 작업을 동적으로 추가할 수 있는 강력한 기법이다.
+kprobes는 커널 설정 시 CONFIG_KPROBES 옵션을 선택하면 사용할 수 있으며
+이를 이용하면 원하는 위치의 코드를 디버깅 하거나 패치하는 작업도 가능해 진다.
+
+kprobes는 기능에 따라 kprobe, jprobe, kretprobe로 나누어지는데
+뒤의 두 가지는 kprobe의 기능을 기반으로 하여 추가적인 기능을 제공하는 것이므로
+먼저 kprobe에 대해서 살펴본 후 jprobe와 kretprobe를 알아보기로 한다.
+
+kprobe는 기본적으로 코드 상의 특정 위치를 지정한 후
+해당 위치의 앞/뒤에서 호출될 pre/post handler를 등록할 수 있다.
+특정 위치를 지정할 때는 kallsyms를 통해 심볼의 이름 + 오프셋을 이용하거나
+해당 메모리 주소(+ 오프셋)를 바로 지정할 수 있으며
+반드시 이 둘 중 한 가지 방법만 사용해야 한다.
+
+다음은 이러한 정보들을 저장하는 kprobe 구조체를 보여준다.
+(각 필드에 대한 주석은 생략하였다.)
+
+include/linux/kprobes.h:
+<div class="source">
+struct kprobe {
+    struct hlist_node hlist;
+    struct list_head list;
+    unsigned long nmissed;
+    
+    kprobe_opcode_t *addr;
+    const char *symbol_name;
+    unsigned int offset;
+    
+    kprobe_pre_handler_t pre_handler;
+    kprobe_post_handler_t post_handler;
+    kprobe_fault_handler_t fault_handler;
+    kprobe_break_handler_t break_handler;
+    
+    kprobe_opcode_t opcode;
+    struct arch_specific_insn ainsn;
+    u32 flags;
+};
+</div>
+
+kprobe 등록 시에 사용자(?)가 반드시 설정해야 하는 필드는
+kprobe를 설치할 위치를 가리키는 addr 혹은 symbol_name과 offset 필드이며
+필요에 따라 pre/post/fault/break handler 중 원하는 함수를 등록하면 된다.
+pre_handler는 지정한 위치의 instruction이 실행되기 직전에 호출되며
+post_handler는 실행된 직후에 호출된다.
+fault_handler는 kprobe가 실행되는 도중 exception(#GP)이 발생한 경우에 호출되며
+break_handler는 kprobe가 실행되는 도중 또 다른 곳에서 breakpoint exception(#BP)이
+발생한 경우에 호출된다. (이 기능은 나중에 볼 jprobe의 구현 시에 이용한다.)
+
+kprobes는 모듈로 로드된 코드를 포함하여 대부분의 코드에 적용될 수 있지만
+특별한 용도로 사용되는 함수들은 kprobes를 적용할 수 없기 때문에
+__kprobes라는 태그(?)를 붙여 별도로 관리한다.
+
+
+<div class="source">
+/* Attach to insert probes on any functions which should be ignored*/
+#define __kprobes    __attribute__((__section__(".kprobes.text")))
+</div>
+
+하지만 비슷한 용도로 __sched 등의 다른 태그가 적용된 일부 함수들에도 kprobes를 적용할 수 없으므로
+이러한 함수들을 위한 별도의 blacklist를 유지하기도 한다.
+
+kernel/kprobes.c:
+<div class="source">
+static struct kprobe_blackpoint kprobe_blacklist[] = {
+    {"preempt_schedule",},
+    {"native_get_debugreg",},
+    {"irq_entries_start",},
+    {"common_interrupt",},
+    {"mcount",},    /* mcount can be called from everywhere */
+    {NULL}    /* Terminator */
+};
+</div>
+
+kprobe를 등록하면 지정한 위치에 breakpoint exception을 발생시키는 instruction을 삽입하여
+해당 위치의 코드가 실행될 때 exception이 발생되도록 하고 이 exception handler에서
+등록된 kprobe의 handler들을 호출하는 방식으로 동작한다.
+이 과정은 각 아키텍처에 의존적인 부분이므로 이 후에는 x86 아키텍처에 대해서만 살펴볼 것이다.
+
+kprobe를 등록하는 작업은 register_kprobe() 함수가 수행하는데
+이 함수는 기본적인 검사를 수행한 후 arch_prepare_kprobe() 함수를 호출한다.
+이름에서 알 수 있듯이 이 함수는 각 아키텍처 별로 다르게 정의되어 있으며
+몇 가지 검사를 수행한 뒤 지정된 위치의 코드를 별도의 버퍼에 복사해 둔다.
+
+x86 아키텍처의 경우에는 지정된 위치가
+alternative instruction을 위해 예약된 영역에 속하는지 검사하고
+instruction의 시작 위치에 맞아 떨어지는지 검사하여 아닌 경우 등록이 실패한다.
+x86과 같은 CISC 머신의 경우 instruction의 길이가 동일하지 않으므로 이 검사는 간단하지 않은데,
+kallsyms를 통해 지정된 위치를 포함하는 함수의 시작 instruction 위치를 알아낸 후
+instruction들을 분석하여 길이를 알아내고, 그 다음 instruction으로 이동하여 이를 반복하는 식으로
+지정된 위치까지 진행하면 instruction의 시작 위치에 맞아 떨어지는지 알 수 있다.
+
+검사를 통과했다면 지정된 위치에 존재하는 instruction을
+미리 할당된 (실행 가능한! 페이지 내의) 버퍼 (insn_slot)에 복사한다.
+그리고 원래 코드의 opcode에 해당하는 첫 번째 바이트는 따로 저장해 둔다.
+
+이렇게 모든 준비가 완료되었다면 현재의 kprobe 구조체를 해시 테이블에 추가하고
+__arm_kprobe() 함수를 호출하여 원래의 opcode를 breakpoint instruction (int3)으로 교체한다.
+이 함수는 다시 arch_arm_kprobe() 함수를 호출하여 아키텍처 의존적인 방법으로 이를 수행한다.
+
+그런데 커널 코드 영역은 당연히(!) read-only로 설정되어 있으므로
+단순히 memcpy()로는 코드를 수정할 수 없기 때문에 text_poke() 함수가 사용된다.
+이 함수는 전용 fixmap 주소를 이용하여 코드가 속한 페이지를 다시 (write가 가능하도록) 매핑하고
+매핑된 페이지에 대해 memcpy()를 수행한 후 매핑을 해제하므로 이를 처리할 수 있다.
+x86의 경우 해당 위치의 opcode를 int3에 해당하는 0xcc로 바꾸면 되기 때문에
+단지 1 바이트의 업데이트 만이 필요하다.
+
+이제 getpid 시스템 콜에 kprobe를 추가하는 상황을 생각해 보자.
+먼저 커널 이미지(vmlinux)를 disassemble 해 보면 다음과 같은 부분을 찾을 수 있을 것이다.
+
+
+<div class="source">
+$ fdas.py vmlinux sys_getpid
+
+vmlinux:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+ffffffff8108c140 &lt;sys_getpid&gt;:
+ffffffff8108c140:    55                       push   %rbp
+ffffffff8108c141:    48 89 e5                 mov    %rsp,%rbp
+ffffffff8108c144:    65 48 8b 04 25 c0 b6     mov    %gs:0xb6c0,%rax
+ffffffff8108c14b:    00 00 
+ffffffff8108c14d:    48 8b 80 d8 02 00 00     mov    0x2d8(%rax),%rax
+ffffffff8108c154:    48 8b b8 18 03 00 00     mov    0x318(%rax),%rdi
+ffffffff8108c15b:    e8 7b e5 00 00           callq  ffffffff8109a6e0 &lt;pid_vnr&gt;
+ffffffff8108c160:    c9                       leaveq 
+ffffffff8108c161:    48 98                    cltq   
+ffffffff8108c163:    c3                       retq   
+</div>
+
+구체적으로 8108c144 위치에 있는 mov instruction에 kprobe를 등록한다고 가정해 보자.
+우리는 구체적인 주소를 알고 있으므로 kprobe 구조체의 addr 필드에 곧바로 해당 주소를 입력할 수도 있겠지만
+만약 그렇지 못한 경우라더라도 symbol_name에 "sys_getpid"를 저장하고 offset을 4로 지정하면
+동일한 효과를 얻을 수 있다. 만약 offset을 모른다면 그냥 0으로 두고 함수의 첫 부분에 등록하는 것이 좋다.
+말했듯이 지정한 위치가 각 instruction의 시작 위치가 아니라면 kprobe 등록이 실패할 것이다.
+
+적절한 handler 필드를 설정하고 register_kprobe() 함수를 호출하면
+해당 위치의 opcode (0x65)가 int3에 해당하는 0xcc로 바뀌고, 0x65는 kprobe.opcode에 저장된다.
+또한 instruction 전체(65 48 8b 04 25 c0 b6 00 00)는 kprobe.ainsn.insn[] 버퍼에 저장될 것이다.
+
+이제 해당 코드가 실행되는 경우 breakpoint exception (#BP)이 발생하게 되는데
+kprobes의 초기화 과정에서 (die) notify 메커니즘을 통해 이 exception에 대한 handler를 등록해 두기 때문에
+kprobe 루틴이 호출될 수 있으며 여기서 exception 발생 시의 PC 값을 통해
+등록된 kprobe들의 목록 중 주소가 일치하는 것이 있는지 검사하여 적절한 kprobe를 찾아낼 수 있다.
+
+exception 발생 시 커널은 해당 interrupt vector에 등록된 handler를 실행시키기 전에
+현재 hardware context 정보를 저장하므로 여기에 저장된 rip 레지스터(PC)의 값을 검사하면 된다.
+이 때 PC 값은 이미 증가된 후이므로 (#BP의 exception class는 trap이다)
+int3 instruction 크기(1) 만큼을 빼 주어야 원래의 주소를 복원할 수 있다.
+
+또한 exception handler가 종료되면 저장된 레지스터들을 다시 원상 복귀하면서 반환하므로
+저장해 둔 rip 레지스터의 값을 적절히 조작하면 원래의 함수 대신 다른 코드를 실행하도록 변경할 수 있게 된다.
+
+이 (die) notify 함수는 debug exception (#DB) 및 general protection exception (#GP)도
+함께 처리하므로 single step 및 기타 예외 사항을 동일하게 처리할 수 있다.
+x86의 경우 이 함수는 다음과 같이 정의되어 있다.
+
+arch/x86/kernel/kprobes.c:
+<div class="source">
+/*
+ * Wrapper routine for handling exceptions.
+ */
+int __kprobes kprobe_exceptions_notify(struct notifier_block *self,
+                       unsigned long val, void *data)
+{
+    struct die_args *args = data;
+    int ret = NOTIFY_DONE;
+
+    if (args-&gt;regs &amp;&amp; user_mode_vm(args-&gt;regs))
+        return ret;
+
+    switch (val) {
+    case DIE_INT3:
+        if (kprobe_handler(args-&gt;regs))
+            ret = NOTIFY_STOP;
+        break;
+    case DIE_DEBUG:
+        if (post_kprobe_handler(args-&gt;regs)) {
+            (*(unsigned long *)ERR_PTR(args-&gt;err)) &amp;= ~DR_STEP;
+            ret = NOTIFY_STOP;
+        }
+        break;
+    case DIE_GPF:
+        if (!preemptible() &amp;&amp; kprobe_running() &amp;&amp;
+            kprobe_fault_handler(args-&gt;regs, args-&gt;trapnr))
+            ret = NOTIFY_STOP;
+        break;
+    default:
+        break;
+    }
+    return ret;
+}
+</div>
+
+breakpoint exception이 발생하면 DIE_INT3 부분이 실행되는데
+kprobe_handler() 함수는 저장된 레지스터로부터 주소를 복원하여 이에 해당하는 kprobe를 찾은 뒤
+pre_handler가 지정되어 있는지 검사한 후 지정되어 있다면 이를 실행한다.
+pre_handler는 등록한 kprobe 구조체 자신과
+exception 발생 시의 레지스터 값인 pt_regs 구조체의 포인터를 인자로 받는다.
+
+pre_handler가 실행된 후에는 원래의 instruction을 실행해 주어야 하는데,
+이는 별도의 버퍼에 따로 저장되어 있으므로 정상적인 방식으로는 실행을 할 수가 없다.
+따라서 디버거의 single step 명령과 같이 하나의 instruction 만 실행한 후에 멈추도록 하고
+다시 원래 위치로 돌아가서 이후의 instruction들을 계속 실행할 수 있도록 처리해 주어야 한다.
+(단, pre_handler가 1을 리턴한 경우는 예외이다.
+이 경우는 원래의 코드 대신 사용자가 지정한 다른 코드를 수행하고자 하는 경우로
+pre_handler 내에서 pt_regs 구조체의 ip 필드를 적절히 설정해 주어야 한다.
+나중에 볼 jprobe의 구현에서 이 방법을 이용한다.)
+
+이를 위해서 setup_singlestep() 함수가 이용되는데
+이 함수는 다음 instruction 실행 후에 debug exception (#DB)이 발생하도록
+flags 필드에 TF 비트를 설정하고 ip 필드를 저장해 둔 버퍼의 시작 위치로 설정한다.
+
+이제 breakpoint exception handler에서 리턴되면 버퍼에 저장된 instruction이 실행되고
+곧바로 debug exception이 다시 발생한다. 이도 마찬가지로 kprobe에 notify되도록 설정되어 있으므로
+다시 해당 kprobe를 찾을 수 있고 이를 통해 원래의 돌아갈 위치를 알아낼 수 있다.
+또한 post_handler가 등록되어 있다면 이 과정에서 호출한다.
+
+돌아갈 위치를 설정하는 것은 resume_execution() 함수가 수행하는데
+이는 단순히 ip 레지스터 만을 설정하는 일 이외에도 다음과 같은 상황을 고려해야 한다.
+
+<ul>
+  <li>single step으로 실행한 instruction이 flags 레지스터의 값을 변경하는 경우 해당 값을 설정해 주어야 한다.</li>
+  <li>single step으로 실행한 instruction이 call인 경우 return address를 적절히 설정해 주어야 한다.</li>
+</ul>
+이러한 실행 과정을 그림으로 간략히 나타내보면 다음과 같다.
+
+
+<div style="text-align:center">
+<img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds19.egloos.com/pds/201007/30/35/c0098335_4c5253e43958e.png" width="500" height="319.277108434" onclick="Control.Modal.openDialog(this, event, 'http://pds19.egloos.com/pds/201007/30/35/c0098335_4c5253e43958e.png');" />
+</div>
+
+그림에서 kp는 kprobe 구조체를 의미하며
+실행 과정에서 두 번의 exception (#BP, #DB)이 발생한다는 것을 알 수 있다.
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/debug" rel="tag">debug</a>, <a href="/tag/x86" rel="tag">x86</a>
+</div>
+

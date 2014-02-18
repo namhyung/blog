@@ -1,0 +1,76 @@
+	cache coherency protocol은 multiprocessor system에서
+각 processor 간의 cache (line)들이 동일한 데이터를 접근할 수 있도록 보장해주는 메커니즘이다.
+여기서는 각 cache controller들이 bus의 요청을 monitoring하는 cache snooping 방식으로 구현되었다고 가정하고 설명한다.
+
+전통적인 방식은 MSI protocol이라고하며 각 cache의 상태를 다음과 같은 3가지로 구분한다.
+
+<ul>
+  <li>M (Modified) : cache의 내용이 변경되었다. 한 processor가 데이터를 modify하면 다른 processor들의 해당 cache line은 invalidate된다.</li>
+  <li>S (Shared) : 최소 하나의 processor가 (메모리에서) 데이터를 읽어서 cache에 저장하고 있다. </li>
+  <li>I (Invalid) : 현재 processor가 가지고 있는 cache line은 더 이상 올바른 데이터가 아니므로 다시 메모리에서 읽어야 한다.</li>
+</ul>(참고로 CA:AQA3에서는 Modified 상태를 Exclusive 상태라고 표기하고 있으나
+이후의 설명과 통일성을 가지려면 Modified 상태라고 하는 편이 옳다.)
+
+이를 그림으로 나타내보면 다음과 같은 형태가 된다.
+(bus read/write는 다른 processor가 동일한 cache line에 대한 요청을 bus로 보내는 것을 의미한다.
+또한 설명을 간단히 하기 위해 한 번 cache에 저장된 데이터는 replace되지 않았다고 가정한다.)
+
+
+<div style="text-align:center">
+<img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds17.egloos.com/pds/200910/17/35/c0098335_4ad97ffe6a774.png" width="466" height="241" onclick="Control.Modal.openDialog(this, event, 'http://pds17.egloos.com/pds/200910/17/35/c0098335_4ad97ffe6a774.png');" />
+</div>
+
+MSI protocol의 단점은
+오직 한 processor에서만 특정 cache line을 사용하고 있는 경우에도
+여러 processor가 사용하고 있는 것과 동일하게 Shared 상태로 처리하기 때문에
+해당 line을 write 시 다른 cache를 invalidate (or update)시키기 위해 (bus) transaction이 발생한다는 것이다.
+
+이를 해결하기 위해 사용하는 방법이 현재 널리 사용되는 MESI protocol이다.
+MESI protocol은 (당연하게도) MSI에 E (Exclusive) 상태를 추가한 것이다.
+
+<ul>
+  <li>E (Exclusive) :  processor가 (메모리에서) 데이터를 읽어서 cache에 저장하고 있으며, 다른 processor들은 해당 cache line을 저장하고 있지 않다.</li>
+</ul>이제 cache controller는 해당 cache line이 다른 processor와 공유되고 있지 않으므로
+write 시 불필요하게 bus에 invalidate (or update) transaction을 수행할 필요가 없다.
+이는 각 processor가 별도의 프로그램 혹은 잘 구성된 병렬 프로그램을 수행하는 경우 많은 성능 향상을 가져다 줄 것이다.
+
+이를 그림으로 나타내면 다음과 같다.
+(귀차니즘으로 인해 <a target="_blank" href="https://www.cs.tcd.ie/Jeremy.Jones/vivio/caches/MESIHelp.htm">https://www.cs.tcd.ie/Jeremy.Jones/vivio/caches/MESIHelp.htm</a> 페이지에 있는 그림으로 대신한다.)
+
+
+<div style="text-align:center">
+<img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds16.egloos.com/pds/200910/17/35/c0098335_4ad986e2bd9d0.gif" width="420" height="399" onclick="Control.Modal.openDialog(this, event, 'http://pds16.egloos.com/pds/200910/17/35/c0098335_4ad986e2bd9d0.gif');" />
+</div>
+
+AMD64 architecutre에서는 이를 더욱 개선하여
+Modify한 cache line을 다른 processor에서 읽기를 원할 때
+해당 cache line을 바로 메모리에 write back하지 않고 바로 데이터를 넘겨줄 수 있도록
+O (Owned) 상태를 추가한 MOESI protocol을 도입하였다.
+
+<ul>
+  <li>O (Owned) : 현재 processor는 변경된 최신 데이터를 가지고 있고, 다른 processor에서도 해당 데이터를 Shared 상태로 가지고 있지만 아직 메모리에 write되지는 않았다.</li>
+</ul>이를 그림으로 나타내면 다음과 같다.
+(Probe는 다른 processor의 요청을 의미한다.)
+
+
+<div style="text-align:center">
+<img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds15.egloos.com/pds/200910/17/35/c0098335_4ad98902ba54c.png" width="500" height="452.95202952" onclick="Control.Modal.openDialog(this, event, 'http://pds15.egloos.com/pds/200910/17/35/c0098335_4ad98902ba54c.png');" />
+</div>
+
+=== 참고 자료 ===
+
+<ul>
+  <li>Computer Architecture: A Quantitative Approach 3rd ed.</li>
+  <li><a target="_blank" href="http://en.wikipedia.org/wiki/Cache_coherence">http://en.wikipedia.org/wiki/Cache_coherence</a></li>
+  <li><a href="https://www.cs.tcd.ie/Jeremy.Jones/vivio/caches/MESIHelp.htm">https://www.cs.tcd.ie/Jeremy.Jones/vivio/caches/MESIHelp.htm</a></li>
+  <li>AMD64 Architecture Programmer's Manual vol 2: System Programming</li>
+</ul>
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/computer-architecture" rel="tag">computer-architecture</a>, <a href="/tag/memory" rel="tag">memory</a>, <a href="/tag/cache" rel="tag">cache</a>
+</div>
+

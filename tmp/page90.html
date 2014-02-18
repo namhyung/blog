@@ -1,0 +1,177 @@
+	
+<div class="version">
+Linux: 2.6.32
+util-linux-ng: 2.16
+</div>
+
+
+마운트는 보통 블록 장치에 저장된 파일 시스템을 시스템 트리에 연결하는 작업을 말하는데
+리눅스에서 bind 기능을 이용하면 그 중 일부 디렉터리/파일 만을 다른 위치로 다시 마운트하는 작업이 가능하다.
+이는 특정 디렉터리의 내용을 미러링할 때 유용하게 사용할 수 있다.
+
+예를 들어 시스템 내의 어떤 문서 디렉터리를 특정 사용자의 홈 디렉터리 아래에 보여주고 싶다고 가정하자.
+
+
+<div class="source">
+$ mkdir -p ~/문서/HOWTO
+$ sudo mount --bind /usr/share/doc/HOWTO/en-html/ ~/문서/HOWTO
+</div>
+
+이렇게 bind mount를 수행하면 두 디렉터리의 내용은 완전히 동일하다. (--bind 대신 -B 옵션을 사용해도 된다.)
+즉, 한 쪽에서 변경한 내용은 다른 쪽에서 즉시 확인할 수 있다.
+(중간의 !$ 변수는 bash의 history 기능 중 하나로 바로 전에 수행한 명령의 마지막 인자로 자동 치환된다.)
+
+
+<div class="source">
+$ sudo touch ~/문서/HOWTO/abc
+$ ls -l !$
+ls -l ~/문서/HOWTO/abc
+-rw-r--r-- 1 root root 0 2010-03-03 00:37 /home/namhyung/문서/HOWTO/abc
+$ ls -l /usr/share/doc/HOWTO/en-html/abc
+-rw-r--r-- 1 root root 0 2010-03-03 00:37 /usr/share/doc/HOWTO/en-html/abc
+</div>
+
+하지만 해당 디렉터리 아래에 새로운 파일 시스템 트리가 마운트되는 것은 다른 얘기이다.
+즉, 한 쪽의 하위 디렉터리에 새로 마운트된 트리는 다른 쪽에서는 보이지 않는다.
+
+
+<div class="source">
+$ ls somedir
+a  b  c
+$ sudo mount -B somedir ~/문서/HOWTO/extra
+$ ls !$
+ls ~/문서/HOWTO/extra/
+a  b  c
+$ ls /usr/share/doc/HOWTO/en-html/extra
+High-Availability-HOWTO  ext3-mini-HOWTO  ext3-usage-HOWTO
+</div>
+
+이러한 (기본) 동작은 private mount라고 하며
+각각의 마운트 포인트는 하위 트리를 별도로 관리하기 때문에 다른 쪽에서는 알지 못한다.
+만약 특정한 경우 이렇게 이후에 마운트된 하위 트리를 알고 싶다면
+shared mount 기법을 적용할 수 있다.
+
+이를 적용하려면 다시 HOWTO 디렉터리를 마운트하는 것부터 시작해야 해야 하는데
+(위에서 마운트한 디렉터리를 모두 해제했다고 가정한다.)
+그 전에 해당 디렉터리의 마운트 옵션을 변경해야 하기 때문에
+해당 디렉터리가 마운트 포인트가 되도록 자기 자신에게 bind mount를 수행한다.
+
+
+<div class="source">
+$ sudo mount -B /usr/share/doc/HOWTO/en-html/ /usr/share/doc/HOWTO/en-html/
+$ sudo mount --make-shared /usr/share/doc/HOWTO/en-html/
+</div>
+
+이제 하위 트리를 공유하도록 설정했다면 아까와 같이 bind mount를 수행한 후
+동일하게 새로운 트리를 마운트 했을 때 원본 트리에도 이 내용이 나타나는 것을 볼 수 있다.
+
+
+<div class="source">
+$ sudo mount -B /usr/share/doc/HOWTO/en-html/ ~/문서/HOWTO/
+$ sudo mount -B somedir ~/문서/HOWTO/extra
+$ ls !$
+ls ~/문서/HOWTO/extra/
+a  b  c
+$ ls /usr/share/doc/HOWTO/en-html/extra
+a  b  c
+</div>
+
+이러한 shared mount는 양방향 공유를 의미한다.
+즉, 원본 트리에서 일어난 변화이건 바인드된 트리에서 일어난 변화이건 구분없이
+양 쪽에서 상대방의 변화를 모두 알 수 있는 것이다.
+
+하지만 특정한 경우 오직 한 방향의 변화 만을 원하는 경우도 있을 수 있다.
+이를 테면 시스템에 새로 마운트된 트리를 내 디렉터리에서도 보고 싶지만
+내 디렉터리에 새로 마운트한 트리는 시스템에 알려주고 싶지는 않을 수도 있다.
+이를 slave mount라고 하며 원본 트리는 반드시 shared mount 상태이어야 한다.
+(역시 이전의 마운트한 트리를 모두 복구한 상태라고 가정하고 설명한다.)
+
+
+<div class="source">
+$ sudo mount -B /usr/share/doc/HOWTO/en-html/ /usr/share/doc/HOWTO/en-html/
+$ sudo mount --make-shared /usr/share/doc/HOWTO/en-html/
+$ sudo mount -B /usr/share/doc/HOWTO/en-html/ ~/문서/HOWTO/
+$ sudo mount --make-slave ~/문서/HOWTO/
+</div>
+
+이제 원본 트리에 새로운 트리를 마운트해 보면 하위 트리에서도 동일하게 볼 수 있다.
+
+
+<div class="source">
+$ sudo mount -B somedir /usr/share/doc/HOWTO/en-html/HOWTO-HOWTO/
+$ ls !$
+ls /usr/share/doc/HOWTO/en-html/HOWTO-HOWTO/
+a  b  c
+$ ls ~/문서/HOWTO/HOWTO-HOWTO
+a  b  c
+</div>
+
+하지만 하위 트리에 새로 마운트된 트리는 원본 트리에서는 보이지 않는다.
+
+
+<div class="source">
+$ sudo mount -B somedir ~/문서/HOWTO/extra
+$ ls ~/문서/HOWTO/extra/
+a  b  c
+$ ls /usr/share/doc/HOWTO/en-html/extra
+High-Availability-HOWTO  ext3-mini-HOWTO  ext3-usage-HOWTO
+</div>
+
+다음으로 이러한 bind mount를 금지하고 싶은 경우
+해당 디렉터리에 bind mount를 할 수 없도록 설정해 둘 수 있다.
+
+
+<div class="source">
+$ sudo mount -B /usr/share/doc/HOWTO/en-html /usr/share/doc/HOWTO/en-html
+$ sudo mount --make-unbindable /usr/share/doc/HOWTO/en-html
+</div>
+
+이제 bind mount를 수행하면 다음과 같은 에러를 내면서 실패할 것이다.
+
+
+<div class="source">
+$ sudo mount -B /usr/share/doc/HOWTO/en-html HOWTO
+mount: wrong fs type, bad option, bad superblock on /usr/share/doc/HOWTO/en-html,
+       missing codepage or helper program, or other error
+       In some cases useful info is found in syslog - try
+       dmesg | tail  or so
+</div>
+
+사실 위의 내용은 내가 이해했던 내용과는 약간 차이가 있다.
+위와 같이 en-html 디렉터리가 unbindable로 설정되어 있어도
+그 상위 디렉터리인 /usr/share/doc/HOWTO를 바로 마운트하면 en-html 디렉터리가 그대로 보인다.
+
+
+<div class="source">
+$ sudo mount -B /usr/share/doc/HOWTO HOWTO
+$ ls HOWTO/
+en-html
+</div>
+
+물론 en-html 아래의 모든 파일 및 디렉터리도 다 볼 수 있다.
+/usr/share/doc/HOWTO/en-html이 unbindable 속성을 가지므로
+상위 디렉터리를 bind mount해도 해당 디렉터리를 보이지 않기를 기대했는데 뭔가 좀 이상하다.
+
+마지막으로 지금까지 설정한 모든 속성들을 해지하고 기본 값으로 되돌리려면 다음과 같이 수행하면 된다.
+
+
+<div class="source">
+$ sudo mount --make-private /usr/share/doc/HOWTO/en-html
+</div>
+
+
+=== 참고 문헌 ===
+
+<ul>
+  <li><a target="_blank" href="http://lwn.net/Articles/159077/">http://lwn.net/Articles/159077/</a></li>
+  <li><a href="http://lxr.linux.no/#linux+v2.6.32/Documentation/filesystems/sharedsubtree.txt">linux-2.6.32/Documentation/filesystems/sharedsubtree.txt</a></li>
+  <li><a href="http://glandium.org/blog/?p=218">http://glandium.org/blog/?p=218</a></li>
+</ul>
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/filesystem" rel="tag">filesystem</a>, <a href="/tag/util-linux" rel="tag">util-linux</a>
+</div>
+

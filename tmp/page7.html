@@ -1,0 +1,101 @@
+	
+<div class="version">
+Linux: 3.3-rc1
+</div>
+
+
+workqueue는 특정 작업을 별도의 process context에서 실행하고 싶은 경우 사용하는
+커널 API로 커널 내의 다양한 위치에서 널리 사용된다. 이는 일종의 thread pool의
+개념으로 볼 수 있으며, workqueue 시 생성 시에 작업용 thread들을 미리 만들어 둔
+뒤, 이후에 필요한 work가 발생되었을 때 해당 thread를 이용하여 수행하는 방식이다.
+
+기존의 구현 방식은 (singlethread 모드가 아닌) workqueue 생성 시 시스템에
+존재하는 CPU 수 만큼의 worker_thread를 만들어두고, 이후 (queue_work 혹은
+schedule_work 등의 API를 통해) work가 생성되었을 때 해당 CPU에 배정된
+worker_thread가 그 work를 수행하는 식이었다.
+
+가령 4개의 CPU 코어를 가진 시스템에서 workqueue는 다음 그림과 같은 형태로
+구성될 것이다.
+
+
+<div style="text-align:center">
+<img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds24.egloos.com/pds/201201/27/35/c0098335_4f22552b4ca6c.png" width="500" height="375" onclick="Control.Modal.openDialog(this, event, 'http://pds24.egloos.com/pds/201201/27/35/c0098335_4f22552b4ca6c.png');" />
+</div>
+
+하지만 이러한 방식은 매우 많은 수의 CPU를 가진 시스템에서, 많은 수의 workqueue가
+사용될 경우 worker thread를 위해 너무 많은 task가 만들어진다는 단점이 있다.
+특히 task를 생성하려면 pid를 부여해야 하는데 미리 만들어둔 worker thread로
+인해 pid가 모자라게 되는 상황이 발생할 수도 있다.
+
+사실 2.6.35 이후에는 시스템 내의 CPU 수를 파악하여 가능한 최대 pid 번호를 부팅
+시 동적으로 조정할 수 있게 되었지만 어쨌든 이렇게 많은 수의 task가 생성된다는
+것은 그많큼 많은 자원이 사용된다는 의미이므로 그리 바람직하지 않다고 볼 수 있다.
+
+그보다 더 큰 문제는 이렇게 많은 worker thread들이 생성되었음에도 불구하고 이들
+thread들 간에 협업이 불가능하기 때문에 생각만큼 충분한 병렬성(concurrency)을
+제공하지 못한다는 점이었다.
+
+이러한 문제를 해결하기 위해 2.6.36 버전에서 도입된 새로운 workqueue의 구현이
+바로 cmwq이다. cmwq는 각 CPU별로 공유되는 gcwq (global per-cpu wq)를 도입하여
+worker thread를 관리하며, 각 wq는 여전히 내부적으로 cwq(per-cpu wq)를 통해
+work를 관리하긴 하지만 이를 gcwq로 보낼 때의 동작을 제어할 수 있게 된다.
+cmwq의 대략적인 구조는 다음과 같다.
+
+
+<div style="text-align:center">
+<img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds23.egloos.com/pds/201201/27/35/c0098335_4f22554946dd6.png" width="500" height="375" onclick="Control.Modal.openDialog(this, event, 'http://pds23.egloos.com/pds/201201/27/35/c0098335_4f22554946dd6.png');" />
+</div>
+
+기본적인 차이점으로는 앞서 말했듯이 worker thread가 각각의 workqueue 단위가
+아닌 CPU (gcwq) 단위로 관리된다는 것인데, wq로 보내진 work는 다시 gcwq로
+전달되어 처리되도록 변경되었다. wq에서 gcwq로 보낼 수 있는 work의 수는 wq 할당
+시 max_active 인자로 지정할 수 있으며, 기존의 create_workqueue() API를 사용하는
+경우 1로 지정된다. 만약 max_active 인자로 0을 주면 기본값인 256으로 지정된다.
+
+이 active 카운트 값은 cwq 마다 따로 관리되며, gcwq로 work를 전달 시에 증가되고
+해당 work가 수행되고나면 감소한다. 만약 max_active 보다 많은 work가 wq로 보내진
+경우 해당 cwq의 delayed_works 리스트에 보관된다.
+
+gcwq는 각각의 cwq에서 보내진 work들을 queue로 관리하며 차례대로 worker thread를
+통해 수행한다. 이 worker thread들의 이름은 "kworker/0:0" 형태가 되는데 첫번째
+숫자는 gcwq의 CPU 번호에 해당하고 두번째 숫자는 해당 thread의 ID이다.
+
+worker thread는 시스템 부팅 초기에 각 gcwq 마다 하나씩 할당되며, 시스템 동작
+중에 필요에 따라 할당/제거될 수 있다. 기본적으로는 gcwq는 주어진 work를 하나씩
+순서대로 처리하며 하나의 work가 완료된 후에 다음 work를 처리한다. 하지만 work는
+process context에서 처리되기 때문에 수행 도중 sleep될 수 있는데 이 때 (기존
+workqueue 구현에서처럼) 단순히 이전 work가 완료되기를 기다리며 다음 work를
+수행하지 않는 것은 CPU 자원을 낭비하는 결과가 되므로 이 경우 새로운 worker
+thread를 생성하여 바로 다음 work를 처리하도록 하는 것이 cmwq의 아이디어이다.
+(cmwq에서 말하는 concurrency는 바로 이것을 의미한다.)
+
+worker thread는 주어진 work들을 처리하기 전후에 worker thread의 수를 관리해야
+할 지를 검사하여 이를 조정한다. 만약 gcwq 내에 주어진 work thread가 있지만 현재
+실행 중인 worker thread가 없다면 새로운 worker를 생성하고, 주어진 work가 없고
+3개 이상의 worker thread가 (또한 실행 중인 worker thread가 많지 않아야 한다)
+idle 상태라면 5분 이상 idle 상태인 worker thread를 차례로 제거하게 되므로 보통
+실행 환경에서는 CPU마다 2개의 worker thread가 존재한다고 볼 수 있다.
+
+이러한 여러 동작들을 제어하기 위해 workqueue 생성 시 추가적으로 flags 인자를
+넘길 수 있는데 이는 다음과 같은 값들의 bitmask이다.
+
+<ul>
+  <li><span style="font-weight: bold;">WQ_NON_REENTRANT</span>: 주어진 work가 동시에 여러 번 실행되지 않는다는 것을 보장해준다. 만약 이 플래그가 없다면 해당 work가 실행되는 도중 다른 CPU에서 동시에 동일한 work를 실행할 수도 있다.</li>
+  <li><span style="font-weight: bold;">WQ_UNBOUND</span>: 이 workqueue는 CPU마다 work를 배정하지 않고 그때그때 현재 CPU에서 work를 실행한다. 이 경우 worker thread는 WORKER_NOT_RUNNING 상태이므로 idle worker가 없다면 항상 새로운 worker를 생성하여 작업을 수행하게 될 것이다.</li>
+  <li><span style="font-weight: bold;">WQ_FREEZABLE</span>: 이 workqueue를 통해 수행되는 work는 시스템이 절전 상태로 빠지는 경우 실행이 중단된다.</li>
+  <li><span style="font-weight: bold;">WQ_MEM_RECLAIM</span>: 이 workqueue를 통해 수행되는 work는 메모리 할당/해제 과정에서 사용될 수 있음을 뜻한다. 따라서 시스템의 메모리가 부족한 상황에서 기존의 worker thread들이 모두 실행 중이라면 새로운 work를 수행하기 위한 worker thread를 할당하지 못할 수 있다. 하지만 시스템의 메모리를 확보하기 위해 해당 work를 반드시 수행해야만 한다면 (예를 들어, dirty page를 swap 영역에 write해야 하는 경우) 이는 시스템 전체를 마비시키는 결과를 가져올 것이다. 이를 방지하기 위해 새로운 worker thread를 할당하지 못한 경우 rescuer thread를 미리 만들어두고 비상 시에 이를 이용하여 work를 수행할 수 있도록 해 준다.</li>
+  <li><span style="font-weight: bold;">WQ_HIGHPRI</span>: 일반적으로 work는 queue로 관리되므로 주어진 순서대로 차례로 처리되지만 이 플래그가 설정된 wq를 통해 보내진 work는 그렇지 않은 work보다 먼저 처리되도록할 수 있다. 또한 WQ_HIGHPRI가 설정된 work 간에는 FIFO 순서가 보장된다.</li>
+  <li><span style="font-weight: bold;">WQ_CPU_INTENSIVE</span>: 이 workqueue를 통해 수행되는 work는 cmwq의 worker thread 관리 대상에 포함되지 않으므로 gcwq는 이에 상관없이 다른 work를 수행할 수 있다. 하지만 WQ_HIGHPRI와는 달리 해당 work가 실행되는 순서에는 영향을 주지 않는다.</li>
+</ul>schedule_work() API등을 통해 기본적으로 사용되는 system_wq (keventd) 외에도
+이러한 다양한 플래그를 지원하는 여러 system-level wq들이 추가적으로 많이 제공되므로
+GPL을 사용하는 모듈의 경우 필요에 따라 적절한 wq를 선택하여 사용할 수 있을 것이다.
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>
+</div>
+

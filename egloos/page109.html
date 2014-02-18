@@ -1,0 +1,612 @@
+<html>
+<head>	<meta http-equiv='pragma' content='no-cache' />
+	<meta http-equiv='cache-control' content='no-cache' />
+	<meta http-equiv='Content-type' content='text/html; charset=utf-8' />
+	<meta name="author" content="namhyung" />
+	<meta name="keywords" content="F/OSS study" />
+	<meta http-equiv="X-XRDS-Location" content="http://namhyung.myid.net/xrds" />
+	<link rel="openid.server" href="http://www.myid.net/server" />
+	<link rel="openid.delegate" href="http://namhyung.myid.net" />
+	<link rel="shortcut icon" href="http://md.egloos.com/img/favicon.ico" />
+	<link rel="pingback" href="https://rpc.egloos.com/rpc1" />
+	<link rel="alternate" type="application/rss+xml" title="F/OSS study" href="http://rss.egloos.com/blog/studyfoss" />
+	<title>F/OSS study</title>
+	<script type="text/javascript" src="http://md.egloos.com/js/ap.js?ver=1.043"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/gd.js?ver=1.002"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/eg.js?ver=1.012"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/cr.js?ver=1.002"></script>
+    <script type="text/javascript" src="http://md.egloos.com/js/page/ins.js?ver=1.4"></script>
+		
+	<script type="text/javascript" src="http://md.egloos.com/js/lib/prototype_v1511.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/control/Control.ImgModal.js?ver=1.004"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/page/blog/compatible.js"></script>
+	<script type="text/javascript" src="http://md.egloos.com/js/player.js"></script>
+	
+	<script type="text/javascript" src="http://md.egloos.com/js/lazyload.js"></script>
+	
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloos_template.css?ver=1.002" media="screen" />
+<style type="text/css">
+/* jiinny text-only skin
+ */
+
+
+BODY
+{
+	BACKGROUND : #FCFEFF;
+	MARGIN : 0PX;
+	PADDING : 0PX;
+}
+
+BODY,TD,DIV,LI
+{
+	FONT : 9PT/160% Tahoma, SANS-SERIF, Verdana, monaco,굴림,돋움,SANS-SERIF;
+	COLOR : #33455E;
+}
+
+A:LINK		{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:VISITED	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:ACTIVE	{ COLOR: #0000C0; TEXT-DECORATION: NONE; }
+A:HOVER		{ COLOR: #C00000; TEXT-DECORATION: UNDERLINE; }
+
+/* filter의 shadow보다 품질을 좋게 하기 위해서*/
+DIV.HEADER
+{
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+	filter:progid:DXImageTransform.Microsoft.Blur;
+}
+
+#HEADER_SHADOW
+{
+	POSITION : relative;
+	top :-50px; right:0px;
+	FONT : BOLD 28PT/100% Georgia,나눔고딕,돋움,HY견고딕;
+	TEXT-ALIGN=RIGHT;
+	WIDTH=100%;
+	PADDING-BOTTOM:10px;
+}
+
+#HEADER_SHADOW A:LINK		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:VISITED		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+#HEADER_SHADOW A:HOVER		{ COLOR: #000080; TEXT-DECORATION: NONE; }
+
+DIV.HEADER A:LINK		{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:VISITED	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+DIV.HEADER A:HOVER	{ COLOR: #AAA; TEXT-DECORATION: NONE; }
+
+DIV.URL			{ FONT : 8PT/100% VERDANA,TAHOMA; }
+DIV.USERMENU
+{
+	POSITION:absolute:
+	left:0px;
+	top:0px;
+	COLOR : #FFFFFF;
+	FONT : bold 7pt;
+	TEXT-ALIGN : RIGHT;
+	MARGIN-BOTTOM : 50px;
+	BACKGROUND : #000060;
+	PADDING : 4px;
+	BORDER-BOTTOM : 2px #336699 SOLID;
+}
+DIV.USERMENU A:LINK {COLOR:#FFF}
+DIV.USERMENU A:VISITED {COLOR:#FFF}
+DIV.USERMENU A:HOVER {COLOR:#FFF}
+
+DIV.PROFILE
+{
+	WIDTH : 200PX;
+	PADDING : 0PX 0PX 10PX;
+	LINE-HEIGHT : 150%;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.MNTTL
+{
+	FONT:BOLD 10pt;
+	WIDTH : 200PX;
+	BORDER-BOTTOM :	1PX #888 DASHED;
+	PADDING : 2PX 0PX 0PX;
+	MARGIN : 25PX 0PX 10PX;
+	TEXT-ALIGN:CENTER;
+}
+
+DIV.MNBODY
+{
+	font:9pt/135%;
+	WIDTH :200PX;
+}
+
+DIV.POST { MARGIN-BOTTOM : 50PX;}
+
+DIV.POST_HEAD
+{
+	MARGIN-BOTTOM : 15PX;
+	PADDING-BOTTOM : 3PX;
+}
+
+DIV.POST_TTL
+{
+	TEXT-DECORATION: UNDERLINE;
+	FONT: BOLD 10pt Georgia ;
+	COLOR: #000;
+}
+
+DIV.POST_BODY
+{
+	FONT:10pt/150%;
+	WIDTH : 100%;
+	MARGIN-BOTTOM : 30PX;
+	OVERFLOW : HIDDEN;
+}
+
+DIV.POST_BODY A:LINK
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION:none;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:VISITED
+{
+	COLOR: #4040CF;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #4040CF
+}
+
+DIV.POST_BODY A:HOVER
+{
+	COLOR: #CF4040;
+	TEXT-DECORATION: NONE;
+	border-bottom:1px DOTTED #CF4040
+}
+
+
+DIV.POST_TAIL {
+	FONT : 11PX/150% VERDANA, TAHOMA, 돋움;
+	MARGIN-TOP : 10PX;
+	TEXT-ALIGN : RIGHT;
+}
+
+DIV.POST_TAIL A:LINK {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:VISITED {COLOR: #006699; TEXT-DECORATION: NONE; }
+DIV.POST_TAIL A:HOVER {COLOR: #006699; TEXT-DECORATION: NONE; border-bottom:1px dotted #cc0000}
+
+DIV.COMMENT
+{
+	BORDER : 1PX #D3D3D3 SOLID;
+	BACKGROUND : #F7F7F7;
+	PADDING : 15PX;
+	MARGIN : 20PX 0PX;
+}
+
+DIV.COMMENT_BODY
+{
+	MARGIN-BOTTOM : 20PX;
+}
+
+DIV.COMMENT_TAIL
+{
+	MARGIN : 8PX 0PX 5PX;
+	FONT : 8PT/150% VERDANA, TAHOMA, 돋움;
+	COLOR : #777;
+}
+
+DIV.COMMENT_INPUT
+{
+	MARGIN-TOP : 20PX;
+	BORDER-TOP : 1PX #AAA DOTTED;
+	PADDING-TOP : 20PX;
+}
+
+DIV.COMMENT_LINE
+{
+	BORDER-TOP : 1PX #AAA DOTTED;
+	MARGIN : 10PX 0PX 15PX;
+}
+DIV.POST_BODY IMG
+{
+	filter:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	border:1px #000 solid;
+}
+
+DIV.VERSION
+{
+  font-weight: bold;
+  color: white;
+  background: #525d76;
+  border: 1px solid silver;
+#  margin: 0.5em 10% 0.5em 1em;
+  padding: 0.5em;
+}
+
+DIV.SOURCE
+{
+  font-family: monospace, Courier New, Seoul;
+#  margin: 0.5em 10% 0.5em 1em;
+  margin: 1em;
+  color: navy;
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+BLOCKQUOTE
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD dotted;
+	padding:5px;
+	color:#000;
+	margin:20px;
+}
+
+/* begin style of emphasis */
+.BOX1
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#00FF00;
+	background:#000;
+	margin:20px;
+}
+
+.BOX2
+{
+	font: 9pt/150% Courier New, Seoul;
+	Border: 1px #DDD SOLID;
+	padding:5px;
+	color:#FFC000;
+	background:#000;
+	margin:20px;
+}
+
+.EM1
+{
+	background : #FFFF80;
+}
+
+.EM2
+{
+	background : #F0C0FF;
+}
+/* end style of emphasis */
+
+#RIGHTMAIN{ POSITION: ABSOLUTE; RIGHT:300px; LEFT:40px;}
+
+#LEFTSIDE
+{
+	POSITION: ABSOLUTE;
+	TOP:60PX;
+	RIGHT: 20PX;
+	FONT: 9PT;
+	WIDTH:200PX;
+	BORDER-LEFT: 2PX #BCBDC4 DASHED;
+	PADDING: 20PX;
+}
+
+#LEFTSHOW
+{
+	TOP:60PX;
+	RIGHT: 0PX;
+	FONT: 7PT/150%;
+	WIDTH:7px;
+	HEIGHT:200px;
+	BACKGROUND:#DDDDDD;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	BORDER-TOP: 3PX #7598A3 SOLID;
+	BORDER-LEFT: 2PX #7598A3 DASHED;
+	BORDER-BOTTOM: 3PX #7598A3 SOLID;
+}
+
+#LEFTHIDE
+{
+	TOP:63PX;
+	RIGHT: 23PX;
+	FONT: 7PT/150%;
+	POSITION: ABSOLUTE;
+	CURSOR:HAND;
+	WIDTH:18px;
+	HEIGHT:18px;
+	TEXT-ALIGN:CENTER;
+}
+#BOTTOMBANNER
+{
+	TEXT-ALIGN=CENTER;
+	WIDTH=100%;
+}
+
+IMG.IMG_DECO
+{
+	TEXT-ALIGN:CENTER;BORDER:1px #000 SOLID;
+	filter:progid:DXImageTransform.Microsoft.DropShadow(color=#AAAAAA,offX=3, offY=3)
+}
+
+#LOGO
+{
+	WIDTH=200;
+	TEXT-ALIGN=CENTER;
+	FILTER:
+	progid:DXImageTransform.Microsoft.DropShadow(color=#CCCCCC,offX=3, offY=3)
+	progid:DXImageTransform.Microsoft.Glow(Color=#AAAAAA, strength=5)
+}
+
+/* 여기서 부터는 시스템에관한 클래스 이므로 변경하지 않으시는 것이 좋습니다. */
+
+DIV.TRACK_TOP { LINE-HEIGHT : 170%; }
+DIV.ARCHIVE_HEAD { FONT-WEIGHT : BOLD; MARGIN-BOTTOM : 10PX; }
+DIV.ARCHIVE_BODY { MARGIN : 20PX 0PX; LINE-HEIGHT : 160%; PADDING-BOTTOM : 100PX; }
+
+IMG.IMAGE_TOP	{ MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_LEFT	{ MARGIN-RIGHT : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.IMAGE_MID	{ MARGIN-TOP : 15PX; MARGIN-BOTTOM : 15PX; }
+IMG.BOOKMK		{ MARGIN : 10PX; BORDER : 0PX; }
+IMG.USERMENU	{ MARGIN-LEFT : 8PX; }
+IMG.LOGO
+{
+BORDER: 1PX #000 SOLID;
+}
+
+DIV.BANNER	{ MARGIN-TOP : 30PX; }
+
+.SMALL		{ FONT-SIZE : 11PX; }
+.DATE		{ FONT : BOLD 8PT/150% VERDANA, TAHOMA, 돋움; }
+.TIME		{ FONT : 8PT/150% VERDANA, TAHOMA, 돋움; TEXT-ALIGN : LEFT; }
+.AUTHOR		{ FONT : BOLD 9PT; }
+.TXTFLD		{ FONT-SIZE:9PT;COLOR:#000; BORDER:1PX SOLID #666678; BACKGROUND:#FFF; }
+
+
+
+/* 여기서 부터는 달력 및 XML에 관련된 클래스입니다. */
+
+
+DIV.CAL_TOP { }
+DIV.CAL { MARGIN : 20PX 0PX 20PX; WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_HEAD { WIDTH : 150PX; FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; PADDING : 4PX 0PX; MARGIN-BOTTOM : 10PX;}
+DIV.CAL_BODY { WIDTH : 200PX; TEXT-ALIGN : CENTER;}
+DIV.CAL_BOTTOM { }
+
+.CAL
+{
+	FONT : 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+}
+
+.CAL_DAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SUN
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #D36654;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_SAT
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	COLOR : #3572A1;
+	TEXT-ALIGN : CENTER;
+	BACKGROUND : #CCC;
+}
+
+.CAL_TODAY
+{
+	FONT : BOLD 7PT/170% VERDANA, 돋움;
+	BACKGROUND : #E3E3E3;
+	COLOR : #3D5586;
+	TEXT-ALIGN : CENTER;
+	BORDER : 1px #AAA SOLID;
+}
+
+.CAL_TR
+{
+	BACKGROUND:#EFEFEF;
+}
+
+DIV.XML { FONT : 8PT/150% VERDANA; TEXT-ALIGN : CENTER; }
+   div.memobody {
+       width : 200px;
+       overflow : hidden;
+       }
+   </style>
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/egloo_navibar.css?ver=1.2" media="screen" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/popup.css?ver=2.00" />
+<link type="text/css" rel="stylesheet" href="http://md.egloos.com/css/common/button.css" />
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/modal/Modal.Center.js"></script>
+<script type="text/javascript" src="http://md.egloos.com/js/page/blog/Modal.BookmarkDlg.js?ver=1.002"></script>
+<script type="text/javascript">
+//<![CDATA[
+Event.observe(window, 'load', function() {
+    new Modal.BookmarkDlg('egloo_bookmark', {overlay: true,
+                'groupURL'     : "/exec/egloo_bookmark_group.php",
+                'remoteURL'    : "/exec/egloo_insbookmark_exec.php"});
+    if(''==''){
+	    	copy_contents('studyfoss.egloos.com','namhyung','0');
+    }
+});
+//]]>
+</script></head>
+<body>
+<iframe name="cmtviewfrm" id="cmtviewfrm" src="about:blank" width="0" height="0" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" style="display:block;border:0px;"></iframe>
+<DIV CLASS=USERMENU>  
+<a href="http://www.egloos.com">Egloos</a> | <a href="http://sec.egloos.com/login.php?returnurl=http%3A%2F%2Fstudyfoss.egloos.com%2Fpage%2F109">Log-in</a> </DIV>
+
+<DIV ID=RIGHTMAIN>
+<DIV CLASS=HEADER><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<DIV ID=HEADER_SHADOW><a href="http://studyfoss.egloos.com" name="egloo_title">F/OSS study</a></DIV>
+<!--		<DIV CLASS=URL><a href="http://studyfoss.egloos.com" name="egloo_url">studyfoss.egloos.com</a></DIV>-->
+		<!-- egloos content start -->
+<div class='hentry'><span class='copyright_entry' style='display:none;' title='core 파일의 구조 (2)@@**@@http://studyfoss.egloos.com/5183491'></span><DIV CLASS=POST>
+	<DIV CLASS=POST_HEAD>
+	<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=100%>
+	<TR><TD WIDTH=80%><DIV CLASS=POST_TTL><img src=http://md.egloos.com/img/vl/ico_star_o.gif> <a name="5183491" title="core 파일의 구조 (2)">core 파일의 구조 (2)</a></DIV></TD>
+		<TD WIDTH=20% ALIGN=RIGHT></TD></TR>
+	</TABLE>
+	</DIV>
+	<DIV CLASS=POST_BODY>
+	<div class="version">OS: ubuntu 9.10<br/>Linux: 2.6.31<br/>arch: x86</div><br/>이전 글 보기: <a href="http://studyfoss.egloos.com/5183167" title="">core 파일의 구조 (1)</a><br/><br/><br/>앞서 말했듯이 coredump를 일으킨 시점의 프로세스 정보는 NOTE 영역에 저장된다.<br/>다음 명령을 실행하여 이를 확인할 수 있다.<br/><br/><div class="source">$ readelf -n core<br/><br/>Notes at offset 0x00000214 with length 0x0000022c:<br/>&nbsp; Owner&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Data size&nbsp;&nbsp;&nbsp; Description<br/>&nbsp; CORE&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp; 0x00000090&nbsp;&nbsp; NT_PRSTATUS (prstatus structure)<br/>&nbsp; CORE&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp; 0x0000007c&nbsp;&nbsp; NT_PRPSINFO (prpsinfo structure)<br/>&nbsp; CORE&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp; 0x000000a0&nbsp;&nbsp; NT_AUXV (auxiliary vector)<br/>&nbsp; LINUX&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; 0x00000030&nbsp;&nbsp; Unknown note type: (0x00000200)</div><br/>위에서 볼 수 있듯이 NOTE 영역 자체도 다시 4개의 영역으로 나누어지며<br/>각 영역에 대한 정보는 /usr/include/elf.h 파일에 아래와 같이 정의되어 있다.<br/><br/><div class="source">#define NT_PRSTATUS&nbsp;&nbsp;&nbsp; 1&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; /* Contains copy of prstatus struct */<br/>#define NT_FPREGSET&nbsp;&nbsp;&nbsp; 2&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; /* Contains copy of fpregset struct */<br/>#define NT_PRPSINFO&nbsp;&nbsp;&nbsp; 3&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; /* Contains copy of prpsinfo struct */<br/>#define NT_PRXREG&nbsp;&nbsp; &nbsp;&nbsp; 4&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; /* Contains copy of prxregset struct */<br/>#define NT_TASKSTRUCT&nbsp; 4&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; /* Contains copy of task structure */<br/>#define NT_PLATFORM&nbsp;&nbsp;&nbsp; 5&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; /* String from sysinfo(SI_PLATFORM) */<br/>#define NT_AUXV&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; 6&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; /* Contains copy of auxv array */<br/>...<br/>#define NT_386_TLS&nbsp;&nbsp;&nbsp; 0x200&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; /* i386 TLS slots (struct user_desc) */</div><br/>NT_PRSTATUS와 NT_PRPSINFO는 프로세스 상태에 대한 일반적인 정보를 저장하는 것으로<br/>각각에 해당하는 elf_prstatus 구조체와 elf_prpsinfo 구조체는<br/>(GDB가 사용하는) /usr/include/sys/procfs.h 파일에 정의되어 있다.<br/>NT_PRSTATUS 영역에서는 프로세스가 받은 signal, 지금까지 실행된 시간, 레지스터 값 등을 볼 수 있고<br/>NT_PRPSINFO 영역에서는 프로그램의 이름, argument 목록, 사용자의 uid/gid 등을 볼 수 있다.<br/><br/>세 번째 NT_AUXV 영역은 커널에서 응용 프로그램으로 전달하는 정보로서<br/>중요한 것으로는 vdso의 로딩 위치, dynamic loader (interpreter)의 로딩 위치 등이 있으며<br/>이러한 정보는 /usr/include/elf.h 파일에 정의되어 있다.<br/>참고로 프로그램 실행 시 LD_SHOW_AUXV 환경 변수를 1로 설정하면 이 값을 볼 수 있다.<br/><br/><div class="source">$ LD_SHOW_AUXV=1 ./a.out<br/>AT_SYSINFO:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0x42b420<br/>AT_SYSINFO_EHDR: 0x42b000<br/>AT_HWCAP:&nbsp;&nbsp;&nbsp; fpu vme de pse tsc msr pae mce cx8 apic mtrr pge mca cmov clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe<br/>AT_PAGESZ:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4096<br/>AT_CLKTCK:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 100<br/>AT_PHDR:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0x8048034<br/>AT_PHENT:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 32<br/>AT_PHNUM:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 8<br/>AT_BASE:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0x9ea000<br/>AT_FLAGS:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0x0<br/>AT_ENTRY:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0x8048420<br/>AT_UID:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1000<br/>AT_EUID:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1000<br/>AT_GID:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1000<br/>AT_EGID:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1000<br/>AT_SECURE:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0<br/>AT_RANDOM:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0xbff6240b<br/>AT_EXECFN:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ./a.out<br/>AT_PLATFORM:&nbsp;&nbsp;&nbsp;&nbsp; i686<br/>Segmentation fault (core dumped)</div><br/>마지막 4번째 영역은 TLS에 관련된 정보이다.<br/>리눅스는 GDT 내에 TLS 용으로 3개의 descriptor를 (6, 7, 8번) 예약해 두는데 <br/>그 중에서 첫 번째를 glibc가 사용한다.<br/>strace 명령을 이용해서 시스템 콜 호출을 살펴보면<br/>mmap()으로 1 페이지를 할당하여 set_thread_area()를 호출하는 것을 볼 수 있다.<br/>이 때 사용되는 user_desc 구조체는 /usr/include/asm/ldt.h 파일에 정의되어 있다.<br/><br/><div class="source">$ strace ./a.out 2&gt;&amp;1 | grep -B1 thread<br/>mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb785f000<br/>set_thread_area({entry_number:-1 -&gt; 6, base_addr:0xb785f6c0, limit:1048575, seg_32bit:1, contents:0, read_exec_only:0, limit_in_pages:1, seg_not_present:0, useable:1}) = 0</div><br/>이제 대강의 구성을&nbsp; 확인했으니<br/>실제로 core 파일을 읽어서 NOTE 영역의 정보를 확인하는<br/>간단한 프로그램을 작성해서 결과를 살펴보기로 하자.<br/><br/>그러기 위해선 ELF 파일의 구조를 알아야 하는데 다행히도 대부분의 정보는<br/>/usr/include/elf.h 파일과 /usr/include/sys/procfs.h 파일에서 제공해 준다.<br/>먼저 ELF 파일의 맨 처음에 위치한 ELF 헤더를 읽은 후 program 헤더의 위치를 알아낸 다음<br/>가장 처음에 위치한 NOTE 영역에 대한 program 헤더를 읽어 NOTE 영역의 위치를 알아낸다.<br/><br/>readcore.c:<div class="source">#include &lt;stdio.h&gt;<br/>#include &lt;stdlib.h&gt;<br/>#include &lt;elf.h&gt;<br/>#include &lt;sys/procfs.h&gt;<br/>#include &lt;asm/ldt.h&gt;<br/><br/>int main(void)<br/>{<br/>&nbsp;&nbsp;&nbsp;&nbsp; FILE *fp;<br/>&nbsp;&nbsp;&nbsp;&nbsp; Elf32_Ehdr elf_hdr;<br/>&nbsp;&nbsp;&nbsp;&nbsp; Elf32_Phdr pgrm_hdr;<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp; fp = fopen("core", "r");<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp; /* read ELF header */<br/>&nbsp;&nbsp;&nbsp;&nbsp; fread(&amp;elf_hdr, sizeof(elf_hdr), 1, fp);&nbsp; <br/><br/>&nbsp;&nbsp;&nbsp;&nbsp; /* seek to first program header (for NOTE) */<br/>&nbsp;&nbsp;&nbsp;&nbsp; fseek(fp, elf_hdr.e_phoff, SEEK_SET);<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp; /* read program header */<br/>&nbsp;&nbsp;&nbsp;&nbsp; fread(&amp;pgrm_hdr, sizeof(pgrm_hdr), 1, fp);&nbsp; <br/><br/>&nbsp;&nbsp;&nbsp;&nbsp; /* seek to note */<br/>&nbsp;&nbsp;&nbsp;&nbsp; fseek(fp, pgrm_hdr.p_offset, SEEK_SET);</div><br/>이제 NOTE 영역의 위치와 크기를 알았으니 전체 NOTE 영역을 읽어들인다.<br/>또한 NOTE 영역의 4개의 부분 영역으로 구성된다는 것도 알고있다.<br/>각 부분 영역은 Elf32_Nhdr 구조체에 대응하는 헤더가 먼저 나오고<br/>그 뒤에 해당 영역의 이름이 나오고 (4 바이트 단위로 정렬됨), 그 뒤에 데이터가 존재한다.<br/>먼저 헤더 정보를 통해 각 영역의 정보를 분석할 수 있는 함수를 작성해 보자.<br/><br/><div class="source">static void * read_note(void *addr, void **pdata)<br/>{<br/>#define ALIGN(pos, size)&nbsp; ((((pos) + (size-1)) / size) * size)<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp; Elf32_Nhdr *note_hdr = addr;<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp; /* print note name and type */<br/>&nbsp;&nbsp;&nbsp;&nbsp; printf("note:&nbsp; %-8s (0x%03x)\n", (char *)(note_hdr+1), note_hdr-&gt;n_type);<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp; /* calculate data position */<br/>&nbsp;&nbsp;&nbsp;&nbsp; *pdata = (void *) ((unsigned long) (note_hdr+1) + ALIGN(note_hdr-&gt;n_namesz, 4));<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp; /* return pointer of next note header */<br/>&nbsp;&nbsp;&nbsp;&nbsp; return (void *) ((unsigned long) *pdata + ALIGN(note_hdr-&gt;n_descsz, 4));<br/>}</div><br/>위 함수는 헤더에 해당하는 주소를 받아서 다음 헤더의 주소를 반환한다.<br/>또한 데이터 영역의 위치를 저장할 포인터도 받아서 적절히 설정해 준다.<br/>(이미 전체 영역을 버퍼에 읽어 둔 상태이므로 시작 주소만 알면 된다.)<br/>이제 main() 함수는 다음과 같이 간단하게 작성할 수 있다.<br/><br/><div class="source">int main(void)<br/>{<br/>&nbsp;&nbsp;&nbsp;&nbsp; prstatus_t *status;<br/>&nbsp;&nbsp;&nbsp;&nbsp; prpsinfo_t *psinfo;<br/>&nbsp;&nbsp;&nbsp;&nbsp; Elf32_auxv_t *auxv;<br/>&nbsp;&nbsp;&nbsp;&nbsp; struct user_desc *ldt;<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp; ...<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp; note = buf;<br/>&nbsp;&nbsp;&nbsp;&nbsp; note = read_note(note, (void **) &amp;status);<br/>&nbsp;&nbsp;&nbsp;&nbsp; note = read_note(note, (void **) &amp;psinfo);<br/>&nbsp;&nbsp;&nbsp;&nbsp; note = read_note(note, (void **) &amp;auxv);<br/>&nbsp;&nbsp;&nbsp;&nbsp; note = read_note(note, (void **) &amp;ldt);</div><br/>이제 모든 정보를 다 읽었으니 결과를 출력해보자.<br/>그 전에 이전 글을 먼저 확인해 보면 다음과 같은 결과를 기대할 수 있을 것이다.<br/><ul><li>core 파일을 생성한 프로그램의 이름: a.out</li><li>core 파일이 생성되는 시점의 레지스터 값: eip = 0x080483bc, eax = 0</li><li>프로세스가 받은 signal: 11 (SIGSEGV)<br/></li><li>dynamic loader의 (/lib/ld-2.10.1.so)의 위치: 0x009ea000 (AT_BASE)<br/></li><li>vdso의 위치: 0x0042b000 (AT_SYSINFO_EHDR)<br/></li><li>tls의 위치: 3개의 이름없는 영역 중의 하나 (0x00251000, 0xb7876000, 0xb788f000)</li></ul>출력은 다음과 같이 하면 된다.<br/><br/><div class="source">#define EAX&nbsp;&nbsp;&nbsp; 6<br/>#define EIP&nbsp;&nbsp;&nbsp; 12<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp; printf("program name = %s\n", psinfo-&gt;pr_fname);<br/>&nbsp;&nbsp;&nbsp;&nbsp; printf("signo = %d\n", status-&gt;pr_info.si_signo);<br/>&nbsp;&nbsp;&nbsp;&nbsp; printf("EIP = 0x%08lx\nEAX = 0x%08lx\n", status-&gt;pr_reg[EIP], status-&gt;pr_reg[EAX]);<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp; /* print auxiliary vector */<br/>&nbsp;&nbsp;&nbsp;&nbsp; for ( ; auxv-&gt;a_type != AT_NULL; auxv++) {<br/>&nbsp;&nbsp;&nbsp; &nbsp; if (auxv-&gt;a_type == AT_BASE)<br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; printf("address of dynamic loader: %p\n", (void *) auxv-&gt;a_un.a_val);<br/>&nbsp;&nbsp;&nbsp; &nbsp; if (auxv-&gt;a_type == AT_SYSINFO_EHDR)<br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; printf("address of vdso: %p\n", (void *) auxv-&gt;a_un.a_val);<br/>&nbsp;&nbsp;&nbsp;&nbsp; }<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp; printf("gdt entry: %u, base: 0x%08x, limit: 0x%08lx\n",<br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; ldt-&gt;entry_number, ldt-&gt;base_addr &amp; ~0xfff,<br/>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; ldt-&gt;limit_in_pages ? ldt-&gt;limit * PAGE_SIZE : ldt-&gt;limit);<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp; return 0;<br/>}</div><br/>예상한대로 다음과 같은 출력을 볼 수 있다.<br/><br/><div class="source">$ gcc readcore.c<br/>$ ./a.out<br/>note:&nbsp; CORE&nbsp;&nbsp;&nbsp;&nbsp; (0x001)<br/>note:&nbsp; CORE&nbsp;&nbsp;&nbsp;&nbsp; (0x003)<br/>note:&nbsp; CORE&nbsp;&nbsp;&nbsp;&nbsp; (0x006)<br/>note:&nbsp; LINUX&nbsp;&nbsp;&nbsp; (0x200)<br/>program name = a.out<br/>signo = 11<br/>EIP = 0x080483bc<br/>EAX = 0x00000000<br/>address of vdso: 0x42b000<br/>address of dynamic loader: 0x9ea000<br/>gdt entry: 6, base: 0xb7876000, limit: 0xfffff000</div><br/><br/><div style="clear:both; _display: none;"></div><div class="posttaglist"><a href="/tag/linux" rel="tag">linux</a>,&nbsp;<a href="/tag/elf" rel="tag">elf</a>,&nbsp;<a href="/tag/coredump" rel="tag">coredump</a></div>
+       <!--
+       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+		    xmlns:dc="http://purl.org/dc/elements/1.1/"
+		    xmlns:trackback="http://madskills.com/public/xml/rss/module/trackback/">
+       <rdf:Description
+	        rdf:about="http://studyfoss.egloos.com/5183491"
+	        dc:identifier="http://studyfoss.egloos.com/5183491"
+	        dc:title="core 파일의 구조 (2)"
+	        trackback:ping="http://studyfoss.egloos.com/tb/5183491"/>
+       </rdf:RDF>
+       -->
+
+	</DIV>
+	<DIV CLASS=POST_TAIL ALIGN=RIGHT><span class="TIME"> <a href="/5183491" class="permalink" title="core 파일의 구조 (2)" rel="bookmark">#</a> by <span class="AUTHOR">namhyung</span> | <a href="/5183491" class="time"  title="core 파일의 구조 (2)" rel="bookmark">2009/11/29 19:05</a></span> | <a href="/category/System" class="category">System</a> | <span class="linkback"><a href="#trb" onclick="trbview('5183491','c0098335','0'); return false;" class="tail_trb">트랙백(<span id="trbcnt5183491">1</span>)</a></span> | <span class="linkback"><a href="#cmt" onclick="cmtview('5183491','c0098335','0'); return false;" class="tail_cmt">덧글(<span id="cmtcnt5183491">0</span>)</a></span></DIV>
+		<span id="cmt5183491"></span>
+</DIV>
+</div><!-- egloos content end -->
+<span style="float: left"><a href="/page/108">◀ 이전 페이지</a></a></span>
+<span style="float: right"><a href="/page/110">다음 페이지 ▶</a></span>
+<BR><BR>
+<DIV ID='BOTTOMBANNER' style="display:none;">	<div class="BANNER"><a href="http://www.egloos.com"><img src="http://md.egloos.com/img/edt/banner_ffffff_1.gif" width="150" height="50" border="0" alt="Powered by egloos" /></a></div>
+<BR><BR></DIV>
+</DIV>
+<DIV ID=LEFTSIDE style="display:block;">
+	<DIV ID=LOGO></DIV>
+	     <script language="javascript" type="text/javascript">
+     <!--
+     var s_calendar = new Array();
+     s_calendar = [];
+	  calendar("","");
+     -->
+     </script>
+
+	
+<DIV CLASS=MNTTL>카테고리</DIV>
+<DIV CLASS=MNBODY>
+<a href="/category/General">General</a><br/><a href="/category/Application">Application</a><br/><a href="/category/System">System</a><br/><a href="/category/Kernel">Kernel</a><br/><a href="/category/Book">Book</a><br/><a href="/category/Tips">Tips</a><br/>
+</DIV>
+
+<DIV CLASS=MNTTL>태그</DIV>
+<DIV CLASS=MNBODY><a href="/tag/git" class="tlevel2"> git</a>
+<a href="/tag/computer-architecture" class="tlevel3"> computer-architecture</a>
+<a href="/tag/awk" class="tlevel1"> awk</a>
+<a href="/tag/algorithm" class="tlevel3"> algorithm</a>
+<a href="/tag/C" class="tlevel3"> C</a>
+<a href="/tag/emacs" class="tlevel3"> emacs</a>
+<a href="/tag/gcc" class="tlevel3"> gcc</a>
+<a href="/tag/CARM" class="tlevel1"> CARM</a>
+<a href="/tag/documentation" class="tlevel1"> documentation</a>
+<a href="/tag/elf" class="tlevel3"> elf</a>
+<a href="/tag/script" class="tlevel1"> script</a>
+<a href="/tag/memory" class="tlevel3"> memory</a>
+<a href="/tag/binutils" class="tlevel2"> binutils</a>
+<a href="/tag/sed" class="tlevel1"> sed</a>
+<a href="/tag/kernel" class="tlevel3"> kernel</a>
+<a href="/tag/SMP" class="tlevel2"> SMP</a>
+<a href="/tag/vcs" class="tlevel1"> vcs</a>
+<a href="/tag/linux" class="tlevel3"> linux</a>
+<a href="/tag/blktrace" class="tlevel1"> blktrace</a>
+<a href="/tag/compiler" class="tlevel3"> compiler</a>
+<a href="/tag/bash" class="tlevel2"> bash</a>
+<a href="/tag/x86" class="tlevel3"> x86</a>
+<a href="/tag/perf" class="tlevel1"> perf</a>
+<a href="/tag/CAaQA3" class="tlevel3"> CAaQA3</a>
+<a href="/tag/block-layer" class="tlevel2"> block-layer</a>
+<a href="/tag/scm" class="tlevel1"> scm</a>
+<a href="/tag/glibc" class="tlevel3"> glibc</a>
+<a href="/tag/build" class="tlevel3"> build</a>
+<a href="/tag/patch" class="tlevel3"> patch</a>
+<a href="/tag/synchronization" class="tlevel3"> synchronization</a>
+<div style="text-align:right;margin-top:5px;"><a href="/tag">전체보기</a></div>
+</DIV>
+
+<DIV CLASS=MNTTL>이글루 파인더</DIV>
+<DIV CLASS=MNBODY><form id="finder" style="margin:0;" name="finder" method="post" action="http://studyfoss.egloos.com/" onsubmit="return go_search(document.finder);"><input type="text" id="srch_kwd" name="srch_kwd" size="10" style="vertical-align: middle;width: 100px;font-size:12px;" maxlength="30"/><input type="image" style="vertical-align: middle;margin-left:3px;" src="http://md.egloos.com/img/fnd/searchb.gif" /><p style="margin:3px 0 0 13px;text-align:left"><a href="http://www.zum.com" target="_blank"><img src="http://md.egloos.com/img/search/txt_power.png"></a></p></form>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 덧글</DIV>
+<DIV CLASS=MNBODY>
+<style type="text/css"> 
+.reply_write {margin:10px 0;}
+.reply_write fieldset {border:none;margin:0;padding:0;}
+.reply_write legend {display:none;}
+.reply_write .comment_info {width:95%;}
+.reply_write .comment_info span.comment_name,
+.reply_write .comment_info span.comment_passwd,
+.reply_write .comment_info span.comment_blog {display:block;padding:0 0 2px 0;clear:both;}
+.reply_write .comment_info span.comment_blog {float:left;}
+.reply_write .comment_info span.comment_name label,
+.reply_write .comment_info span.comment_passwd label,
+.reply_write .comment_info span.comment_blog label {display:block;float:left;width:55px;}
+.reply_write .comment_info input {padding:1px 0 0 1px;vertical-align:middle;}
+.reply_write .comment_info input.name {width:100px;}
+.reply_write .comment_info input.passwd {width:60px;}
+.reply_write .comment_info input.blog {width:200px;font-family:tahoma,sans-serif;font-size:11px;}
+.reply_write .comment_info span.comment_now {display:none;}
+.reply_write .comment_info span.comment_login {float:right;}
+.reply_write textarea {margin:2px 0;padding:0;width:95%;height:100px;margin-left:0 !important;font:normal 12px '돋움',sans-serif;}
+.reply_write .comment_btn {width:95%;height:23px;position:relative;*position:static;*text-align:right;}
+.reply_write .comment_btn .comment_submit {position:absolute;top:0;right:0;*position:static;*text-align:right;}
+</style>     
+
+<a href="http://studyfoss.egloos.com/5129119#12438993">이렇게 좋은 글이 한글로 있다는 것..</a><br/><span class="SMALL">by 프로그라머 at 02/17</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5512112#12419757">흐름을 이해할 수 있는글이라 좋..</a><br/><span class="SMALL">by morenice at 11/26</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#12401092">좋은 글 감사합니다~퍼갑니다~</a><br/><span class="SMALL">by 김석범 at 09/10</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+<DIV CLASS=MNTTL>최근 등록된 트랙백</DIV>
+<DIV CLASS=MNBODY>
+<a href="http://studyfoss.egloos.com/5350643#515727">이맥스의 파일 변수 사용하기</a><br/><span class="SMALL">by 개똥이야기</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/4951809#512679">asmlinkage modifier in Linux..</a><br/><span class="SMALL">by novum의 공유창고</span><br/><div style="margin:12px;"></div><a href="http://studyfoss.egloos.com/5409933#511713">구조체의 패킹에 대한 이야기</a><br/><span class="SMALL">by 김재호의 디지털보단 아날로그</span><br/><div style="margin:12px;"></div>
+</DIV>
+
+
+
+
+
+
+
+
+<DIV style="TEXT-ALIGN:center; width:200px;">
+<div class="XML"><a href="http://rss.egloos.com/blog/studyfoss" target="_new"><img src="http://md.egloos.com/img/skn/rss.gif" alt="rss" border="0" /></a><br /><br /> skin by <a href="http://jiinny.egloos.com">jiinny</a></div>
+<BR /><BR />
+<DIV ID=OHLOH><a href='https://www.ohloh.net/accounts/115130?ref=Detailed'>
+  <img alt='Ohloh profile for Namhyung Kim' height='35' src='https://www.ohloh.net/accounts/115130/widgets/account_detailed.gif' width='191' border='0' />
+</a></DIV>
+</DIV>
+</DIV>
+<DIV ID='LEFTSHOW'  onclick=document.all['RIGHTMAIN'].style.right='300px';document.all['BOTTOMBANNER'].style.display='none';document.all['LEFTSIDE'].style.display='block';document.all['LEFTSHOW'].style.display='none';document.all['LEFTHIDE'].style.display='block';  style='color:red;display:none;'>
+</DIV>
+
+<DIV id='LEFTHIDE' onclick=document.all['RIGHTMAIN'].style.right='20px';document.all['BOTTOMBANNER'].style.display='block';document.all['LEFTSIDE'].style.display='none';document.all['LEFTHIDE'].style.display='none';document.all['LEFTSHOW'].style.display='block';  style='color:red'>X</DIV><iframe src="http://www.egloos.com/estat/stat_logger.php?bid=c0098335&ref=&openflag=" style="width: 0px; height: 0px; border: 0px solid #fff;"></iframe>
+<img width="0" height="0" border="0" src="http://studyfoss.egloos.com/egloo_pds.php?eid=c0098335" alt="" />
+<form id="trackfrom" name="trackfrom" method="post" action="">
+<input type="hidden" name="url" value="" />
+<input type="hidden" name="title" value="" />
+<input type="hidden" name="trburl" value="" />
+</form>
+<div style="z-index:9901;top:764px;left:169px;display:none;" id="egloo_bookmark" class="popupWrap">
+    <div class="popupTitle">이글루링크 추가하기</div>
+    <dl class="popupBody">
+        <dt class="no-arrow" style="background:none;font-size:12px;text-align:center;">
+            <span id="egloo-bookmark-url" style="color:#0F71A1;"></span>
+            (<span id="egloo-bookmark-name"></span>)을(를)</dt>
+        <dd class="notice" style="margin:0;padding:0 0 0 8px;line-height:1.8em;color:#000;font-size:12px;text-align:center;">이글루링크로 추가하시겠습니까? 추가하시려면 그룹선택을 하세요.</dd>
+        <dd class="notice weak" style="margin:0;padding:0 0 0 8px;line-height:1.8em;font-size:11px;color:#666666;text-align:center;">(그룹선택 하지 않는 경우, 최상단 목록에 추가됩니다.)</dd>
+        <dd class="egloo-bookmark-group" style="margin:0;padding:10px 0 8px;line-height:1.8em;text-align:center;color:#333;font-size:12px;text-align:center;">그룹선택 :
+            <select name="groupID" id="egloo-bookmark-groupID" style="font-family:'돋움','dotum','Trebuchet MS',Sans-serif;margin-left:10px;"><option value="000">그룹선택없음</option></select></dd>
+        <dd class="buttons">
+            <input type="button" value="지금 확인" onfocus="blur();" onclick="Modal.insertBookmark(true);" class="button btn24 btn_bold"/>
+            <input type="button" value="나중에 확인" onfocus="blur();" onclick="Modal.insertBookmark(false);" class="button btn24 btn_weak"/>
+        </dd>
+        <dd class="close" onclick="Modal.close();"><img src="http://md.egloos.com/img/www/btn/button_popup_close.gif" alt="이글루링크 취소" title="이글루링크 취소" /></dd>
+    </dl>
+</div>
+</body>
+</html>

@@ -1,0 +1,135 @@
+	
+<div class="version">
+linux : 2.6.30
+arch : x86
+gcc : 4.3.3
+</div>
+
+
+'리눅스 커널의 이해'라는 책에 보면 커널 동기화 기법 중에
+최적화 장벽 (optimization barrier)과 메모리 장벽(memory barrier)에 대해서 설명하는 부분이 있는데
+약간 모호한 부분이 있어서 확실히 정리해 둔다.
+
+일단 이러한 barrier는 메모리를 순차적으로 접근하도록 보장하기 위한 것이다.
+즉, CPU가 반드시 소스 코드 상에 나온 순서대로 instruction을 실행하도록 지시한다.
+
+이것이 필요한 이유는 (cache를 이용하더라도) 메모리에 값을 쓰거나 읽는데에 시간이 걸리기 때문이다.
+따라서 compiler는 메모리에 접근하는 instruction 후에는 해당 메모리의 값을 필요로 하지 않는
+다른 instruction을 먼저 실행하도록 하여 성능을 향상시키도록 할 수 있다.
+이것이 바로 최적화 기법 중의 하나인 (static) instruction scheduling이다.
+(혹은 instruction reordering이라고 부르기도 한다.)
+
+최적화 장벽은 바로 이러한 경우를 위한 것으로
+다음과 같이 정의된 최적화 장벽을 넘어서는
+메모리 접근에 대한 instruction의 순서를 변경할 수 없다.
+
+
+<div class="source">
+/* Optimization barrier */
+/* The "volatile" is due to gcc bugs */
+#define barrier() __asm__ __volatile__("": : :"memory")
+</div>
+
+하지만 '최적화 장벽'이라는 용어는 자칫 오해를 불러일으킬 소지가 있어보이는데
+이는 실제로 메모리 접근에 대한 최적화 만을 막아주는 것이기 때문이다.
+(물론 커널 소스에서 대부분의 경우 메모리에 할당된 객체에 접근하는 것이기 때문에
+이렇게 불러도 크게 문제가 되진 않을테지만..)
+
+만약 변수가 레지스터에 할당되었다면 '최적화 장벽'이 어떻게 작용하는지 확인해 보자.
+다음과 같은 예제를 살펴보자. (barrier.c)
+(최적화 장벽 부분을 어셈블리 출력에서 쉽게 찾기 위해 nop instruction을 추가하였다.)
+
+
+<div class="source">
+int main (void)
+{
+  register int a;
+  volatile int b;
+  a = 1000;
+  b = 1;
+  __asm__ __volatile__ ("nop" ::: "memory");
+  b = b + 1;
+  return a;
+}
+</div>
+
+이를 최적화를 수행하지 않고 컴파일하면 아래와 같은 출력이 나온다.
+
+
+<div class="source">
+$ gcc -S -mpreferred-stack-boundary=2 barrier.c
+$ cat barrier.s
+    .file    "barrier.c"
+    .text
+.globl main
+    .type    main, @function
+main:
+    pushl    %ebp
+    movl    %esp, %ebp
+    subl    $4, %esp
+    movl    $1000, %edx      ;; &lt;--- 1)
+    movl    $1, -4(%ebp)
+#APP
+# 8 "barrier.c" 1
+    nop
+# 0 "" 2
+#NO_APP
+    movl    -4(%ebp), %eax
+    addl    $1, %eax
+    movl    %eax, -4(%ebp)
+    movl    %edx, %eax       ;; &lt;--- 2)
+    leave
+    ret
+    .size    main, .-main
+    .ident    "GCC: (Ubuntu 4.3.3-5ubuntu4) 4.3.3"
+    .section    .note.GNU-stack,"",@progbits
+</div>
+
+눈여겨봐야 할 부분은 1)에서부터 2) 까지의 부분이다.
+(여기서 #APP 부터 #NO_APP 부분이 inline asm으로 생성한 코드이다.)
+a는 edx 레지스터에 할당되었고 b는 volatile이므로 stack에 할당되었다.
+아무런 최적화도 수행하지 않았으므로 소스 코드와 동일한 순서로 실행하는 binary가 생성되었다.
+
+이에 -O2 옵션을 주어 다시 compile 해보면 다음과 같은 결과를 얻을 수 있다.
+길어지니까 1)에서 2) 부분 까지만 나타낸다.
+
+
+<div class="source">
+    movl    $1, -4(%ebp)      ;; &lt;--- 1)
+#APP
+# 8 "barrier.c" 1
+    nop
+# 0 "" 2
+#NO_APP
+    movl    -4(%ebp), %eax
+    addl    $1, %eax
+    movl    %eax, -4(%ebp)
+    movl    $1000, %eax       ;; &lt;--- 2)
+</div>
+
+변수 a는 직접 eax에 할당되었고 위치도 최적화 장벽을 넘어왔다!
+즉 메모리와 관련이 없다면 "최적화 장벽"은 최적화를 막지 않는다는 것이다.
+
+어쨌든 이제 최적화 장벽을 중간에 넣으면
+compiler가 우리가 원하는 순서대로 binary를 만들어 준다는 것을 알았다.
+
+하지만 아직도 문제는 남아있다.
+요즘 CPU들은 out-of-order issue/execution을 지원하기 때문에
+compiler에서 순서대로 instruction을 만들었어도 실제로는 실행되는 순서가 바뀔 수 있다.
+(이를 dynamic instruction scheduling/reordering이라고 한다.)
+
+이를 위해서 필요한 것이 메모리 장벽이다.
+메모리 장벽에 해당하는 instruction이 실행되면
+그 전에 수행되던 모든 메모리 접근이 완료될 때까지 새로운 메모리 접근을 수행하지 않는다. (serialize)
+
+메모리 장벽은 전통적으로 instruction에 lock prefix를 붙인 경우에 동작하며
+Pentium 4 이상의 모델인 경우 [mls]fence 과 같은 별도의 instruction이 존재한다.
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/memory" rel="tag">memory</a>, <a href="/tag/gcc" rel="tag">gcc</a>, <a href="/tag/synchronization" rel="tag">synchronization</a>
+</div>
+

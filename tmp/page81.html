@@ -1,0 +1,257 @@
+	
+<div class="version">
+gcc: 4.4.3
+</div>
+
+이전 글 보기:
+
+<ul>
+  <li><a href="http://studyfoss.egloos.com/5274269" title="">[gcc] 컴파일러 실행 과정</a></li>
+</ul>
+앞서 컴파일러(cc1) 실행 과정을 살펴볼 때 잠깐 언급했지만
+parsing 및 gimplification이 끝난 후의 코드는 일련의 최적화 과정을 거치며 처리된다.
+이번에는 이러한 최적화 과정들에 대해서 전체적으로 살펴보도록 하겠다.
+
+먼저 각 최적화 과정은 기본적으로 다음과 같이 opt_pass 구조체로 정의한다.
+
+
+<div class="source">
+struct opt_pass
+{
+  /* Optimization pass type.  */
+  enum opt_pass_type {
+    GIMPLE_PASS,
+    RTL_PASS,
+    SIMPLE_IPA_PASS,
+    IPA_PASS
+  } type;
+  /* Terse name of the pass used as a fragment of the dump file
+     name.  If the name starts with a star, no dump happens. */
+  const char *name;
+
+  /* If non-null, this pass and all sub-passes are executed only if
+     the function returns true.  */
+  bool (*gate) (void);
+
+  /* This is the code to run.  If null, then there should be sub-passes
+     otherwise this pass does nothing.  The return value contains
+     TODOs to execute in addition to those in TODO_flags_finish.   */
+  unsigned int (*execute) (void);
+
+  /* A list of sub-passes to run, dependent on gate predicate.  */
+  struct opt_pass *sub;
+
+  /* Next in the list of passes to run, independent of gate predicate.  */
+  struct opt_pass *next;
+
+  /* Static pass number, used as a fragment of the dump file name.  */
+  int static_pass_number;
+
+  /* The timevar id associated with this pass.  */
+  /* ??? Ideally would be dynamically assigned.  */
+  unsigned int tv_id;
+
+  /* Sets of properties input and output from this pass.  */
+  unsigned int properties_required;
+  unsigned int properties_provided;
+  unsigned int properties_destroyed;
+
+  /* Flags indicating common sets things to do before and after.  */
+  unsigned int todo_flags_start;
+  unsigned int todo_flags_finish;
+};
+</div>
+
+type과 name 필드는 현재 최적화 과정의 특징을 기술한다.
+실제 실행은 execute 필드에 지정한 함수를 실행하는데
+그 전에 gate 필드를 검사하여 NULL이 아닌 경우 해당 함수를 실행하여 true를 반환하는 경우에만
+해당 과정을 실행한다. NULL인 경우라면 무조건 실행한다.
+즉, 이를 통해 주어진 조건 (최적화 옵션)에 따라 특정 과정을 실행할지 여부를 동적으로 결정할 수 있다.
+
+각 과정은 체계적으로 구성되며 하나의 과정 내에 하위 과정(sub pass)을 가질 수 있다.
+이 경우 상위 과정의 gate를 통과한 경우에 한해서 하위 과정이 실행될 수 있다.
+만약 하위 과정을 포함한다면 이는 sub 필드에 저장된다.
+next 필드는 현재 레벨의 최적화 경로에서 다음 과정을 가리키는 용도로 사용된다.
+
+static_pass_number는 gcc 실행 시 dump를 요청하였을 때 해당 과정에 대한 dump file 이름에 붙는
+번호를 의미하며 보통 자동 증가하는 번호가 사용되지만 이 값이 설정되어 있다면 이를 먼저 사용한다.
+tv_id는 현재 과정의 실행 시간을 측정하기 위한 타이머 ID이다.
+
+이후의 property 관련 필드들은 해당 경로가 실행되는 과정에서 요구/변경되는 IR (intermediate representation)의
+속성들을 나타내는 것으로 정수형 타입에 bitmask를 이용하여 지정한다.
+정의된 속성들의 목록은 아래와 같다.
+
+
+<div class="source">
+/* Pass properties.  */
+#define PROP_gimple_any        (1 &lt;&lt; 0)    /* entire gimple grammar */
+#define PROP_gimple_lcf        (1 &lt;&lt; 1)    /* lowered control flow */
+#define PROP_gimple_leh        (1 &lt;&lt; 2)    /* lowered eh */
+#define PROP_cfg               (1 &lt;&lt; 3)
+#define PROP_referenced_vars   (1 &lt;&lt; 4)
+#define PROP_ssa               (1 &lt;&lt; 5)
+#define PROP_no_crit_edges     (1 &lt;&lt; 6)
+#define PROP_rtl               (1 &lt;&lt; 7)
+#define PROP_alias             (1 &lt;&lt; 8)
+#define PROP_gimple_lomp       (1 &lt;&lt; 9)    /* lowered OpenMP directives */
+
+#define PROP_trees \
+  (PROP_gimple_any | PROP_gimple_lcf | PROP_gimple_leh | PROP_gimple_lomp)
+</div>
+
+다음의 todo 플래그들은 해당 최적화 과정을 수행하기 전후에 해야할 일들을 정의해두는 역할을 한다.
+property와 비슷하게 bitmask를 이용하며, 관련 정보 업데이트 및 dump, garbage collection 등의
+여러 작업을 수행하도록 지정할 수 있다.
+
+이러한 최적화 과정들은 next와 sub 필드를 통해 리스트로 연결되므로
+다음과 같은 함수를 통해 일련의 최적화 과정을 수행할 수 있다.
+
+
+<div class="source">
+void
+execute_pass_list (struct opt_pass *pass)
+{
+  do
+    {
+      gcc_assert (pass-&gt;type == GIMPLE_PASS
+          || pass-&gt;type == RTL_PASS);
+      if (execute_one_pass (pass) &amp;&amp; pass-&gt;sub)
+        execute_pass_list (pass-&gt;sub);
+      pass = pass-&gt;next;
+    }
+  while (pass);
+}
+</div>
+
+기본적으로는 execute_one_pass()를 호출하여 해당 과정을 수행하지만
+해당 과정에 하위 과정이 포함되어 있다면 해당 과정이 성공적으로 수행된 경우에 한해 하위 과정을 수행한다.
+IPA_PASS들도 이와 비슷한 방식으로 실행되지만 몇 가지 부가적인 작업을 해야하므로 별도의 함수를 이용한다.
+
+실제 작업은 execute_one_pass() 함수에서 수행하며 필요한 부분만 발췌하면 다음과 같다.
+
+
+<div class="source">
+static bool
+execute_one_pass (struct opt_pass *pass)
+{
+  bool initializing_dump;
+  unsigned int todo_after = 0;
+
+  current_pass = pass;
+
+  /* See if we're supposed to run this pass.  */
+  if (pass-&gt;gate &amp;&amp; !pass-&gt;gate ())
+    return false;
+
+  /* Run pre-pass verification.  */
+  execute_todo (pass-&gt;todo_flags_start);
+
+  initializing_dump = pass_init_dump_file (pass);
+
+  /* If a timevar is present, start it.  */
+  if (pass-&gt;tv_id)
+    timevar_push (pass-&gt;tv_id);
+
+  /* Do it!  */
+  if (pass-&gt;execute)
+    {
+      todo_after = pass-&gt;execute ();
+      do_per_function (clear_last_verified, NULL);
+    }
+
+  /* Stop timevar.  */
+  if (pass-&gt;tv_id)
+    timevar_pop (pass-&gt;tv_id);
+
+  do_per_function (update_properties_after_pass, pass);
+
+  /* Run post-pass cleanup and verification.  */
+  execute_todo (todo_after | pass-&gt;todo_flags_finish);
+  verify_interpass_invariants ();
+
+  pass_fini_dump_file (pass);
+
+  current_pass = NULL;
+
+  return true;
+}
+</div>
+
+먼저 현재 과정에 gate 필드가 설정되어 있다면 해당 함수를 호출하여 반환값을 검사한다.
+다음으로 execute_todo()를 호출하여 todo_flags_start에 지정된 작업이 있다면 수행한다.
+또한 해당 과정의 실행 정보를 dump해야한다면 이를 저장할 파일을 초기화하고,
+시간 정보를 기록해야 한다면 timevar_push()를 호출하여 현재 시간을 저장해 둔다.
+
+이제 실제로 execute 필드에 저장된 함수를 호출하여 최적화 과정을 수행한다.
+다음으로 do_per_function() 함수를 통해 clear_last_verified()를 호출한다.
+do_per_function()은 각 함수 당 지정된 callback 함수를 실행해주는 역할을 한다.
+clear_last_verified()는 단순히 현재 함수에 대한 last_verified 필드를 0으로 초기화한다.
+
+실행을 마치면 timevar_pop을 통해 먼저 실행 시간을 기록해두고
+실행 후 속성 값 변경이 필요한 경우를 위해 update_properties_after_pass()를 호출한다.
+또한 todo_flags_finish에 지정된 작업이 있다면 역시 수행하고
+verify_interpass_invariants()를 호출하여 각 최적화 과정 간에 유지해야 할
+붋변식 (invariant)이 있다면 해당 과정 후에도 유지되는지 검사한다.
+마지막으로 dump 파일에 대한 마무리 작업을 수행하고 true를 반환한다.
+
+gcc 4.4.3 버전 현재 총 220 여개의 최적화 과정이 존재하며 (물론 중복된 것도 좀 있긴 하다)
+컴파일러 실행 시 init_optimization_passes() 함수가 이들을 구성해주는 역할을 한다.
+전체 과정은 크게 all_lowering_passes, all_ipa_passes, all_passes의 새 개로 나뉘는데
+IPA (inter-procedural analysis) passes를 제외하면 모두 함수 단위로 수행된다.
+각 함수는 서로 간의 호출 관계를 나타내기 위해 call graph의 형태로 표현되며
+gcc에서는 이를 cgraph를 형태로 관리한다. (각 함수는 cgraph의 노드이다.)
+
+init_optimization_passes()의 주석에 이들 최적화 과정이 호출되는 경로가 설명되어 있다.
+(앞의 글에서도 이 과정에 대해서 간략히 살펴보았었다.)
+
+
+<div class="source">
+/* Construct the pass tree.  The sequencing of passes is driven by
+   the cgraph routines:
+
+   cgraph_finalize_compilation_unit ()
+       for each node N in the cgraph
+       cgraph_analyze_function (N)
+           cgraph_lower_function (N) -&gt; all_lowering_passes
+
+   If we are optimizing, cgraph_optimize is then invoked:
+
+   cgraph_optimize ()
+       ipa_passes ()             -&gt; all_ipa_passes
+       cgraph_expand_all_functions ()
+           for each node N in the cgraph
+               cgraph_expand_function (N)
+               tree_rest_of_compilation (DECL (N))  -&gt; all_passes
+*/
+
+void
+init_optimization_passes (void)
+{
+  ...
+}
+</div>
+
+아래에 링크된 문서는 여기서 등록된 모든 초기화 과정에 대해
+gcc 실행 시 최적화 옵션을 바꾸어 가며 실행한 결과 각 과정의 실행 여부를 정리해 둔 것이다.
+(전체 목록을 첨부하기에는 공간을 너무 많이 차지할 것 같아서 그냥 링크로만 제공한다.)
+
+<a href="http://spreadsheets.google.com/pub?key=tlTFc1wfH0_NGPaPsmki8nw&amp;output=html" target="blank">gcc 최적화 과정 정리</a>
+
+먼저 아무런 최적화를 수행하지 않는 -O0의 (혹은 -O 옵션을 주지 않은) 경우
+총 62 개의 과정을 거쳐 컴파일을 수행하였으며
+(대표적으로 all_early_optimizations와 all_optimizations 과정을 수행하지 않는다.)
+-O1, -O2, -O3의 순으로 153, 172, 180 개의 과정을 거침을 볼 수 있다.
+-Os의 경우도 역시 -O2와 비슷하게 170 개의 과정을 거쳐 수행됨을 확인할 수 있다.
+
+앞으로 여건이 되는 대로 (얼마나 걸릴지는 알 수 없지만.. ;;)
+기본적인 C 언어 프로그램의 컴파일 과정을 각 단계 별로 살펴보고자 한다.
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/gcc" rel="tag">gcc</a>, <a href="/tag/compiler" rel="tag">compiler</a>
+</div>
+

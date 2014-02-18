@@ -1,0 +1,342 @@
+	
+<div class="version">
+Linux: 2.6.38-rc6
+arch: x86_64
+qemu: 0.12.3
+gdb: 7.1
+minicom: 2.4
+</div>
+
+이전 글 보기:
+
+<ul>
+  <li><a href="http://studyfoss.egloos.com/5490783">[Linux] 커널 디버거 사용법 (1) - kgdb</a></li>
+  <li><a href="http://studyfoss.egloos.com/5491083">[Linux] 커널 디버거 사용법 (2) - kdb</a></li>
+</ul>
+이제 본격적으로 kgdb와 kdb를 사용해서 커널 디버깅을 수행하는 과정을 살펴보기로 한다.
+여기서는 특정한 모듈에서 커널 패닉이 발생하는 상황을 가정할 것이며
+kgdb/kdb 관리자인 Jason Wessel님이 작성한 test_panic 모듈을 예제로 사용할 것이다.
+이 모듈의 소스는 아래의 URL에서 다운로드 받을 수 있다.
+
+<a target="_blank" href="http://kernel.org/pub/linux/kernel/people/jwessel/dbg_webinar/crash_mod.tar.bz2">http://kernel.org/pub/linux/kernel/people/jwessel/dbg_webinar/crash_mod.tar.bz2</a>
+
+다운로드 받아서 압축을 풀고 crash_mod 디렉터리로 들어간 후 모듈을 컴파일한다.
+내 경우 커널의 빌드 디렉터리는 /home/namhyung/build/linux 이므로 다음과 같이 할 수 있다.
+
+
+<div class="source">
+$ tar xf crash_mod.tar.bz2
+$ cd crash_mod
+$ make modules -C $HOME/build/linux M=$PWD
+</div>
+
+이제 test_panic.ko 라는 커널 모듈이 만들어졌을 것이다.
+root filesystem image를 mount 한 후 모듈을 적당한 위치에 복사한다.
+
+
+<div class="source">
+$ mkdir tmpdir
+$ sudo mount -o loop rootfs.img tmpdir
+$ sudo cp test_panic.ko tmpdir
+$ sudo umount tmpdir
+$ rmdir tmpdir
+</div>
+
+이제 이 모듈을 포함한 root filesystem으로 qemu를 부팅한다.
+qemu의 경우에는 -serial 옵션을 최대 4번까지 허용하여 여러 serial port를 동시에 이용할 수 있지만
+그렇지 못한 장치/보드의 경우도 분명 존재할 것이다. 만약 그러한 경우라면 역시나 Jason님의
+agent_proxy 프로그램을 이용하여 네트워크 접속을 통해 터미널과 gdb 연결을 동시에 이용할 수 있다.
+agent_proxy는 다음의 URL에서 git를 통해 내려받을 수 있다.
+
+
+<div class="source">
+$ git clone git://git.kernel.org/pub/scm/utils/kernel/kgdb/agent-proxy.git
+$ cd agent-proxy
+$ make
+</div>
+
+빌드가 완료되면 agent-proxy 프로그램이 만들어졌을 것이니 실행하기 편리한 위치로 복사해두자.
+그리고는 kdb를 실행한 경우와 동일하게 qemu를 실행한다.
+
+
+<div class="source">
+$ qemu-system-x86_64 -kernel vmlinuz-2.6.38-rc6 -hda rootfs.img -serial pty \
+-append "console=ttyS0,115200 kgdboc=ttyS0 root=/dev/sda"
+</div>
+
+그리고 출력된 가상 터미널 장치를 통해 연결이 가능하도록 agent-proxy를 실행한다.
+(여기서는 /dev/pts/3 이라는 가상 터미널을 이용하는 상황을 예로 들 것이다.)
+이 때 네트워크 접속을 위한 포트를 2개 지정해야 하는데 내 경우 (임의로)
+gdb 접속을 위해 2222번, telnet (console) 접속을 위해 3333번을 지정하였다.
+참고로 이 네트워크 연결은 gdb를 실행하는 데스크탑 내에서만 이루어지므로
+장치/보드의 네트워크 상태와는 전혀 관계가 없다.
+
+
+<div class="source">
+$ agent-proxy 2222^3333 0 /dev/pts/3,115200
+</div>
+
+그러면 먼저 telnet 프로그램을 이용하여 serial console에 연결한다.
+단순히 다음 명령을 실행하면 된다.
+
+
+<div class="source">
+$ telnet localhost 2222
+</div>
+
+정상적으로 실행되었다면 shell을 얻을 수 있을 것이다.
+이제부터 이렇게 실행하는 shell의 프롬프트는 telnet# 이라고 표시할 것이다.
+
+이제 문제가 되는 모듈을 실행해보기로 하자.
+test_panic 모듈이 root filesystem에 저장되어 있으므로 다음과 같이 실행한다.
+
+
+<div class="source">
+telnet# insmod /test_panic.ko
+</div>
+
+이 모듈은 /proc 디렉터리에 test_panic 이라는 하위 디렉터리를 만드는데
+그 아래에는 다음과 같은 여러 파일이 존재한다.
+
+
+<div class="source">
+telnet# ls /proc/test_panic/
+bad_access  bug         deep_panic  hang
+bad_kfree   deep_bug    disableirq  panic
+</div>
+
+여기서 panic 이라는 파일에 데이터를 쓰면 커널 패닉이 발생할 것이다.
+다음을 실행해 보자.
+
+
+<div class="source">
+telnet# echo 1 &gt; /proc/test_panic/panic
+</div>
+
+그러면 커널 패닉이 발생하여 다음과 같은 메시지가 출력되고 kdb로 제어가 넘어갈 것이다.
+
+
+<div class="source">
+[ 1925.470762] Starting panic
+[ 1925.471331] Kernel panic - not syncing: test_panic running!
+[ 1925.471344]
+[ 1925.472040] Pid: 67, comm: sh Not tainted 2.6.38-rc6 #36
+[ 1925.472706] Call Trace:
+[ 1925.473122]  [&lt;ffffffff814f5015&gt;] ? panic+0x91/0x199
+[ 1925.473761]  [&lt;ffffffff814f5185&gt;] ? printk+0x68/0x6a
+[ 1925.474627]  [&lt;ffffffffa0000172&gt;] ? deep01+0x0/0x42 [test_panic]
+[ 1925.475343]  [&lt;ffffffff81152771&gt;] ? proc_file_write+0x78/0x92
+[ 1925.476270]  [&lt;ffffffff811526f9&gt;] ? proc_file_write+0x0/0x92
+[ 1925.477051]  [&lt;ffffffff8114dd92&gt;] ? proc_reg_write+0x92/0xb1
+[ 1925.478004]  [&lt;ffffffff811075d3&gt;] ? vfs_write+0xb1/0x10d
+[ 1925.479022]  [&lt;ffffffff8106cb0a&gt;] ? trace_hardirqs_on_caller+0x10c/0x130
+[ 1925.480209]  [&lt;ffffffff811076f8&gt;] ? sys_write+0x4d/0x77
+[ 1925.480824]  [&lt;ffffffff81002aeb&gt;] ? system_call_fastpath+0x16/0x1b
+PANIC: test_panic running!
+
+
+Entering kdb (current=0xffff880006516220, pid 67) on processor 0 due to Keyboard Entry
+[0]kdb&gt;
+</div>
+
+커널 패닉 메시지를 자세히 살펴보면 back trace 정보가 보이는데
+panic() 이나 printk() 함수 자체에는 별 이상이 없을테니 문제가 되는 함수는 바로
+deep01() 이라는 함수일 것이며 이 함수는 [test_panic] 모듈 내에 포함되어 있다고 알려준다.
+패닉이 일어날 당시의 실행 위치 (PC 값)는 0xffffffffa0000172 이다.
+
+(사실 back trace 정보가 약간 잘못된 듯 하다. 실제 코드와 이후의 kgdb trace 정보를 비교해보면
+deep01 함수가 아니라 panic_write 라는 함수가 맞는데, 이는 아마도 panic 함수 자체가
+noreturn 이라는 attribute를 가지기 때문에 gcc가 panic 함수 호출 후의 코드를
+모두 제거해 버렸기 때문인 것 같다. 따라서 리턴 주소가 panic_write 함수 바로 뒤에 존재하는
+deep01 함수를 가리키게 된 것이며 물론 panic 함수가 리턴되지 않기 때문에 의미는 없지만
+back trace 정보를 잘못 출력시키는 원인이 된 것이라 생각된다.
+gdb는 이미 이를 고려하여 좀 더 정확한 trace 정보를 출력하는 것으로 보인다.)
+
+kdb에서 md 명령으로 해당 위치를 살펴본 들 그리 도움이 되지는 않을 것 같다.
+도움이 될 만한 부분은 test_panic 모듈이 로드된 위치 정보이며 이는
+lsmod 명령을 통해 알아낼 수 있다. 다음을 실행해 보자.
+
+
+<div class="source">
+[0]kdb&gt; lsmod
+Module                  Size  modstruct     Used by
+test_panic              5201  0xffffffffa00008c0    0  (Live) 0xffffffffa0000000 [ ]
+</div>
+
+이제 kgdb가 등장할 순서이다. kdb에서 kgdb로 제어를 넘기기 위해서는 kgdb 명령을 수행한다.
+
+
+<div class="source">
+[0]kdb&gt; kgdb
+Entering please attach debugger or use $D#44+ or $3#33
+</div>
+
+그리고 데스크탑에서 gdb를 실행하고 agent-proxy에 연결한다.
+(미리 연결해서는 안되고 반드시 kdb에서 kgdb 명령을 수행한 후에만 연결해야 한다!)
+kgdb 연결 과정과 동일하지만 remote target이 localhost:3333 으로 변경된 차이가 있다.
+
+
+<div class="source">
+$ gdb -q build/linux/vmlinux
+Reading symbols from /home/namhyung/build/linux/vmlinux...done.
+(gdb) target remote localhost:3333
+Remote debugging using localhost:3333
+kgdb_breakpoint (self=0xffff8800065168b8, val=7, data=0x7)
+    at /home/namhyung/project/linux/kernel/debug/debug_core.c:960
+960        wmb(); /- Sync point after breakpoint *-
+(gdb)
+</div>
+
+이제 gdb 상에서 bt (backtrace) 명령을 실행해보자.
+
+
+<div class="source">
+(gdb) bt
+#0  kgdb_breakpoint (self=0xffff8800065168b8, val=7, data=0x7)
+    at /home/namhyung/project/linux/kernel/debug/debug_core.c:960
+#1  kgdb_panic_event (self=0xffff8800065168b8, val=7, data=0x7)
+    at /home/namhyung/project/linux/kernel/debug/debug_core.c:766
+#2  0xffffffff814fb23e in notifier_call_chain (nl=&lt;value optimized out&gt;, val=0, v=0xffffffff81b731a0,
+    nr_to_call=-1, nr_calls=&lt;value optimized out&gt;) at /home/namhyung/project/linux/kernel/notifier.c:93
+#3  0xffffffff814fb2c8 in __atomic_notifier_call_chain (nh=0xffffffff817dc800, val=0, v=0xffffffff81b731a0,
+    nr_to_call=-1, nr_calls=0x0) at /home/namhyung/project/linux/kernel/notifier.c:182
+#4  0xffffffff814fb309 in atomic_notifier_call_chain (nh=0xffff8800065168b8, val=7, v=0x7)
+    at /home/namhyung/project/linux/kernel/notifier.c:191
+#5  0xffffffff814f5043 in panic (fmt=0xffffffffa00005b4 "test_panic running!\n")
+    at /home/namhyung/project/linux/kernel/panic.c:100
+#6  0xffffffffa0000172 in ?? ()
+#7  0xffff8800065c7ea8 in ?? ()
+#8  0xffffffff81152771 in proc_file_write (file=0xffff8800065a3080,
+    buffer=0x7fa1df6a5000 "1\n19D\r# echo 1 &gt; /proc/test_panic/panic \033[J", count=2,
+    ppos=&lt;value optimized out&gt;) at /home/namhyung/project/linux/fs/proc/generic.c:225
+Backtrace stopped: frame did not save the PC
+</div>
+
+6번 프레임부터 알 수 없는 정보가 나오기 시작한다. (이후의 내용은 6번 프레임으로 인해 잘못된 것 같다.)
+주소를 잘 살펴보면 test_panic 모듈에서 실행한 코드라는 것을 알 수 있다.
+이는 실제로 동작 중인 장치/보드와 달리 gdb는 커널의 심볼 정보 (vmlinux) 밖에 모르기 때문이다.
+test_panic 모듈의 심볼 정보를 gdb에게 알려주려면 add-symbol-file 명령을 이용할 수 있는데
+이 때 해당 파일이 로드된 메모리의 주소가 필요하며 이것이 바로 lsmod에서 출력해 준 정보이다.
+
+다음과 같이 실행하여 모듈 로드 정보를 gdb에게 알려줄 수 있다.
+(물론 test_panic.ko 파일이 데스크탑 머신 상에 존재해야 한다.)
+
+
+<div class="source">
+(gdb) add-symbol-file ../crash_mod/test_panic.ko 0xffffffffa0000000
+add symbol table from file "/home/namhyung/build/crash_mod/test_panic.ko" at
+    .text_addr = 0xffffffffa0000000
+(y or n)
+</div>
+
+로드된 위치는 lsmod 에서 나온 정보 중 가장 뒤쪽에 있는 주소이다.
+위와 같이 입력하면 모듈의 심볼 정보를 읽어올 지 물어보는데 y 를 입력하면 된다.
+
+이제 다시 bt 명령을 실행하면 모듈 정보도 올바로 출력됨을 볼 수 있다.
+
+
+<div class="source">
+(gdb) bt
+#0  kgdb_breakpoint (self=0xffff8800065168b8, val=7, data=0x7)
+    at /home/namhyung/project/linux/kernel/debug/debug_core.c:960
+#1  kgdb_panic_event (self=0xffff8800065168b8, val=7, data=0x7)
+    at /home/namhyung/project/linux/kernel/debug/debug_core.c:766
+#2  0xffffffff814fb23e in notifier_call_chain (nl=&lt;value optimized out&gt;, val=0, v=0xffffffff81b731a0,
+    nr_to_call=-1, nr_calls=&lt;value optimized out&gt;) at /home/namhyung/project/linux/kernel/notifier.c:93
+#3  0xffffffff814fb2c8 in __atomic_notifier_call_chain (nh=0xffffffff817dc800, val=0, v=0xffffffff81b731a0,
+    nr_to_call=-1, nr_calls=0x0) at /home/namhyung/project/linux/kernel/notifier.c:182
+#4  0xffffffff814fb309 in atomic_notifier_call_chain (nh=0xffff8800065168b8, val=7, v=0x7)
+    at /home/namhyung/project/linux/kernel/notifier.c:191
+#5  0xffffffff814f5043 in panic (fmt=0xffffffffa00005b4 "test_panic running!\n")
+    at /home/namhyung/project/linux/kernel/panic.c:100
+#6  0xffffffffa0000172 in panic_write (file=&lt;value optimized out&gt;, buffer=&lt;value optimized out&gt;,
+    count=&lt;value optimized out&gt;, data=&lt;value optimized out&gt;)
+    at /home/namhyung/build/crash_mod/test_panic.c:213
+#7  0xffffffff81152771 in proc_file_write (file=0xffff8800065a3080,
+    buffer=0x7fa1df6a5000 "1\n19D\r# echo 1 &gt; /proc/test_panic/panic \033[J", count=2,
+    ppos=&lt;value optimized out&gt;) at /home/namhyung/project/linux/fs/proc/generic.c:225
+#8  0xffffffff8114dd92 in proc_reg_write (file=0xffff8800065a3080,
+    buf=0x7fa1df6a5000 "1\n19D\r# echo 1 &gt; /proc/test_panic/panic \033[J", count=2,
+    ppos=&lt;value optimized out&gt;) at /home/namhyung/project/linux/fs/proc/inode.c:191
+#9  0xffffffff811075d3 in vfs_write (file=0xffff8800065a3080,
+    buf=0x7fa1df6a5000 "1\n19D\r# echo 1 &gt; /proc/test_panic/panic \033[J", count=&lt;value optimized out&gt;,
+    pos=0xffff8800065c7f58) at /home/namhyung/project/linux/fs/read_write.c:377
+#10 0xffffffff811076f8 in sys_write (fd=&lt;value optimized out&gt;,
+    buf=0x7fa1df6a5000 "1\n19D\r# echo 1 &gt; /proc/test_panic/panic \033[J", count=&lt;value optimized out&gt;)
+    at /home/namhyung/project/linux/fs/read_write.c:429
+#11 0xffffffff81002aeb in ?? () at /home/namhyung/project/linux/arch/x86/kernel/entry_64.S:485
+#12 0x000000000044c630 in ?? ()
+#13 0xffff88000640a740 in ?? ()
+#14 0xffffffff817dc4e0 in ?? ()
+#15 0x0000000000000000 in ?? ()
+</div>
+
+주의 깊게 보아야 할 부분은 당연히 6번 프레임이다.
+panic_write 함수에서 오류가 발생했으므로 해당 함수의 실행 정보를 보려면 6번 프레임으로 이동한다.
+
+
+<div class="source">
+(gdb) up 6
+#6  0xffffffffa0000172 in panic_write (file=&lt;value optimized out&gt;, buffer=&lt;value optimized out&gt;,
+    count=&lt;value optimized out&gt;, data=&lt;value optimized out&gt;)
+    at /home/namhyung/build/crash_mod/test_panic.c:213
+213        panic("test_panic running!\n");
+</div>
+
+소스 코드 213 줄에서 panic 함수가 호출되었음을 볼 수 있다.
+해당 프레임의 지역 변수나 인자의 값을 살펴볼 수도 있을 테지만 이 프레임/함수의 경우는
+모두 최적화로 인해 생략되었으므로 실제로 볼 수는 없었다.
+
+사실 앞서 살펴보았던 kdb 명령의 경우 gdb의 monitor 명령을 이용하면
+gdb 상에서도 바로 실행할 수 있으므로 kgdb를 이용하는 경우 굳이 kdb를 직접 이용할 필요는 없어 보인다.
+예를 들어 앞서 실행한 kdb의 lsmod 명령의 경우 다음과 같이 실행할 수 있다.
+
+
+<div class="source">
+(gdb) monitor lsmod
+Module                  Size  modstruct     Used by
+test_panic              5201  0xffffffffa00008c0    0  (Live) 0xffffffffa0000000 [ ]
+</div>
+
+lsmod, ps, dmesg, summary, kill, per_cpu, ftdump, ll, sr 등의 명령은
+kdb 에서만 이용가능한 리눅스 (커널)에 특화된 기능이므로 경우에 따라 유용하게 사용할 수 있을 것이다.
+
+제어가 디버거 모드로 넘어온 경우 기존에 사용하던 모드 (kdb 혹은 kgdb) 중의 하나로 자동 진입한다.
+만일 지금과 같이 커널 패닉으로 인한 경우가 아니라 magic sysrq 키 혹은 break point로 인해
+디버거 모드가 실행된 경우라면 각 디버거를 통해 원하는 정보를 얻은 후 다시 실행을 재개할 수 있다.
+
+kdb에서 kgdb로 제어를 넘기는 것은 앞서 말한 대로 kgdb 라는 명령이며
+kgdb에서 kdb로 제어를 넘기기 위해서는 다음 명령을 실행하면 된다.
+(위에서도 언급했듯이 kgdb 상에서 kdb의 기능을 대부분 이용가능하므로 제어를 넘길 필요는 없어 보인다.
+그래도 굳이 원한다면 다음 명령을 실행하도록 하자.. ^^)
+
+
+<div class="source">
+(gdb) maint packet 3
+</div>
+
+그리고 kdb에게 영향을 미치지 않도록 gdb를 곧바로 종료해야 한다.
+다시 kgdb가 필요한 경우 kdb 프롬프트에서 kgdb 명령을 입력한 뒤에
+새로 gdb 프로세스를 실행하여 아까와 같은 과정으로 다시 접속하면 된다.
+
+마지막으로 아래 참조 문헌에 Jason님이 kgdb/kdb 사용법을 직접 YouTube에 올려둔 것이 있어서
+함께 링크해 두었으니 다른 문서와 함께 참조해 보면 도움이 될 것이다.
+
+
+=== 참조 문헌 ===
+
+<ul>
+  <li><a target="_blank" href="http://kernel.org/pub/linux/kernel/people/jwessel/kdb/">http://kernel.org/pub/linux/kernel/people/jwessel/kdb/</a></li>
+  <li><a target="_blank" href="http://qemu.weilnetz.de/qemu-doc.html">http://qemu.weilnetz.de/qemu-doc.html</a></li>
+  <li><a href="http://kernel.org/pub/linux/kernel/people/jwessel/dbg_webinar/">http://kernel.org/pub/linux/kernel/people/jwessel/dbg_webinar/</a></li>
+  <li><a target="_blank" href="http://www.youtube.com/user/kgdbguy">http://www.youtube.com/user/kgdbguy</a></li>
+</ul>
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/debug" rel="tag">debug</a>, <a href="/tag/gdb" rel="tag">gdb</a>, <a href="/tag/qemu" rel="tag">qemu</a>
+</div>
+

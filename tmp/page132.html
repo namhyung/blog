@@ -1,0 +1,191 @@
+	
+<div class="version">
+gcc : 4.4.0
+</div>
+
+
+이번에는 실제 컴파일러의 핵심부인 gcc 디렉터리 내의 빌드 과정을 살펴보자.
+
+gcc 디렉터리 내의 Makefile은 configure시 설정된 host/target 값에 따라
+아래와 같은 Makefile fragment들을 include한다.
+
+
+<div class="source">
+xmake_file= $(srcdir)/config/i386/x-i386 $(srcdir)/config/x-linux
+tmake_file= $(srcdir)/config/t-slibgcc-elf-ver $(srcdir)/config/t-linux $(srcdir)/config/i386/t-crtstuff \
+            $(srcdir)/config/i386/t-crtpc $(srcdir)/config/i386/t-crtfm $(srcdir)/config/t-dfprules \
+            $(srcdir)/config/i386/t-pmm_malloc $(srcdir)/config/i386/t-i386 \
+            $(srcdir)/config/i386/t-fprules-softfp $(srcdir)/config/soft-fp/t-softfp \
+            $(srcdir)/config/i386/t-linux
+</div>
+
+여기서 xmake_file 부분은 host에 관련된 부분이고
+tmake_file은 target과 관련된 부분이다.
+(여기서는 native compiler를 빌드했기 때문에 모두 i386 과 linux에 대한 파일 만이 존재한다.)
+
+또한 C 이외의 언어들을 지원하기 위한 fragment들도 include 한다.
+
+이렇게 Makefile이 완성되고 빌드가 시작되는데
+cross compiler를 빌드하는 경우인지에 따라 all.internal 혹은 all.cross 규칙이 적용된다.
+(하지만 빌드 과정 자체는 거의 동일한 것으로 보이므로
+일단은 native 빌드인 경우에 대해서만 살펴볼 것이다.)
+
+
+<div class="source">
+# This is the default target.
+# Set by autoconf to "all.internal" for a native build, or
+# "all.cross" to build a cross compiler.
+all: all.internal
+
+...
+
+all.internal: start.encap rest.encap doc
+# This is what to compile if making a cross-compiler.
+all.cross: native gcc-cross$(exeext) cpp$(exeext) specs \
+    libgcc-support lang.all.cross doc # srcextra
+# This is what must be made before installing GCC and converting libraries.
+start.encap: native xgcc$(exeext) cpp$(exeext) specs \
+    libgcc-support lang.start.encap # srcextra
+# These can't be made until after GCC can run.
+rest.encap: $(STMP_FIXPROTO) lang.rest.encap
+# This is what is made with the host's compiler
+# whether making a cross compiler or not.
+native: config.status auto-host.h build-po $(LANGUAGES) \
+    $(EXTRA_PASSES) $(EXTRA_PROGRAMS) $(COLLECT2)
+</div>
+
+위에서 보다시피 all.cross와 start.encap은 거의 동일하다.
+차이점은 xgcc 대신 gcc-cross에 대한 의존성을 가진다는 것인데
+아래에서 보듯이 gcc-cross는 단지 xgcc를 복사하는 것 뿐이다.
+
+
+<div class="source">
+gcc-cross$(exeext): xgcc$(exeext)
+    cp xgcc$(exeext) gcc-cross$(exeext)
+</div>
+
+xgcc는 compiler-driver 부분으로 install 시 gcc라는 이름으로 변경된다.
+그리고 cpp, collect 및 각 언어에 대한 실제 compiler를 빌드한다.
+C 언어 컴파일러는 cc1이다.
+
+
+<div class="source">
+c: cc1$(exeext)
+
+cc1$(exeext): $(C_OBJS) cc1-checksum.o $(BACKEND) $(LIBDEPS)
+    $(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(C_OBJS) cc1-checksum.o \
+      $(BACKEND) $(LIBS) $(BACKENDLIBS)
+</div>
+
+C_OBJS는 C 언어에 관련된 object 파일들의 목록을 가지는 변수이다. (front-end)
+BACKEND는 특정 언어와 무관한 일반적인 처리를 처리하는 부분으로
+대부분의 컴파일러 작업이 수행되는 부분이다.
+
+
+<div class="source">
+BACKEND = main.o  libbackend.a $(CPPLIB) $(LIBDECNUMBER)
+LIBS =  $(CPPLIB) $(LIBINTL) $(LIBICONV) $(LIBIBERTY) $(LIBDECNUMBER)
+BACKENDLIBS = $(CLOOGLIBS) $(PPLLIBS) $(GMPLIBS)
+</div>
+
+backend의 핵심은 libbackend.a 인데 수 많은 파일들로 이루어진다.
+
+
+<div class="source">
+# This archive is strictly for the host.
+libbackend.a: $(OBJS)
+    -rm -rf libbackend.a
+    $(AR) $(AR_FLAGS) libbackend.a $(OBJS)
+    -$(RANLIB) $(RANLIB_FLAGS) libbackend.a
+</div>
+
+OBJS 변수는 다음과 같이 정의한다.
+
+
+<div class="source">
+OBJS = $(OBJS-common) $(OBJS-md) $(OBJS-archive)
+</div>
+
+OBJS-common은 모든 언어의 컴파일러에서 공통적으로 사용되는 부분이며
+OBJS-md는 target machine에 대한 부분이고
+OBJS-archive는 language-independent하지만 언어 별로 사용될 수도 있고
+그렇지 않을 수도 있는 부분이다.
+
+
+<div class="source">
+# Language-independent object files.
+# We put the insn-*.o files first so that a parallel make will build
+# them sooner, because they are large and otherwise tend to be the
+# last objects to finish building.
+OBJS-common = \
+    insn-attrtab.o \
+    insn-automata.o \
+    insn-emit.o \
+    insn-extract.o \
+    insn-modes.o \
+    insn-opinit.o \
+    insn-output.o \
+    insn-peep.o \
+    insn-preds.o \
+    insn-recog.o \
+    $(GGC) \
+    ...
+</div>
+
+OBJS-common 변수의 첫 부분에는 insn- 으로 시작하는 이름을 가진 파일들이 있는데
+이들은 C 소스 형태로 존재하는 파일이 아니라 md (machine description) 파일로부터
+tool을 이용하여 자동으로 생성해내는 소스 파일에 대한 object 파일이다.
+
+이러한 tool은 insn- 을 제외한 부분의 이름 앞에 gen 을 붙인 형태이다.
+따라서 insn-attrtab.c 파일은 genattrtab 이라는 tool에 의해 생성되며
+insn-automata.c 파일은 genautomata 라는 tool에 의해 생성되는 식이다.
+
+
+<div class="source">
+simple_generated_c = insn-attrtab.c insn-automata.c insn-emit.c \
+             insn-extract.c insn-opinit.c insn-output.c \
+             insn-peep.c insn-recog.c
+
+$(simple_generated_c): insn-%.c: s-%; @true
+$(simple_generated_c:insn-%.c=s-%): s-%: build/gen%$(build_exeext) \
+  $(MD_DEPS) insn-conditions.md
+    $(RUN_GEN) build/gen$*$(build_exeext) $(md_file) \
+      insn-conditions.md &gt; tmp-$*.c
+    $(SHELL) $(srcdir)/../move-if-change tmp-$*.c insn-$*.c
+    $(STAMP) s-$*
+</div>
+
+위의 코드는 가장 단순한 형태를 일반화 한 것이며
+조금씩 다르게 빌드되어야하는 것들은 별도로 생성한다.
+
+또한 OBJS-common 변수에 포함되어 있던 GGC 변수는
+GCC Garbage Collector를 나타내는 것으로
+page 나 zone 방식 중의 하나가 될 것이다.
+
+GGC는 struct나 union 혹은 이에 대한 포인터 변수에 대한 정보를 이용하여
+garbage collection을 수행하는 데 이를 위한 정보를 제공하는 것이
+소스에서 지정한 GTY(()) 옵션이다.
+
+이 옵션들은 gengtype tool에 의해 처리되어
+ggc가 객체들을 mark하는데 필요한 정보(gtype?)를 제공하는
+소스 및 헤더 파일들을 생성한다.
+
+
+<div class="source">
+s-gtype: build/gengtype$(build_exeext) $(filter-out [%], $(GTFILES)) \
+     gtyp-input.list
+    $(RUN_GEN) build/gengtype$(build_exeext) $(srcdir) gtyp-input.list
+    $(STAMP) s-gtype
+</div>
+
+GTFILES는 GTY 정보를 제공하는 모든 파일들의 목록이고
+gtyp-input.list는 이를 리스트 형태로 만든 파일이다.
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/gcc" rel="tag">gcc</a>, <a href="/tag/build" rel="tag">build</a>
+</div>
+

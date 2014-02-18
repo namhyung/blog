@@ -1,0 +1,302 @@
+	
+<div class="version">
+Linux: 2.6.32
+</div>
+
+이전 글 보기:
+
+<ul>
+  <li><a href="http://studyfoss.egloos.com/5194196">[Linux] priority search tree (1)</a></li>
+  <li><a href="http://studyfoss.egloos.com/5194452">[Linux] priority search tree (2)</a></li>
+</ul>
+이번에는 PST에서 주어진 범위에 해당하는 노드를 찾는 과정을 살펴보도록 하자.
+트리를 탐색하기 위해서는 다음과 같이 정의된 prio_tree_iter 구조체를 이용해야 한다.
+
+
+<div class="source">
+struct prio_tree_iter {
+    struct prio_tree_node    *cur;
+    unsigned long            mask;
+    unsigned long            value;
+    int                      size_level;
+
+    struct prio_tree_root    *root;
+    pgoff_t                  r_index;
+    pgoff_t                  h_index;
+};
+</div>
+
+위의 네 필드는 내부적인 정보를 저장하기 위해 사용되는데
+cur 필드는 현재 검사 중인 노드로, 탐색이 진행되면서 계속 업데이트된다.
+mask와 size_level 필드는 앞서 insert 시에 보았던 것과 동일하게
+트리에서의 현재 높이를 알려주는 역할을 한다.
+
+value 필드는 PST 내에서 현재 노드까지 도달하는 경로를 나타내는 것으로
+왼쪽 자식 노드로 이동할 때는 업데이트되지 않지만
+오른쪽 자식 노드로 이동할 때는 해당 높이의 mask 값을 더한다.
+mask 필드의 값은 언제나 2의 지수승의 형태이기 때문에 겹치지 않으므로
+value 값을 읽으면 어떠한 경로로 cur 노드에 도달했는지 알 수 있다.
+(이 글 마지막 부분의 예제 프로그램의 결과를 살펴보기 바란다.)
+
+아래의 세 필드는 트리 탐색을 시작할 때 설정하는 것으로
+탐색할 트리의 root와 원하는 radix, heap index의 범위를 지정한다.
+이를 위해서는 prio_tree_iter_init() 함수를 이용할 수 있다.
+
+실제 탐색은 아래에서 살펴 볼 prio_tree_next() 함수를 통해 이루어진다.
+모든 함수를 다 설명할 수는 없으므로 prio_tree_next()에서 내부적으로 이용하는 함수들을
+먼저 간략히 설명한 후에 prio_tree_next()를 살펴보기로 한다.
+
+prio_tree_first()는 prio_tree_next()가 처음으로 호출된 (특별한) 경우이다.
+이 함수는 iter 인자를 적절히 초기화하고 PST의 root node부터 주어진 범위를 포함하는지 검사한 뒤
+포함하면 반환하고 그렇지 않으면 왼쪽 자식 노드를 우선적으로 따라가며
+주어진 조건을 만족하는 노드가 있는지 검사하여 반환한다.
+
+overlap()은 현재 검사 중인 cur 노드의 범위가 인자로 주어진 범위와 (부분적이라도) 겹치는지 검사한다.
+
+prio_tree_left()는 cur 노드의 왼쪽 자식 노드의 heap_index가 주어진 radix_index보다 큰지
+검사한 후 크다면 mask, size_level 등의 내부 필드를 적절히 설정하고
+cur가 왼쪽 자식 노드를 가리키도록 업데이트 한 뒤 cur 노드를 반환한다.
+물론 cur 노드가 왼쪽 자식 노드를 가지고 있지 않다면 단순히 NULL을 반환한다.
+
+prio_tree_right()는 prio_tree_left()와 동일한 작업을 오른쪽 자식 노드에 대해 수행하지만
+앞서 말했듯이 value 값에 mask 값을 더한다. (단, overflow subtree에 속하지 않는 경우에만)
+
+prio_tree_parent()는 cur 노드를 cur-&gt;parent로 설정하며
+mask, value, size_level 값을 적절히 변경한다.
+
+이제 prio_tree_next() 함수의 내부를 살펴보면 다음과 같다.
+
+
+<div class="source">
+struct prio_tree_node *prio_tree_next(struct prio_tree_iter *iter)
+{
+    unsigned long r_index, h_index;
+
+    /* 맨 처음 호출된 경우는 prio_tree_first()에서 처리 */
+    if (iter-&gt;cur == NULL)
+        return prio_tree_first(iter);
+
+repeat:
+    /* 왼쪽 자식 노드를 우선 검사한다 */
+    while (prio_tree_left(iter, &amp;r_index, &amp;h_index))
+        /* 겹치는 범위가 있다면 반환한다 */
+        if (overlap(iter, r_index, h_index))
+            return iter-&gt;cur;
+
+    /* 만족하는 오른쪽 자식 노드가 없다면 */
+    while (!prio_tree_right(iter, &amp;r_index, &amp;h_index)) {
+        /*
+         * 현재 노드가 root 노드가 아니고
+         * 현재 노드가 부모의 오른쪽 자식 노드라면
+         * 부모 노드로 올라간다 (반복)
+         */
+        while (!prio_tree_root(iter-&gt;cur) &amp;&amp;
+                iter-&gt;cur-&gt;parent-&gt;right == iter-&gt;cur)
+            prio_tree_parent(iter);
+
+        /*
+         * root 노드까지 도달했다면
+         * 더이상 주어진 범위를 포함하는 노드가 없는 것이다.
+         * NULL을 반환하고 종료한다.
+         */
+        if (prio_tree_root(iter-&gt;cur))
+            return NULL;
+
+        /*
+         * 여기까지 왔으면 현재 노드의 자식 노드는 모두 검사한 것이다.
+         * 부모의 오른쪽 자식 노드를 살펴보기 위해 부모 노드로 올라간다.
+         */
+        prio_tree_parent(iter);
+    }
+
+    /* 오른쪽 자식 노드가 주어진 범위가 겹친다면 반환한다 */
+    if (overlap(iter, r_index, h_index))
+        return iter-&gt;cur;
+
+    /* 오른쪽 자식 노드의 왼쪽 자식 노드부터 새로 탐색을 시작한다 */
+    goto repeat;
+}
+</div>
+
+실제로 탐색이 이루어지는 과정을 살펴보기 위해
+다음과 같은 간단한 예제 프로그램을 작성해 보았다.
+트리에 속한 모든 노드를 출력하기 위해 범위를 크게 잡았으며
+각 단계마다 mask, value, size_level이 어떻게 변화하는지 살펴보도록 하자.
+
+먼저 예제 프로그램을 실행하기 위해서는 커널 소스의
+lib/prio_tree.c와 include/linux/prio_tree.h 파일을 적당한 위치에 복사한다.
+prio_tree.h 파일은 커널에서 내부적으로 사용되는 매크로 및 자료 구조를 포함하므로
+이를 사용자 레벨에서 사용하려면 다음과 같은 헤더 파일을 먼저 만들어야 한다.
+(보시다시피 32비트 머신 기준이다.
+64비트 머신에서 테스트 하려면 BITS_PER_LONG의 값을 64로 바꾸면 될 것이다.)
+
+test.h:
+<div class="source">
+#ifndef __PRIO_TREE_TEST_H__
+#define __PRIO_TREE_TEST_H__
+
+#define BITS_PER_LONG    32
+#define ULONG_MAX    (~(0UL))
+
+#define __init
+#define BUG(x)
+#define BUG_ON(x)
+
+#define ARRAY_SIZE(arr)    (sizeof(arr) / sizeof(arr[0]))
+
+#ifndef NULL
+#define NULL    ((void *) 0)
+#endif
+
+#define pgoff_t    int
+
+#endif /* __PRIO_TREE_TEST_H__ */
+</div>
+
+그리고 prio_tree.c 파일에 다음과 같은 패치를 적용한다.
+
+test.patch:
+<div class="source">
+--- prio_tree.c.orig    2009-12-17 18:06:31.000000000 +0900
++++ prio_tree.c    2009-12-17 18:07:37.000000000 +0900
+@@ -11,6 +11,21 @@
+  * 02Feb2004    Initial version
+  */
+ 
++#ifdef TEST
++
++#include "test.h"
++#include "prio_tree.h"
++
++static void get_index(const struct prio_tree_root *root,
++    const struct prio_tree_node *node,
++    unsigned long *radix, unsigned long *heap)
++{
++    *radix = node-&gt;start;
++    *heap = node-&gt;last;
++}
++
++#else
++
+ #include &lt;linux/init.h&gt;
+ #include &lt;linux/mm.h&gt;
+ #include &lt;linux/prio_tree.h&gt;
+@@ -66,6 +81,8 @@
+     }
+ }
+ 
++#endif /* TEST */
++
+ static unsigned long index_bits_to_maxindex[BITS_PER_LONG];
+ 
+ void __init prio_tree_init(void)
+</div>
+
+패치는 "test.h" 파일을 먼저 #include 하도록 하고
+(reverse mapping에서 사용되는) vma 구조체를 참조하지 않도록 수정한 것 뿐이다.
+이 패치는 다음과 같이 적용하면 된다.
+
+
+<div class="source">
+$ patch prio_tree.c &lt; test.patch
+</div>
+
+테스트용 예제 프로그램은 다음과 같다.
+예제로 사용할 트리는 첫 번째 글에서 살펴본 6개의 노드를 포함하도록 하드코딩하였다.
+또한 프로그램이 바로 종료되므로 malloc()으로 할당한 동적 메모리도 free()하지 않았다..;;
+
+main.c:
+<div class="source">
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+#include "test.h"
+#include "prio_tree.h"
+
+struct prio_tree_root root;
+
+struct test {
+    unsigned long start;
+    unsigned long last;
+} nodes[] = {
+    { 1, 6 }, { 3, 4 }, { 2, 5 },
+    { 0, 3 }, { 4, 4 }, { 5, 6 },
+};
+
+int main(int argc, char *argv[])
+{
+    int i, testsize;
+    struct prio_tree_node *pnode;
+    struct prio_tree_iter iter;
+
+    prio_tree_init();
+    INIT_PRIO_TREE_ROOT(&amp;root);
+
+    testsize = ARRAY_SIZE(nodes);
+    for (i = 0; i &lt; testsize; i++) {
+        pnode = malloc(sizeof(struct prio_tree_node));
+        pnode-&gt;start = nodes[i].start;
+        pnode-&gt;last  = nodes[i].last;
+        prio_tree_insert(&amp;root, pnode);
+    }
+
+    prio_tree_iter_init(&amp;iter, &amp;root, 0, 15);
+    puts("[node] [m, v, s]");
+
+    while (pnode = prio_tree_next(&amp;iter))
+        printf("[%lu, %lu] [%lx, %lu, %d]\n",
+               pnode-&gt;start, pnode-&gt;last,
+               iter.mask, iter.value, iter.size_level);
+    return 0;
+}
+</div>
+
+빌드를 위해서 다음과 같은 간단한 Makefile을 작성하면 편리하다.
+
+Makefile:
+<div class="source">
+FILES = main.c prio_tree.c prio_tree.h test.h
+CFLAGS = -g -DTEST
+all: $(FILES)
+    gcc -o psttest $(CFLAGS) main.c prio_tree.c
+</div>
+
+트리가 탐색되는 순서는 다음 그림과 같다.
+즉, 주어진 조건을 만족하는 노드들에 대해 DFS를 수행한다고 볼 수 있다.
+(점선은 더 이상 탐색할 자식 노드가 없어 prio_tree_parent()를 통해 부모 노드로 돌아가는 경우이다.)
+
+
+<div style="text-align:center">
+<img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds16.egloos.com/pds/200912/17/35/c0098335_4b2a07ff07ed9.png" width="344" height="243" onclick="Control.Modal.openDialog(this, event, 'http://pds16.egloos.com/pds/200912/17/35/c0098335_4b2a07ff07ed9.png');" />
+</div>
+
+예제 프로그램의 실행 결과도 동일한 결과를 보여준다.
+
+
+<div class="source">
+$ make
+gcc -o psttest -g -DTEST main.c prio_tree.c
+$ ./psttest 
+[node] [m, v, s]
+[1, 6] [4, 0, 0]
+[2, 5] [2, 0, 0]
+[0, 3] [1, 0, 0]
+[3, 4] [1, 2, 0]
+[5, 6] [2, 4, 0]
+[4, 4] [1, 4, 0]
+</div>
+
+mask(m) 값은 현재 노드의 높이의 지수승에 해당하며,
+value(v) 값은 해당 노드에 도달하기 위해 오른쪽 자식을 선택한 위치이다.
+또한 위의 PST의 overflow subtree를 포함하지 않으므로
+size_level(s) 값은 모두 0이다.
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/algorithm" rel="tag">algorithm</a>
+</div>
+

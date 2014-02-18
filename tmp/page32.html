@@ -1,0 +1,178 @@
+	
+<div class="version">
+Linux: 2.6.38-rc6
+arch: x86_64
+qemu: 0.12.3
+minicom: 2.4
+</div>
+
+이전 글 보기:
+
+<ul>
+  <li><a href="http://studyfoss.egloos.com/5490783" title="">[Linux] 커널 디버거 사용법 (1) - kgdb</a></li>
+</ul>
+이제 kdb에 대해서도 살펴보기로 하자.
+kdb는 내부적으로 kgdb와 동일한 루틴들을 이용하므로 상호연동이 가능하며
+kdb를 이용하기 위해서는 커널 설정 시 다음과 같은 옵션을 더 추가해야 한다.
+
+<ul>
+  <li>CONFIG_KGDB_KDB=y</li>
+</ul>
+기본적으로 kdb는 serial console을 그대로 이용하므로 장치/보드에 하나의 serial port 만 있어도
+kdb를 이용할 수 있다. 먼저 이러한 환경을 구성하기 위해 다음과 같이 qemu를 실행한다.
+
+
+<div class="source">
+$ qemu-system-x86_64 -kernel vmlinuz-2.6.38-rc6 -hda rootfs.img -serial pty \
+-append "console=ttyS0,115200 kgdboc=ttyS0 root=/dev/sda"
+</div>
+
+커널 부트 옵션 (-append 부분)에 console이 추가된 것과 kgdboc에 동일한 터미널을 지정한 점,
+kgdbwait 옵션이 사라진 것에 주의하자.
+
+이제 qemu가 알려준 가상 터미널 장치 (여기서는 /dev/pts/3 이라 가정할 것이다.)에
+minicom 프로그램을 이용하여 다음과 같이 접속한다.
+
+
+<div class="source">
+$ minicom -p /dev/pts/3 -b 115200
+</div>
+
+이는 정상적인 콘솔 연결이므로 printk 메시지를 살피거나 명령을 실행할 수 있으며
+kdb로 제어가 넘어오게되면 다음과 같은 내용을 출력하며 kdb 프롬프트가 나타난다.
+앞서와 같이 magic sysrq 키를 이용하는 경우라면 다음과 같을 것이다.
+
+
+<div class="source">
+minicom# echo g &gt; /proc/sysrq-trigger
+[ 1150.545343] SysRq : DEBUG
+
+Entering kdb (current=0xffff8800069413a0, pid 51) on processor 0 due to Keyboard Entry
+[0]kdb&gt;
+</div>
+
+(minicom# 이라는 프롬프트는 이 명령을 minicom 상에서 root 권한으로 실행해야 함을 나타낸다.
+Jason Wessel님의 문서에는 minicom의 "send break" 기능을 이용하여 magic sysrq와 같은 효과를
+낼 수 있다고 했지만 내 환경에서는 동작하지 않았다. 원인을 아시는 분이 있으면 알려주면 감사하겠다.)
+
+여기서 [0]kdb&gt; 부분이 kdb 프롬프트이며 kdb 명령을 입력할 수 있다.
+(숫자 0은 cpu 번호이며 SMP 커널이 아닌 경우라면 단순히 kdb&gt; 라고만 나타날 것이다.)
+
+우선 help를 입력하며 사용 가능한 명령어의 목록과 간단한 설명을 볼 수 있다.
+
+
+<div class="source">
+[0]kdb&gt; help
+Command         Usage                Description
+----------------------------------------------------------
+md              &lt;vaddr&gt;              Display Memory Contents, also mdWcN, e.g. md8c1
+mdr             &lt;vaddr&gt; &lt;bytes&gt;      Display Raw Memory
+mdp             &lt;paddr&gt; &lt;bytes&gt;      Display Physical Memory
+mds             &lt;vaddr&gt;              Display Memory Symbolically
+mm              &lt;vaddr&gt; &lt;contents&gt;   Modify Memory Contents
+go              [&lt;vaddr&gt;]            Continue Execution
+rd                                   Display Registers
+rm              &lt;reg&gt; &lt;contents&gt;     Modify Registers
+ef              &lt;vaddr&gt;              Display exception frame
+bt              [&lt;vaddr&gt;]            Stack traceback
+btp             &lt;pid&gt;                Display stack for process &lt;pid&gt;
+bta             [DRSTCZEUIMA]        Display stack all processes
+btc                                  Backtrace current process on each cpu
+btt             &lt;vaddr&gt;              Backtrace process given its struct task address
+ll              &lt;first-element&gt; &lt;lin Execute cmd for each element in linked list
+env                                  Show environment variables
+set                                  Set environment variables
+help                                 Display Help Message
+?                                    Display Help Message
+cpu             &lt;cpunum&gt;             Switch to new cpu
+kgdb                                 Enter kgdb mode
+ps              [&lt;flags&gt;|A]          Display active task list
+pid             &lt;pidnum&gt;             Switch to another task
+reboot                               Reboot the machine immediately
+lsmod                                List loaded kernel modules
+sr              &lt;key&gt;                Magic SysRq key
+dmesg           [lines]              Display syslog buffer
+defcmd          name "usage" "help"  Define a set of commands, down to endefcmd
+kill            &lt;-signal&gt; &lt;pid&gt;      Send a signal to a process
+summary                              Summarize the system
+per_cpu                              Display per_cpu variables
+grephelp                             Display help on | grep
+bp              [&lt;vaddr&gt;]            Set/Display breakpoints
+bl              [&lt;vaddr&gt;]            Display breakpoints
+bph             [&lt;vaddr&gt;]            [datar [length]|dataw [length]]   Set hw brk
+bc              &lt;bpnum&gt;              Clear Breakpoint
+be              &lt;bpnum&gt;              Enable Breakpoint
+bd              &lt;bpnum&gt;              Disable Breakpoint
+ss                                   Single Step
+ssb                                  Single step to branch/call
+dumpcommon                           Common kdb debugging
+dumpall                              First line debugging
+dumpcpu                              Same as dumpall but only tasks on cpus
+ftdump          [skip_#lines] [cpu]  Dump ftrace log
+</div>
+
+시스템 전반적인 정보를 얻으려면 summary, ps, dmesg 및 dump 계열의 명령을 이용할 수 있다.
+(파이프 문자 '|'와 grep 명령을 통해 원하는 내용 만을 골라낼 수도 있다.)
+
+bp 명령을 통해 break point를 설정하거나 bc/bd/be 명령으로 이를 조작하는 것이 가능하다.
+md/mm 명령은 메모리의 내용을 살펴보거나 변경할 수 있으며
+마찬가지로 레지스터의 내용을 살펴보거나 변경하기 위해 rd/rm 명령을 이용할 수 있다.
+
+기본적으로 메모리 접근 시에는 가상 주소를 이용하므로 (mdp 명령은 제외)
+원하는 경우 pid 명령 혹은 cpu 명령을 통해 다른 프로세스를 선택할 수 있다.
+(물론 커널 영역의 메모리는 모든 프로세스에서 동일하다..)
+
+ss/ssb 명령을 통해 single step으로 실행하는 것이 가능하지만
+아직 소스는 물론 어셈블리 명령어도 볼 수 없으므로 그리 유용하지는 않을 것 같다.
+
+bt 명령은 stack back trace를 통해 함수 호출 경로를 보여주는데
+현재 프로세스는 물론 pid나 task_struct를 통해 특정 프로세스를 지정하거나
+각 cpu 별로 실행 중이거나 특정 상태 (running, sleep, zombie, ...)의 프로세스를 지정할 수 있다.
+KALLSYMS 기능으로 인해 kdb에서도 back trace 시 심볼 정보에 접근할 수 있으므로 유용하다.
+
+ps와 bta 명령의 경우 원하는 프로세스를 지정하기 위해 프로세스의 상태를 나타내는 문자열을
+인자로 넘길 수 있다. 단순히 "A"를 이용하면 모든 프로세스를 지정한다.
+대부분 사용자 모드의 ps 프로그램의 출력과 비슷한 값을 같지만 다음과 같은 차이가 있다.
+
+<ul>
+  <li>C : traced process</li>
+  <li>E : dead process</li>
+  <li>U : uninitialized process</li>
+  <li>I : idle process</li>
+  <li>M : (sleeping) system process (= kernel thread)</li>
+</ul>따라서 인자로 넘길 수 있는 문자열은 "DRSTCZEUIMA"의 부분집합이 된다.
+
+이 외에도 현재 로드된 모듈 정보를 볼 수 있는 lsmod 명령이나
+다른 프로세스에게 시그널을 전달하기 위한 kill 명령 혹은
+kdb의 동작에 영향을 주는 환경 변수를 확인/수정할 수 있는 env/set 명령도 존재한다.
+
+원하는 정보를 얻은 후에는 다시 시스템을 정상 실행하거나 (go 명령), 리부팅할 수 있다 (reboot 명령).
+만약 kgdb가 연결되어 있다면 (이 내용은 이 후에 다시 다룰 것이다) kgdb에게 제어를 넘겨줄 수도 있다.
+
+아마도 실제로 kdb를 통해 수행할 수 있는 디버깅 작업은 그리 많지 않을 것이다.
+하지만 kdb의 장점은 현재 실행 중인 커널의 정보를 직접 접근할 수 있다는 것이므로
+kgdb에서 불가능하거나 혹은 매우 복잡한 작업들을 처리하기에 편리한 부분이 있다.
+
+따라서 많은 경우 kgdb와 kdb를 동시에 사용하여 디버깅을 수행하거나
+혹은 kdb를 통해 원하는 정보를 얻은 후 나중에 이 정보를 바탕으로 gdb 등을 통해 디버깅을 수행할 수
+있을 것이다. (물론 후자의 경우 kexec/kdump를 통해 커널의 vmcore 파일을 얻는 것이 더 나을지도 모른다.)
+
+다음 글에서는 kgdb와 kdb를 연동하는 방법에 대해 살펴볼 것이다.
+
+
+=== 참조 문헌 ===
+
+<ul>
+  <li><a target="_blank" href="http://kernel.org/pub/linux/kernel/people/jwessel/kdb/">http://kernel.org/pub/linux/kernel/people/jwessel/kdb/</a></li>
+  <li><a target="_blank" href="http://qemu.weilnetz.de/qemu-doc.html">http://qemu.weilnetz.de/qemu-doc.html</a></li>
+  <li><a target="_blank" href="http://kernel.org/pub/linux/kernel/people/jwessel/dbg_webinar/">http://kernel.org/pub/linux/kernel/people/jwessel/dbg_webinar/</a></li>
+</ul>
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/debug" rel="tag">debug</a>, <a href="/tag/qemu" rel="tag">qemu</a>
+</div>
+

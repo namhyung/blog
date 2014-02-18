@@ -1,0 +1,150 @@
+	
+<div class="version">
+gcc: 4.5.0
+</div>
+
+
+글을 시작하기 전에 먼저 고백할 것이 있다.
+내가 주로 사용하는 언어는 (C++ 혹은 Java와 같은 예외 처리를 지원하는 언어가 아닌) C 언어이다.
+여기서는 gcc의 일반적인 예외 처리(EH) 과정을 살펴볼 것이므로
+실제 해당 언어에서 사용되는 방식과는 세부적인 면에서 차이가 있을 수 있다.
+
+gcc의 예외 처리 방식은 backend에서 지원하는 기능의 정도에 따라 달라질 수 있겠지만
+여기서는 DWARF2 debugging format을 지원하는 환경을 가정하고 설명할 것이다.
+
+gcc의 예외 처리 방식은 IA-64의 C++ ABI를 기반으로 하여 동작한다.
+예외 처리를 위해서는 중첩된 함수 호출 관계를 거슬러 올라가(unwind)
+해당 예외를 처리하는 handler를 찾아서 실행해야 하므로
+필연적으로 stack unwinding과 관련이 있다.
+
+따라서 IA-64 C++ ABI에서는 예외 처리를 위한 Unwind 라이브러리 인터페이스를 정의하고 있으며
+gcc (정확히 말하면 gcc와 함께 배포되는 libgcc_{s,eh})에는 이에 대한 구현이 포함되어 있다.
+(이는 --as-needed 링커 옵션을 통해 필요한 경우에만 자동으로 링크된다.)
+
+참고로 예외 발생 시 stack unwinding을 위해 실행되는 clean up 함수와
+실제 exception handler 함수를 "landing pad"라고 부른다.
+
+stack unwinding은 실제로 예외가 발생한 경우 이외에도
+longjmp()가 호출되거나 스레드가 종료(cancel)하는 경우에도 일어나므로 이를 구분하기 위해
+후자의 경우를 "forced unwinding"이라고 표현하며 일반 예외 처리와는 약간 다르게 처리되므로
+이에 대해서는 더 이상 언급하지 않을 것이다.
+
+예외를 발생(throw)시키는 것은 _Unwind_RaiseException() 함수가 처리하는데
+이 함수는 총 2 번에 걸쳐 스택을 거슬러 올라가며 작업을 수행하는데
+첫 번째 단계 (search phase)에서는 적절한 exception handler를 찾고
+두 번째 단계 (cleanup phase)에서 앞서 찾은 handler가 위치하는 stack frame에 도달할 때까지
+각 stack frame 별로 지정된 landing pad 코드를 수행한다.
+
+각 단계에서 해당 stack frame에 대한 정보는 (DWARF2의 .debug_frame을 확장한) .eh_frame 섹션에
+CFI 형태로 저장되며 이러한 정보를 분석하여 적절한 exception handler를 수행하는 작업은
+"personality" 루틴이라고 하는 함수가 처리한다.
+
+personality routine은 각 언어 별로 예외 처리에 대한 미묘한 차이를 인식하여 수행되는 루틴으로
+g++의 경우에는 __g++_personality_v0() 함수가 이용된다.
+이 함수는 .eh_frame마다 저장된 CFI 정보를 분석하여 먼저 exception handler를 찾고 (phase 1)
+적절한 landing pad 코드를 호출하면서 handler가 존재하는 frame까지 도달한 후 (phase 2)
+함수 실행을 위한 context를 적절히 구성하여 handler routine이 호출되도록 한다.
+이러한 정보들은 사용한 프로그래밍 언어에 따라 차이가 있으므로 표준적인 형태가 아닌
+LSDA (Language-Specific Data Area)에 별도로 저장된다.
+
+여기까지가 대략적인 예외 처리 과정의 흐름이다.
+알고있듯이 C 언어는 언어 자체적으로 예외 처리를 지원하지 않지만
+gcc 내에 이미 unwind 라이브러리가 구현되어 있으므로 제한적인 범위 내에서
+예외 처리 기능의 일부를 이용할 수 있도록 확장 기능을 제공한다.
+
+이를 위해서는 gcc 실행 시 -fexceptions 옵션을 추가해야 하며
+지역 변수 선언 시 'cleanup' 이라는 이름의 속성(__attribute__)을 주면
+해당 변수가 소멸될 때 자동으로 호출되는 함수를 등록할 수 있다.
+
+다음과 같은 예제를 통해 알아보자.
+
+cleanup.c:
+<div class="source">
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+static void clean_mem (char **pmem)
+{
+  puts("clean up function is called");
+  if (*pmem)
+    free(*pmem);
+}
+
+void foo (int action)
+{
+  __attribute__((cleanup(clean_mem)))
+    char *mem = malloc(10);
+
+  if (action == 1) {
+    puts("action 1");
+    return;
+  }
+  else if (action == 2) {
+    puts("action 2");
+    return;
+  }
+
+  puts("default action");
+  return;
+}
+
+int main (int argc, char *argv[])
+{
+  if (argc == 1)
+    foo(0);
+  else
+    foo(strtol(argv[1], NULL, 10));
+  return 0;
+}
+</div>
+
+foo() 함수의 지역 변수로 mem를 정의할 때 cleanup 속성을 지정하였고
+이 때 clean_mem()이라는 함수가 불리도록 하였다.
+cleanup 속성으로 지정할 함수는 해당 인자의 포인터를 인자로 받는 함수이며
+(여기서 mem은 원래 포인터 타입이므로 함수의 인자가 이중 포인터가 된다)
+return type은 void로 지정하면 된다.
+
+cleanup 속성은 위와 같이 함수가 return되는 곳이 많은 경우에 유용하다.
+cleanup으로 지정된 함수는 반드시 예외가 발생한 상황이 아니더라도
+현재 stack frame이 unwind될 때 항상 호출된다.
+
+
+<div class="source">
+$ gcc -fexceptions cleanup.c
+$ ./a.out
+default action
+clean up function is called
+$
+$ ./a.out 1
+action 1
+clean up function is called
+</div>
+
+gcc 호출 시 -fexceptions 옵션을 지정하면
+모든 함수에 대해 강제로 .eh_frame 섹션에 CFI 정보를 생성한다.
+그 결과 이 정보를 검색하기 위한 .eh_frame_hdr 섹션도 추가로 생성되며
+코드에서 cleanup 속성을 지정한 경우에는 .gcc_except_table 섹션도 추가된다.
+
+따라서 기본적으로 CFI 정보를 생성하지 않는 x86 아키텍처의 경우
+프로그램의 코드 크기가 약간 커지는 부작용이 있지만 (x86_64의 경우는 거의 차이가 없다)
+실제로 실행 시 속도에 미치는 영향은 없다고 하며
+또한 예외 처리를 이용하는 C++ 프로그램/라이브러리와 C로 작성된 라이브러리가 함께 사용될 때는
+-fexceptions 옵션을 이용해야 하는 경우도 있다고 한다.
+
+
+=== 참고 문헌 ===
+
+<ul>
+  <li><a target="_blank" href="http://www.codesourcery.com/public/cxx-abi/abi-eh.html">http://www.codesourcery.com/public/cxx-abi/abi-eh.html</a></li>
+  <li><a href="#%20http://refspecs.freestandards.org/LSB_4.0.0/LSB-Core-generic/LSB-Core-generic/ehframechpt.html">http://refspecs.freestandards.org/LSB_4.0.0/LSB-Core-generic/LSB-Core-generic/ehframechpt.html</a></li>
+  <li><a href="#%20http://www.airs.com/blog/archives/257">http://www.airs.com/blog/archives/257</a></li>
+</ul>
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/gcc" rel="tag">gcc</a>
+</div>
+

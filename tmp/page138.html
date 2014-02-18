@@ -1,0 +1,222 @@
+	
+<div class="version">
+Linux kernel : 2.6.30
+</div>
+
+
+bootmem 메모리 할당자는 초기에 시스템의 페이징 기능이 활성화된 후부터
+많은 초기화 작업이 끝난 후 buddy 할당자 시스템이 동작하기 전까지
+시스템에 필요한 메모리 할당을 관리하는 루틴들의 집합이다.
+
+bootmem 메모리 할당자는 단순함을 위해 커널 메모리 공간에 직접 매핑된 
+low memory 영역 만을 관리하며, 요청이 들어오면 정해진 시작 위치에서부터
+순차적으로 메모리 구간을 할당하는 역할을 수행한다.
+메모리 할당 정보는 페이지 단위로 한 비트를 배정한 비트맵을 이용한다.
+
+NUMA 시스템 지원을 위해 각 메모리 노드는 다음과 같은
+bootmem_data_t 데이터에 대한 포인터를 포함한다.
+
+
+<div class="source">
+/*
+ * node_bootmem_map is a map pointer - the bits represent all physical 
+ * memory pages (including holes) on the node.
+ */
+typedef struct bootmem_data {
+    unsigned long node_min_pfn;  // 영역의 시작 페이지
+    unsigned long node_low_pfn;  // 영역의 마지막 페이지 (이름이 그리 좋지 않다.. ;;)
+    void *node_bootmem_map;      // 관리용 비트맵
+    unsigned long last_end_off;  // 마지막으로 할당한 위치
+    unsigned long hint_idx;      // 다음에 사용될 페이지 (힌트)
+    struct list_head list;       // 다른 노드의 bootmem_data를 연결하는 포인터
+} bootmem_data_t;
+</div>
+
+이를 그림으로 나타내면 아래와 같다.
+
+<div style="text-align:center">
+<img class="image_mid" border="0" onmouseover="this.style.cursor='pointer'" alt="" src="http://pds12.egloos.com/pds/200906/30/35/c0098335_4a4a27d6b4012.png" width="500" height="163.430420712" onclick="Control.Modal.openDialog(this, event, 'http://pds12.egloos.com/pds/200906/30/35/c0098335_4a4a27d6b4012.png');" />
+</div>
+
+bootmem 할당자의 초기화는 아키텍처에 종속적이며
+setup_arch() 함수 내에서 시스템 메모리 맵을 구성하여 max_low_pfn이 정해진 후 수행된다.
+
+bootmem 할당자의 핵심 함수는 alloc_bootmem_core() 함수이다.
+이 함수는 주어진 메모리 노드에서만 할당 영역을 찾는다.
+함수는 다음과 같이 정의되며 먼저 몇 가지 실행 조건들을 검사한다.
+
+
+<div class="source">
+static void * __init alloc_bootmem_core(struct bootmem_data *bdata,
+                    unsigned long size, unsigned long align,
+                    unsigned long goal, unsigned long limit)
+{
+    unsigned long fallback = 0;
+    unsigned long min, max, start, sidx, midx, step;
+
+    bdebug("nid=%td size=%lx [%lu pages] align=%lx goal=%lx limit=%lx\n",
+        bdata - bootmem_node_data, size, PAGE_ALIGN(size) &gt;&gt; PAGE_SHIFT,
+        align, goal, limit);
+
+    BUG_ON(!size);
+    BUG_ON(align &amp; (align - 1));
+    BUG_ON(limit &amp;&amp; goal + size &gt; limit);
+
+    if (!bdata-&gt;node_bootmem_map)
+        return NULL;
+</div>
+
+bdata는 위에서 살펴본 bootmem_data_t 구조체에 대한 포인터이며,
+size는 요청한 크기, align은 요청한 메모리의 시작 위치의 정렬 단위로
+반드시 2의 지수승 크기여야 한다. (align &amp; (align -1)이 0이 되기 위한 조건)
+또한 goal은 할당을 시작할 위치이며 (단지 힌트로만 사용한다)
+limit는 가능한 할당 영역의 마지막 위치를 지정한다.
+모든 크기는 바이트 단위이다.
+
+
+<div class="source">
+    min = bdata-&gt;node_min_pfn;
+    max = bdata-&gt;node_low_pfn;
+
+    goal &gt;&gt;= PAGE_SHIFT;
+    limit &gt;&gt;= PAGE_SHIFT;
+
+    if (limit &amp;&amp; max &gt; limit)
+        max = limit;
+    if (max &lt;= min)
+        return NULL;
+
+    step = max(align &gt;&gt; PAGE_SHIFT, 1UL);
+
+    if (goal &amp;&amp; min &lt; goal &amp;&amp; goal &lt; max)
+        start = ALIGN(goal, step);
+    else
+        start = ALIGN(min, step);
+
+    sidx = start - bdata-&gt;node_min_pfn;
+    midx = max - bdata-&gt;node_min_pfn;
+
+    if (bdata-&gt;hint_idx &gt; sidx) {
+        /*
+         * Handle the valid case of sidx being zero and still
+         * catch the fallback below.
+         */
+        fallback = sidx + 1;
+        sidx = align_idx(bdata, bdata-&gt;hint_idx, step);
+    }
+</div>
+
+다음으로 주어진 인자들을 페이지 단위 크기로 변경하여
+메모리를 할당할 페이지 구간의 인덱스를 얻는다. (sidx, midx)
+
+step은 페이지 단위의 정렬 요구 사항으로
+goal이 올바른 값으로 주어졌다면 step 단위로 정렬하여 start 값을 계산하고
+그렇지 않은 경우에는 전체 영역의 시작 위치로 start 값을 설정한다.
+
+bdata-&gt;hint_idx가 sidx보다 큰 경우는 hint를 이용할 수 있다는 의미로
+우선 hint를 사용하여 할당을 시작할 위치를 변경하고
+실패할 경우를 대비해 fallback 값으로 원래 시작 위치를 저장해 둔다.
+(sidx값이 원래 0인 경우 fallback이 0으로 설정되지 않도록 1을 더해둔다.)
+
+
+<div class="source">
+    while (1) {
+        int merge;
+        void *region;
+        unsigned long eidx, i, start_off, end_off;
+find_block:
+        sidx = find_next_zero_bit(bdata-&gt;node_bootmem_map, midx, sidx);
+        sidx = align_idx(bdata, sidx, step);
+        eidx = sidx + PFN_UP(size);
+
+        if (sidx &gt;= midx || eidx &gt; midx)
+            break;
+
+        for (i = sidx; i &lt; eidx; i++)
+            if (test_bit(i, bdata-&gt;node_bootmem_map)) {
+                sidx = align_idx(bdata, i, step);
+                if (sidx == i)
+                    sidx += step;
+                goto find_block;
+            }
+
+        if (bdata-&gt;last_end_off &amp; (PAGE_SIZE - 1) &amp;&amp;
+                PFN_DOWN(bdata-&gt;last_end_off) + 1 == sidx)
+            start_off = align_off(bdata, bdata-&gt;last_end_off, align);
+        else
+            start_off = PFN_PHYS(sidx);
+
+        merge = PFN_DOWN(start_off) &lt; sidx;
+        end_off = start_off + size;
+
+        bdata-&gt;last_end_off = end_off;
+        bdata-&gt;hint_idx = PFN_UP(end_off);
+
+        /*
+         * Reserve the area now:
+         */
+        if (__reserve(bdata, PFN_DOWN(start_off) + merge,
+                PFN_UP(end_off), BOOTMEM_EXCLUSIVE))
+            BUG();
+
+        region = phys_to_virt(PFN_PHYS(bdata-&gt;node_min_pfn) +
+                start_off);
+        memset(region, 0, size);
+        return region;
+    }
+</div>
+
+이제 본격적인 할당 과정이다.
+먼저 요청이 페이지 단위의 시작 위치에서부터 할당된다고 가정하고
+node_bootmem_map에서 할당 가능한 첫 비트를 찾아서 step 단위로 정렬하고
+이에 따라 sidx와 edix 값을 갱신한다.
+(bootmem 할당자는 메모리를 순차적으로 할당하기 때문에
+대개 최초로 찾은 구간 이후의 영역은 비어있다고 낙관적으로 생각할 수 있다.)
+
+이제 sidx와 edix 사이의 구간이 정말로 비어있는지 검사한다.
+그렇지 않다면 비어있지 않은 위치(i)에서 step 만큼 정렬하여
+새로운 시작 위치를 지정하는데 i가 이미 step만큼 정렬되어 있다면 의미가 없으므로
+다음 위치를 지정하기 위해 step을 더하고 find_block부터 다시 시작한다.
+(어차피 find_next_zero_bit에서 i는 건너뛸테고 그 이후 바로 align_idx를 호출하니
+꼭 필요친 않아 보인다...)
+
+여기까지 왔다면 할당 가능한 영역을 찾은 것이다.
+이제 페이지 크기보다 작은 요청이 들어온 경우를 고려한다.
+이러한 요청이 들어온 경우에는 메모리 단편화를 최소화 하기 위해
+이전에 할당한 오프셋 이후의 공간을 활용할 수 있는 방법을 제공한다.
+(물론 정렬 단위가 페이지 크기 이하여야 한다.)
+
+가능한 경우라면 last_end_off 값을 이용하여 시작 위치를 재지정한다.
+이렇게 시작 위치가 이전에 할당한 페이지 안으로 들어갈 수 있다면
+merge 값을 1로 설정하여 할당 시 그 다음 페이지부터 비트를 설정하도록 한다.
+(굳이 이럴 필요가 있을까 싶다..)
+
+이제 새로 지정된 start_off에 따라 값들을 갱신하고나면
+__reserve() 함수를 호출하여 비트맵에 비트를 설정하고
+해당 영역의 데이터를 모두 0으로 설정한 뒤 가상 주소값을 반환한다.
+
+
+<div class="source">
+    if (fallback) {
+        sidx = align_idx(bdata, fallback - 1, step);
+        fallback = 0;
+        goto find_block;
+    }
+
+    return NULL;
+}
+</div>
+
+여기까지 왔다면 할당할 영역을 찾지 못한 것이다.
+만약 이전에 hint_idx 값을 이용하여 할당을 시도했었다면 (fallback &gt; 0)
+원래의 sidx 값을 복원하여 다시 한번 시도해본다.
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/boot" rel="tag">boot</a>, <a href="/tag/memory" rel="tag">memory</a>
+</div>
+

@@ -1,0 +1,201 @@
+	
+<div class="version">
+gcc: 4.4.3
+glibc: 2.10.1
+arch: x86
+</div>
+
+
+gcc 4.1 버전 이후부터는 stack overflow를 방지하기 위한 SSP (stack-smashing protector) 기능이 내장되어 있다.
+SSP는 함수 진입 시 스택에 return address와 frame pointer 정보를 저장할 때
+이 정보를 보호하기 위해 (canary라고 부르는) 특정한 값을 기록해두고
+함수에서 반환할 때 기록된 값이 변경되지 않았는지 검사하여 정보의 일관성을 관리한다.
+만약 악의적인 사용자가 buffer overflow 등의 공격을 통해 스택 내의 정보를 덮어쓰려면
+canary 값을 먼저 덮어써야 하기 때문에 canary 값 만 보면 공격이 일어났는지를 알 수 있다.
+
+canary라는 이름은 탄광에서 광부들이 작업할 때 유독 가스가 발생하는지 확인하기 위해
+가스에 훨씬 민감한 카나리아를 함께 데리고 가는 것에서 유래되었다고 한다.
+
+SSP 기능을 사용하기 위해서는 컴파일 시에 -fstack-protector 옵션을 추가해야 한다.
+(빌드 시 configure 설정에 따라 해당 옵션 없이 기본적으로 활성화되기도 한다)
+또한 기본적으로는 일정 크기 이상의 char형 배열을 포함하는 함수에 대해서만 SSP를 적용한다.
+(기본 값은 8이며 컴파일 시 --param ssp-buffer-size=N 옵션으로 변경할 수 있다.)
+이와 상관없이 모든 함수에 적용하고 싶다면 -fstack-protector-all 옵션을 이용하면 된다.
+
+다음과 같은 간단한 예제를 통해 살펴보자.
+
+ssp.c:
+<div class="source">
+void protected_func(void)
+{
+  char buf[8];
+}
+
+int main(void)
+{
+  protected_func();
+  return 0;
+}
+</div>
+
+위와 파일을 -fstack-protector로 컴파일 하면 protected_func()에만 SSP가 적용될 것이다.
+
+
+<div class="source">
+$ gcc -fstack-protector -S ssp.c
+$ cat ssp.s
+    .file    "ssp.c"
+    .text
+.globl protected_func
+    .type    protected_func, @function
+protected_func:
+    pushl    %ebp
+    movl    %esp, %ebp
+    subl    $24, %esp
+    movl    %gs:20, %eax
+    movl    %eax, -12(%ebp)
+    xorl    %eax, %eax
+    movl    -12(%ebp), %eax
+    xorl    %gs:20, %eax
+    je    .L3
+    call    __stack_chk_fail
+.L3:
+    leave
+    ret
+    .size    protected_func, .-protected_func
+.globl main
+    .type    main, @function
+main:
+    pushl    %ebp
+    movl    %esp, %ebp
+    andl    $-16, %esp
+    call    protected_func
+    movl    $0, %eax
+    movl    %ebp, %esp
+    popl    %ebp
+    ret
+    .size    main, .-main
+    .ident    "GCC: (GNU) 4.4.3"
+    .section    .note.GNU-stack,"",@progbits
+</div>
+
+protected_func의 마지막 부분에 __stack_chk_fail을 호출하는 부분이 보일 것이다.
+이 부분이 보이면 SSP 기능이 적용된 것이라고 판단할 수 있다.
+반면 main 함수는 char 배열을 포함하지 않으므로 해당 함수 호출이 생성되지 않았다.
+위에서 언급한 옵션들을 바꿔 적용해보면 동작이 달라지는 것을 확인할 수 있을 것이다.
+
+위의 protected_func 부분을 유심히 살펴보면 알겠지만 canary 값은
+gs 레지스터가 가리키는 세그먼트의 20번째 오프셋에 저장되어 있다. (%gs:20)
+앞서 TLS (thread local storage)를 살펴볼 때 gs 레지스터가 각 스레드에 대한 고유 정보를 저장하는
+TCB (thread control block)의 시작 위치를 가리키도록 설정되어 있을을 보았다.
+만약 TLS가 사용되는 않는 환경이라면 __stack_chk_guard라는 전역 변수에 이를 저장한다.
+
+canary 값은 프로그램 실행 시 main() 이전에 실행되는 __libc_start_main() 함수에 의해 설정되는데
+기본적으로 커널이 aux vector를 통해 넘겨준 난수값을 이용하거나
+/dev/urandom 파일을 읽어서 난수를 생성한 후 사용하지만 (random canary)
+이것은 불가능한 상황이라면 0xFF0A0000 이라는 특정한 값을 사용한다. (terminator canary)
+참고로 우분투의 경우는 현재 시간을 기준으로 난수를 생성하도록 패치를 적용했으며
+하위 바이트를 항상 0으로 만들어서 random + terminator canary의 형태로 사용한다.
+
+만약 악의적인 사용자가 공격을 시도할 때 실행 시 마다 달라지는 random canary 값을 알아내기는 힘들며
+terminator canary의 경우에도 일반적인 문자열 연산으로는 해당 값을 덮어쓰기는 불가능하다.
+각각은 문자열을 종료시키는 char 타입의 '\0', '\n', -1 값에 해당하기 때문이다.
+
+최근의 리눅스 커널은 컴파일할 때 SSP 기능을 이용하도록 할 수 있는데
+설정 시 CONFIG_CC_STACKPROTECTOR를 선택하면
+percpu 변수로 다음과 같은 stack_canary 구조체를 생성한다.
+
+
+<div class="source">
+struct stack_canary {
+    char __pad[20];        /* canary at %gs:20 */
+    unsigned long canary;
+};
+DECLARE_PER_CPU_ALIGNED(struct stack_canary, stack_canary);
+</div>
+
+%gs:20 위치에 canary 값을 저장하기 위해 20바이트의 패딩을 넣도록 되어 있으며,
+GDT에 stack canary를 위한 항목을 추가하여 (GDT_ENTRY_STACK_CANARY) gs가 이를 가리키도록 한다.
+커널은 사용자 공간의 메모리에 접근해서는 안되기 때문에 이렇게 별도의 세그먼트가 필요하다.
+canary 값 자체는 각 task_struct에 별도로 저장되며 context switching 마다 바꿔서 저장한다.
+
+__stack_chk_fail() 함수는 glibc 내에 다음과 같이 정의되어 있으며
+"stack smashing detected"라는 문자열과 함께 __fortify_fail()을 호출하여
+backtrace 정보와 memory map를 출력하고 프로그램을 종료시킨다.
+
+
+<div class="source">
+void
+__attribute__ ((noreturn))
+__stack_chk_fail (void)
+{
+  __fortify_fail ("stack smashing detected");
+}
+</div>
+
+위의 protected_func() 함수에서 strcpy 등의 문자열 함수를 통해
+버퍼 크기 이상의 데이터를 덮어쓰도록 수정하고 실행해보면 다음과 같은 메시지를 볼 수 있다.
+
+
+<div class="source">
+$ ./a.out
+*** stack smashing detected ***: ./a.out terminated
+======= Backtrace: =========
+/lib/tls/i686/cmov/libc.so.6(__fortify_fail+0x48)[0xb7834ed8]
+/lib/tls/i686/cmov/libc.so.6(__fortify_fail+0x0)[0xb7834e90]
+./a.out[0x8048412]
+[0x21676e]
+======= Memory map: ========
+08048000-08049000 r-xp 00000000 08:01 2105347    /home/namhyung/temp/prog/a.out
+08049000-0804a000 rw-p 00000000 08:01 2105347    /home/namhyung/temp/prog/a.out
+080ac000-080cd000 rw-p 00000000 00:00 0          [heap]
+b7735000-b7752000 r-xp 00000000 08:01 3305401    /usr/local/lib/libgcc_s.so.1
+b7752000-b7753000 rw-p 0001c000 08:01 3305401    /usr/local/lib/libgcc_s.so.1
+b7753000-b7754000 rw-p 00000000 00:00 0 
+b7754000-b7892000 r-xp 00000000 08:01 2466638    /lib/tls/i686/cmov/libc-2.10.1.so
+b7892000-b7893000 ---p 0013e000 08:01 2466638    /lib/tls/i686/cmov/libc-2.10.1.so
+b7893000-b7895000 r--p 0013e000 08:01 2466638    /lib/tls/i686/cmov/libc-2.10.1.so
+b7895000-b7896000 rw-p 00140000 08:01 2466638    /lib/tls/i686/cmov/libc-2.10.1.so
+b7896000-b7899000 rw-p 00000000 00:00 0 
+b78b1000-b78b3000 rw-p 00000000 00:00 0 
+b78b3000-b78ce000 r-xp 00000000 08:01 2450200    /lib/ld-2.10.1.so
+b78ce000-b78cf000 r--p 0001a000 08:01 2450200    /lib/ld-2.10.1.so
+b78cf000-b78d0000 rw-p 0001b000 08:01 2450200    /lib/ld-2.10.1.so
+bfd73000-bfd88000 rw-p 00000000 00:00 0          [stack]
+ffffe000-fffff000 r-xp 00000000 00:00 0          [vdso]
+Aborted
+</div>
+
+마찬가지로 커널 내에도 __stack_chk_fail 함수가 존재하며 다음과 같이 단순히 panic을 발생시킨다.
+
+
+<div class="source">
+void __stack_chk_fail(void)
+{
+    panic("stack-protector: Kernel stack is corrupted in: %p\n",
+        __builtin_return_address(0));
+}
+EXPORT_SYMBOL(__stack_chk_fail);
+</div>
+
+참고로 gcc 내에도 자체적으로 (libssp의 형태로) 이러한 SSP 구현을 포함하고 있다.
+glibc의 경우에는 이미 이 기능이 내장되어 있으므로 libssp를 링크할 필요가 없지만
+이를 이용할 수 없는 다른 환경에서는 필요에 따라 libssp를 직접 링크하여 사용할 수 있을 것이다.
+
+
+=== 참고 문헌 ===
+
+<ul>
+  <li><a target="_blank" href="http://en.wikipedia.org/wiki/Buffer_overflow_protection">http://en.wikipedia.org/wiki/Buffer_overflow_protection</a></li>
+  <li><a target="_blank" href="http://www.research.ibm.com/trl/projects/security/ssp/">http://www.research.ibm.com/trl/projects/security/ssp/</a></li>
+  <li><a target="_blank" href="http://lfs.phayoune.org/hints/downloads/files/ssp.txt">http://lfs.phayoune.org/hints/downloads/files/ssp.txt</a></li>
+</ul>
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/gcc" rel="tag">gcc</a>, <a href="/tag/glibc" rel="tag">glibc</a>, <a href="/tag/memory" rel="tag">memory</a>, <a href="/tag/debug" rel="tag">debug</a>, <a href="/tag/x86" rel="tag">x86</a>
+</div>
+

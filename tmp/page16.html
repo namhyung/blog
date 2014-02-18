@@ -1,0 +1,81 @@
+	
+<div class="version">
+Linux: 3.0
+</div>
+
+
+기존의 버전 체계를 뒤엎고 새로이 3.0 커널이 발표되었다. (<a target="_blank" href="http://kernelnewbies.org/Linux_3.0">변경 사항 보기</a>)
+3.0 버전은 원래 2.6.40으로 예정되어있던 것이니만큼
+눈에 띄는 기능 추가라던가 구조 변경같은 것은 없었다.
+(라고하지만 일반적인 version up release에도 꽤 많은 변경 사항이 있긴 하다..)
+
+Linus님은 2.6 대의 커널이 이미 꽤 오랜 시간 동안 개발되어 왔기 때문에
+같은 2.6 커널이라고 해도 초반 버전의 커널과 최근의 커널과는 엄청난 차이가 있으므로
+더 이상 2.6이라는 숫자를 유지하는 것이 의미가 없다고 판단하였다.
+
+또한 버전 체계를 2.6.x와 같은 3자리에서 단순히 3.0과 같은 2자리로 변경하려고 했는데
+(따라서 stable release들은 2.6.x.y의 4자리에서 3.0.x의 3자리로 변경될 것이다)
+기존의 사용자 프로그램과의 호환성 문제로 인해 아직까지는(?) 3.0.0과 같이
+3자리의 버전 번호를 사용하고 있다. (대신 stable release는 3자리 버전을 이용할 것이다.)
+
+물론 git tag라던가 tarball 이름은 3.0과 같이 2자리로 변경되었으므로
+언젠가는 완전히 옮겨가게 될 것이다.
+
+
+<div class="source">
+$ git log --author=namhyung v2.6.39..v3.0 | git shortlog
+Namhyung Kim (34):
+      splice: add wakeup_pipe_readers()
+      cfq-iosched: algebraic simplification in cfq_prio_to_maxrq()
+      cfq-iosched: reduce bit operations in cfq_choose_req()
+      cfq-iosched: remove unused 'group_changed' in cfq_service_tree_add()
+      cfq-iosched: free cic_index if cfqd allocation fails
+      loop: limit 'max_part' module param to DISK_MAX_PARTS
+      loop: handle on-demand devices correctly
+      mm: nommu: sort mm-&gt;mmap list properly
+      mm: nommu: don't scan the vma list when deleting
+      mm: nommu: find vma using the sorted vma list
+      mm: nommu: check the vma list when unmapping file-mapped vma
+      mm: nommu: fix a potential memory leak in do_mmap_private()
+      mm: nommu: fix a compile warning in do_mmap_pgoff()
+      brd: get rid of unused members from struct brd_device
+      brd: limit 'max_part' module param to DISK_MAX_PARTS
+      brd: handle on-demand devices correctly
+      brd: fix comment on initial device creation
+      brd: export module parameters
+      memcg: mark init_section_page_cgroup() properly
+      memcg: fix off-by-one when calculating swap cgroup map length
+      memcg: move page-freeing code out of lock
+      MAINTAINERS: add mm/page_cgroup.c into memcg subsystem
+      loop: export module parameters
+      nbd: pass MSG_* flags to kernel_recvmsg()
+      nbd: limit module parameters to a sane value
+      nbd: adjust 'max_part' according to part_shift
+      block: remove unwanted semicolons
+      md: check -&gt;hot_remove_disk when removing disk
+      md/bitmap: use proper accessor macro
+      md/bitmap: remove unused fields from struct bitmap
+      md/raid5: fix raid5_set_bi_hw_segments
+      md/raid5: fix FUA request handling in ops_run_io()
+      md/raid5: remove unusual use of bio_iovec_idx()
+      block: add REQ_SECURE to REQ_COMMON_MASK
+
+</div>
+
+개인적으로 이번 커널에는 코어 부분이라 할 수 있는 영역에 제법 많은 패치를 반영할 수 있어서 좋았고
+블록 디바이스 드라이버에서 커널 버그를 찾아서 stable tree에도 back-port된 것들도 있었다.
+
+현재는 block layer를 어느 정도 살펴보고 난 후 (정리를 좀 해야하는데 시간이.. ;;)
+block driver 중에서 md (multiple disks == software RAID) 부분을 주로 살펴보는 중인데
+흥미로운 부분이 많이 있어서 (사실 코드 자체는 좀 지저분한 면이 있지만.. ;;)
+당분간은 계속 md 드라이버 코드를 중점적으로 보게될 것 같다.
+
+
+<div style="clear:both; _display: none;">
+
+</div>
+
+<div class="posttaglist">
+<a href="/tag/linux" rel="tag">linux</a>, <a href="/tag/kernel" rel="tag">kernel</a>, <a href="/tag/patch" rel="tag">patch</a>
+</div>
+

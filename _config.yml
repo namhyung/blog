@@ -36,7 +36,10 @@ plugins:
   - jekyll-feed
   - jekyll-paginate
 
-pagiate: 5
+paginate: 5
+
+kramdown:
+  input: GFM
 
 defaults:
   -
@@ -44,9 +47,6 @@ defaults:
       path: "" # all files
     values:
       layout: "post"
-
-kramdown:
-  input: GFM
 
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list

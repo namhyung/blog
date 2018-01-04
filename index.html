@@ -1,0 +1,15 @@
+---
+layout: default
+title:  Index page
+---
+
+<h1>Recent Posts</h1>
+
+<ul>
+  {% for post in site.posts %}
+    <li>
+      {{ post.date | date_to_long_string }}: <a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a>
+      <p>{{ post.summary | default: post.excerpt | strip_html }}</p>
+    </li>
+  {% endfor %}
+</ul>

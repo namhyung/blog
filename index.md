@@ -1,6 +1,6 @@
 ---
 layout: default
-title:  Testing
+title:  Homepage
 ---
 
 ## Recent posts
@@ -8,8 +8,8 @@ title:  Testing
 <ul class="posts noList">
   {% for post in paginator.posts %}
   <li>
-    <span class="date">{{ post.date | date: '%B %d, %Y' }}</span>
     <h3><a href="{{ site.url }}{{ post.url }}">{{ post.title }}</a></h3>
+    <span class="date">{{ post.date | date: '%B %d, %Y' }}</span>
     <p class="description">
       {% if post.description %}
         {{ post.description  | strip_html | strip_newlines | truncate: 250 }}

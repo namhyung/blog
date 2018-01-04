@@ -9,7 +9,7 @@ title:  Homepage
   {% for post in site.posts %}
     <li>
       <a href="{{ post.url }}">{{ post.title }} on {{ post.date }}</a>
-      <p>{{ post.excerpt }}</p>
+      <p>{{ post.excerpt | strip_html }}</p>
     </li>
   {% endfor %}
 </ul>

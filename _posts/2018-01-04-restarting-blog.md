@@ -1,5 +1,5 @@
 ---
-layout: post
+category: blog
 title: 블로그를 다시 시작하며
 summary: github에서 블로그를 다시 시작하다!
 ---

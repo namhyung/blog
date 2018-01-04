@@ -10,8 +10,8 @@ title: About me
 * Works at LG Electronics
 
 # FOSS contribution
-* https://www.openhub.net/accounts/115130?ref=Detailed
+* [openhub profile](https://www.openhub.net/accounts/115130?ref=Detailed)
 
 # My project
-* [uftrace][https://github.com/namhyung/uftrace]
+* [uftrace](https://github.com/namhyung/uftrace)
 

@@ -34,6 +34,16 @@ plugins:
 
 pagiate: 5
 
+defaults:
+  -
+    scope:
+      path: "" # all files
+    values:
+      layout: "post"
+
+kramdown:
+  input: GFM
+
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
 # to override the default setting.

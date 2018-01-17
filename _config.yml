@@ -45,6 +45,7 @@ defaults:
   -
     scope:
       path: "" # all files
+      type: "posts"
     values:
       layout: "post"
 

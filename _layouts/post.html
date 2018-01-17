@@ -29,6 +29,16 @@
         {{ content }}
       </section>
 
+      <!-- PAGE LINK -->
+      <div id="page_links" class="inner">
+	{% if page.previous.url %}
+	  <a id="prev" href="{{ site.baseurl }}{{ page.previous.url }}">&laquo; {{ page.previous.title }}</a>
+	{% endif %}
+	{% if page.next.url %}
+	  <a id="next" href="{{ site.baseurl }}{{ page.next.url }}">{{ page.next.title }} &raquo;</a>
+	{% endif %}
+      </div>
+
       <!-- DISQUS COMMENT -->
       <div id="disqus_thread" class="inner"></div>
       <script>
